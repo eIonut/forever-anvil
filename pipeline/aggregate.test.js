@@ -2,7 +2,38 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, DAY_MS, SHARDS } = require("./aggregate");
+const { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, DAY_MS, SHARDS } = require("./aggregate");
+
+test("item page address: id + readable slug", () => {
+  const { itemPath } = require("./aggregate");
+  assert.equal(itemPath(2770, "Copper Ore"), "item/2770-copper-ore.html");
+  assert.equal(itemPath(1, "Hillman's Leather Gloves"), "item/1-hillmans-leather-gloves.html");
+  assert.equal(itemPath(5, "Green Hills of Stranglethorn - Page 1"), "item/5-green-hills-of-stranglethorn-page-1.html");
+  assert.equal(itemPath(9, "Zoë's Crêpe"), "item/9-zoes-crepe.html");
+  assert.equal(itemPath(7, null), "item/7.html");
+});
+
+test("flips: only listings below vendor price (minus a small margin) count", () => {
+  const vendor = { 1: 100, 2: 50 };
+  const listings = [
+    { item: { id: 1 }, buyout: 120, quantity: 2 },  // 60 each → profit 40 × 2
+    { item: { id: 1 }, buyout: 90, quantity: 1 },   // 90 → profit 10
+    { item: { id: 1 }, buyout: 98, quantity: 1 },   // 98 → profit 2 < minProfit 5 → skipped
+    { item: { id: 1 }, buyout: 300, quantity: 1 },  // above vendor → skipped
+    { item: { id: 2 }, unit_price: 10, quantity: 5 },// profit 40 × 5 = 200
+    { item: { id: 3 }, buyout: 1, quantity: 1 },    // no vendor price → skipped
+    { item: { id: 1 }, bid: 1, quantity: 1 }        // bid only → skipped
+  ];
+  const flips = computeFlips(listings, (id) => vendor[id] || null);
+  assert.deepEqual(flips, [[2, 5, 200, 10, 50], [1, 3, 90, 60, 100]]);
+});
+
+test("flips: tiny margins on expensive items are ignored (needs 5% and 10c)", () => {
+  const listings = [{ item: { id: 9 }, buyout: 2599, quantity: 1 }]; // vendor pays 2609 → +10c but only 0.4%
+  assert.deepEqual(computeFlips(listings, () => 2609), []);
+  const ok = [{ item: { id: 9 }, buyout: 2400, quantity: 1 }];       // +209c = 8%
+  assert.deepEqual(computeFlips(ok, () => 2609), [[9, 1, 209, 2400, 2609]]);
+});
 
 test("movers: rising, falling vs ~7 days ago; thin items ignored", () => {
   const T = 1000;

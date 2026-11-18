@@ -48,7 +48,8 @@
   ];
   // shown in the "Tools" dropdown
   var TOOLS = [
-    ["prices.html", "Auction prices", "prices"], ["crafting.html", "Craft profits", "crafting"], ["character.html", "Character lookup", "character"],
+    ["prices.html", "Auction prices", "prices"], ["flips.html", "Vendor flips", "flips"], ["item/index.html", "Item price pages", "items"],
+    ["crafting.html", "Craft profits", "crafting"], ["character.html", "Character lookup", "character"],
     ["resets.html", "Reset & lockouts", "resets"], ["checklist.html", "Journey checklist", "checklist"], ["dungeons.html", "Dungeon finder", "dungeons-tool"]
   ];
   // footer-only links
@@ -70,7 +71,7 @@
     var main = $("main");
     if (main) { main.id = "main"; main.setAttribute("tabindex", "-1"); }
     el.outerHTML =
-      '<a class="skip-link" href="#main">Skip to main content</a>' +
+      '<a class="skip-link" href="#main" id="skip-link">Skip to main content</a>' +
       '<header class="topbar"><div class="wrap">' +
       '<a class="brand" href="index.html" aria-label="' + esc(C.siteName) + ' home"><img src="img/logo.svg" alt="" width="38" height="38">' +
       '<span><span class="brand-name">' + esc(C.siteName) + '</span><span class="brand-sub">' + esc(C.tagline) + "</span></span></a>" +
@@ -89,6 +90,12 @@
       donateBtn("btn-sm") + "</div>" +
       "</div></header>" +
       '<div id="sr-status" class="sr-only" role="status" aria-live="polite"></div>';
+
+    // item pages use <base href="../">, which would send "#main" to another page — focus in place instead
+    $("#skip-link").addEventListener("click", function (e) {
+      var m = $("#main"); if (!m) return;
+      e.preventDefault(); m.focus(); m.scrollIntoView();
+    });
 
     var t = $(".nav-toggle"), nav = $(".nav");
     function setMenu(open, focusToggle) {
@@ -868,10 +875,8 @@
       });
     }
 
-    function itemLink(r) {
-      var label = r.name ? esc(r.name) : "Item #" + r.id;
-      return '<a class="wh item-link" href="https://www.wowhead.com/forever/item=' + r.id + '" target="_blank" rel="noopener nofollow" data-wh-rename-link="' + (r.name ? "false" : "true") + '">' + label + "</a>";
-    }
+    // named items link to their own item page (good for visitors and search engines)
+    function itemLink(r) { return itemPageLink(r.id, r.name); }
 
     var searchTimer;
     function draw() {
@@ -988,7 +993,90 @@
     more.addEventListener("click", function () { state.shown += 100; draw(); });
     body.addEventListener("click", function (e) { var b = e.target.closest(".pr-open"); if (b) openDetail(+b.getAttribute("data-id")); });
 
+    // prices.html?item=2770 (from an item page): search for it and open its details
+    var deepItem = +new URLSearchParams(location.search).get("item") || 0;
+    var origBuild = build;
+    build = function () {
+      origBuild();
+      if (!deepItem) return;
+      var r = rows.filter(function (x) { return x.id === deepItem; })[0];
+      if (r) { q.value = r.name || String(r.id); draw(); openDetail(r.id); }
+      deepItem = 0;
+    };
+
     loadRegion();
+  };
+
+  // Link to our own item page when we know the item's name, otherwise to Wowhead
+  function itemPageLink(id, name, cls) {
+    if (name && window.PriceMath) return '<a class="item-link' + (cls ? " " + cls : "") + '" href="' + esc(window.PriceMath.itemPath(id, name)) + '">' + esc(name) + "</a>";
+    return '<a class="wh item-link" href="https://www.wowhead.com/forever/item=' + id + '" target="_blank" rel="noopener nofollow" data-wh-rename-link="true">Item #' + id + "</a>";
+  }
+
+  /* ---------- item index (item/index.html): filter the A–Z list as you type ---------- */
+  PAGES.items = function () {
+    var box = $("#idx-search");
+    if (!box) return; // individual item pages have nothing to set up
+    var lists = $all(".item-index ul"), t;
+    box.addEventListener("input", function () {
+      var term = box.value.toLowerCase().trim(), shown = 0;
+      lists.forEach(function (ul) {
+        var any = false;
+        $all("li", ul).forEach(function (li) {
+          var hit = !term || li.textContent.toLowerCase().indexOf(term) >= 0;
+          li.hidden = !hit; if (hit) { any = true; shown++; }
+        });
+        ul.hidden = !any;
+        var h = ul.previousElementSibling; if (h && h.tagName === "H2") h.hidden = !any;
+      });
+      clearTimeout(t); t = setTimeout(function () { announce(shown + " items"); }, 500);
+    });
+  };
+
+  /* ---------- vendor flips ---------- */
+  PAGES.flips = function () {
+    var regionSel = $("#fl-region"), groupSel = $("#fl-group"), facSel = $("#fl-faction"), body = $("#fl-rows"), summary = $("#fl-summary");
+    var prefs = store("codex-prices") || {};
+    var state = { region: prefs.region || "eu", group: prefs.group || "", faction: prefs.faction || "alliance" };
+    var names = {}, group = null;
+    regionSel.value = state.region; facSel.value = state.faction;
+    function save() { var p = store("codex-prices") || {}; p.region = state.region; p.group = state.group; p.faction = state.faction; store("codex-prices", p); }
+
+    function load() {
+      summary.textContent = "Loading…";
+      Promise.all([getJSON(priceUrl("meta", state.region)), getJSON(priceUrl("items", state.region))]).then(function (r) {
+        var meta = r[0]; names = r[1] || {};
+        if (!meta || !meta.groups || !meta.groups.length) { $("#fl-app").hidden = true; $("#fl-empty").hidden = false; return; }
+        $("#fl-app").hidden = false; $("#fl-empty").hidden = true;
+        groupSel.innerHTML = meta.groups.map(function (g) { return '<option value="' + esc(g) + '">' + esc(groupLabel(meta, g)) + "</option>"; }).join("");
+        if (meta.groups.indexOf(state.group) < 0) state.group = meta.groups[0];
+        groupSel.value = state.group;
+        loadGroup();
+      });
+    }
+    function loadGroup() {
+      getJSON(priceUrl("prices", state.region, state.group)).then(function (g) { group = g; draw(); });
+    }
+    function draw() {
+      var house = null;
+      if (group) Object.keys(group.houses).forEach(function (id) { if (group.houses[id].faction === state.faction) house = group.houses[id]; });
+      var flips = (house && house.flips) || [];
+      var total = flips.reduce(function (s, f) { return s + f[2]; }, 0);
+      summary.innerHTML = flips.length
+        ? "<b>" + flips.length + "</b> item" + (flips.length > 1 ? "s" : "") + " listed below vendor price right now — about " + money(total) + " profit if you bought them all. " +
+          '<span class="faint">Snapshot from ' + new Date(group.updated).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) + ".</span>"
+        : "No vendor flips on this auction house right now. Check back after the next hourly update.";
+      body.innerHTML = flips.map(function (f) {
+        var n = names[f[0]] || [];
+        return "<tr><th scope=\"row\">" + itemPageLink(f[0], n[0]) + "</th><td>" + money(f[3]) + "</td><td>" + money(f[4]) + '</td><td><span class="pct up">+' + money(f[4] - f[3]) + "</span></td><td>" + f[1].toLocaleString() + "</td><td><b>" + money(f[2]) + "</b></td></tr>";
+      }).join("") || '<tr><td colspan="6" class="empty">Nothing to flip here right now.</td></tr>';
+      announce(flips.length + " vendor flips");
+      setupWowhead();
+    }
+    regionSel.addEventListener("change", function () { state.region = regionSel.value; save(); load(); });
+    groupSel.addEventListener("change", function () { state.group = groupSel.value; save(); loadGroup(); });
+    facSel.addEventListener("change", function () { state.faction = facSel.value; save(); draw(); });
+    load();
   };
 
   /* ---------- craft profit calculator ---------- */
@@ -1022,6 +1110,16 @@
         var profs = recipes.professions.filter(function (p) { return p.recipes.some(function (r) { return r[6].length; }); });
         profSel.innerHTML = profs.map(function (p) { return '<option value="' + p.id + '">' + esc(p.name) + " (" + p.recipes.length + ")</option>"; }).join("");
         if (!profs.some(function (p) { return String(p.id) === String(state.prof); })) state.prof = String(profs[0].id);
+        // crafting.html?q=Copper Bar (from an item page): search it, in the profession that makes or uses it
+        var deepQ = new URLSearchParams(location.search).get("q");
+        if (deepQ && !q.value) {
+          q.value = deepQ;
+          var lower = deepQ.toLowerCase();
+          var hit = profs.filter(function (p) { return p.recipes.some(function (r) { return (r[4] || r[1] || "").toLowerCase() === lower; }); })[0] ||
+                    profs.filter(function (p) { return p.recipes.some(function (r) { return r[6].some(function (m) { return (m[2] || "").toLowerCase() === lower; }); }); })[0];
+          if (hit) state.prof = String(hit.id);
+          hideThin.checked = false; // show every match when arriving from an item page
+        }
         profSel.value = state.prof;
         loadGroup();
       });
@@ -1089,7 +1187,8 @@
       var list = rows.filter(function (r) {
         if (onlyProfit.checked && !(r.res.profit > 0)) return false;
         if (hideThin.checked && r.item && r.listed < 3) return false;
-        return !term || r.name.toLowerCase().indexOf(term) >= 0 || r.reagents.some(function (x) { return (x[2] || "").toLowerCase().indexOf(term) >= 0; });
+        return !term || r.name.toLowerCase().indexOf(term) >= 0 || (r.itemName || "").toLowerCase().indexOf(term) >= 0 ||
+          r.reagents.some(function (x) { return (x[2] || "").toLowerCase().indexOf(term) >= 0; });
       });
       sortRows(list);
       body.innerHTML = list.slice(0, state.shown).map(function (r) {

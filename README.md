@@ -20,6 +20,7 @@ Needs a Battle.net API client. Copy `.env.example` to `.env` and fill it in; `.e
 | `node tools/house-compare.js` | Prices of common items per auction-house group (to identify rulesets) |
 | `node pipeline/run.js` | The price job: downloads auctions, computes prices, saves to `out/` |
 | `node --test pipeline/aggregate.test.js` | Tests for the price math |
+| `node pipeline/build-items.js` | Builds one SEO page per item (`item/…html`), the A–Z index and `sitemap.xml` from the job's data |
 | `node tools/optout.js eu "Firstname Lastname"` | Hide a character from the character lookup (stores a fingerprint, not the name) |
 
 With `node serve.js` running and `.env` filled in, the **Prices**, **Craft profits** and **Character lookup** pages (under *Tools*) work on localhost. The local server also answers `/api/character`; once the site is online, a Cloudflare Worker will provide the same endpoint.

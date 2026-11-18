@@ -197,6 +197,7 @@ html[data-contrast] .nav { background: #000; }
 .panel.parchment a { color: #7a2b0f; }
 
 .grid { display: grid; gap: 18px; }
+.grid > * { min-width: 0; } /* let wide tables scroll inside their box instead of stretching the page */
 .grid-2 { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
 .grid-3 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
 .grid-4 { grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); }
@@ -580,6 +581,30 @@ table.prices a.item-link:hover { color: var(--gold-2); text-decoration: underlin
 .pct.down { color: #ff8a6b; }
 @media (max-width: 700px) { .col-hide-sm { display: none; } }
 
+/* ---------- Vendor flips ---------- */
+.fl-controls { grid-template-columns: repeat(3, minmax(160px, 1fr)); }
+@media (max-width: 700px) { .fl-controls { grid-template-columns: 1fr; } }
+.fl-summary { margin: 16px 0 10px; font-size: 1.05rem; }
+
+/* ---------- Item pages ---------- */
+.crumbs { font-size: .9rem; color: var(--ink-faint); margin-bottom: 10px; }
+.crumbs a { color: var(--ink-dim); }
+.item-title { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.item-title img { width: 56px; height: 56px; border-radius: 8px; border: 2px solid var(--gold-dim); }
+.item-sub { color: var(--ink-dim); margin: 2px 0 0; }
+.item-summary { font-size: 1.1rem; max-width: 70ch; }
+.item-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+table.prices td.dim { color: var(--ink-faint); }
+.recipe-list { list-style: none; margin: 0; padding: 0; }
+.recipe-list > li { padding: 10px 0; border-bottom: 1px dashed #2f261b; }
+.recipe-list > li:last-child { border-bottom: 0; }
+.recipe-list .mats-inline { color: var(--ink-dim); font-size: .92rem; }
+.az { display: flex; flex-wrap: wrap; gap: 4px; margin: 10px 0 16px; }
+.az a { min-width: 34px; text-align: center; padding: 4px 6px; border: 1px solid var(--border); border-radius: 4px; text-decoration: none; }
+.item-index h2 { scroll-margin-top: 80px; font-size: 1.3rem; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+.item-index ul { columns: 3 220px; column-gap: 24px; list-style: none; padding: 0; margin: 0 0 18px; }
+.item-index li { break-inside: avoid; padding: 2px 0; }
+
 /* ---------- Tools dropdown in the header ---------- */
 .nav-tools { position: relative; display: flex; }
 .nav-tools-btn {
@@ -647,6 +672,10 @@ ul.mats li { margin: 3px 0; }
 .legal-text h2 { font-size: 1.25rem; margin-top: 1.4em; }
 
 /* Wowhead links */
+/* safety net: if Wowhead's script ever adds an icon to a button, don't let it tile over the button */
+.btn.wh { background-repeat: no-repeat; padding-left: 18px !important; }
+.btn.btn-ghost.wh { background-image: none !important; background-color: rgba(0,0,0,.35); }
+.btn.btn-ghost.wh:hover { background-color: rgba(230,184,74,.1); }
 a.wh { border-bottom: 1px dotted currentColor; text-decoration: none; }
 a.wh.ext::after, a.wh::after { content: none; }
 

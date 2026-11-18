@@ -146,7 +146,43 @@ function craftProfit(recipe, price) {
   return { cost: Math.round(cost), costComplete: complete, sellAh, sellVendor, profit, margin, parts };
 }
 
-var api = { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, dayNumber, HISTORY_DAYS, SHARDS, DAY_MS };
+// Vendor flips: listings you can buy on the AH for less than a vendor pays for them.
+// listings: raw auctions for ONE house; vendorPrice(id) → copper a vendor pays per unit (or null)
+// Only counts listings with a buyout. Returns the best `top` items, most total profit first:
+//   [[itemId, unitsBelowVendor, totalProfit, cheapestUnit, vendorPays], ...]
+// A flip must earn at least minProfit copper AND minPct of the vendor price per unit,
+// so "pay 25s 99c to earn 10c" (0.4%) doesn't count — too risky for too little.
+function computeFlips(listings, vendorPrice, opts) {
+  opts = Object.assign({ minProfit: 10, minPct: 0.05, top: 100 }, opts || {});
+  const byItem = new Map();
+  for (const l of listings) {
+    const id = l.item && l.item.id;
+    const unit = unitPrice(l);
+    if (!id || unit == null) continue;
+    const vendor = vendorPrice(id);
+    if (!vendor || unit > vendor - Math.max(opts.minProfit, vendor * opts.minPct)) continue;
+    const q = l.quantity || 1;
+    let e = byItem.get(id);
+    if (!e) byItem.set(id, (e = [id, 0, 0, unit, vendor]));
+    e[1] += q;
+    e[2] += (vendor - unit) * q;
+    if (unit < e[3]) e[3] = unit;
+  }
+  return [...byItem.values()]
+    .map((e) => [e[0], e[1], Math.round(e[2]), Math.round(e[3]), e[4]])
+    .sort((a, b) => b[2] - a[2])
+    .slice(0, opts.top);
+}
+
+// Web address of an item's page: "item/2770-copper-ore.html" (same rule for the generator and the site)
+function itemPath(id, name) {
+  const slug = String(name || "")
+    .normalize("NFKD").replace(/[̀-ͯ]/g, "")   // é → e
+    .toLowerCase().replace(/'/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
+  return "item/" + id + (slug ? "-" + slug : "") + ".html";
+}
+
+var api = { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, itemPath, dayNumber, HISTORY_DAYS, SHARDS, DAY_MS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.PriceMath = api;
 })(typeof window !== "undefined" ? window : globalThis);

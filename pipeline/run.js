@@ -17,7 +17,7 @@
 const fs = require("fs");
 const path = require("path");
 const { createClient, pool } = require("./blizzard");
-const { aggregate, updateHistory, pruneHistory, computeMovers, dayNumber, SHARDS } = require("./aggregate");
+const { aggregate, updateHistory, pruneHistory, computeMovers, computeFlips, dayNumber, SHARDS } = require("./aggregate");
 const { GROUPS, AUCTION_RULESET } = require("./houses");
 const { localStore } = require("./store");
 
@@ -46,7 +46,12 @@ async function main() {
   const now = Date.now(), today = dayNumber(now);
   const log = (s) => console.log(`[${((Date.now() - t0) / 1000).toFixed(1)}s] ${s}`);
 
-  /* 1–3: latest prices per group */
+  // item cache (names, vendor prices) is needed during aggregation for vendor flips
+  // entry: [name|null, sellPrice|null, dayFetched, buyPrice|null, quality|null, itemClass|null]
+  const items = (await store.getJSON(`items:${region}`)) || {};
+  const vendorPays = (id) => (items[id] && items[id][1]) || null;
+
+  /* 1–3: latest prices per group (+ vendor flips per house) */
   const seenItems = new Set();
   const latestByGroup = {};
   for (const g of GROUPS) {
@@ -59,9 +64,9 @@ async function main() {
         if (r.status !== 200) throw new Error(`House ${houseId}${suffix}: HTTP ${r.status}`);
         for (const a of (r.json && r.json.auctions) || []) listings.push(a);
       }
-      const items = aggregate(listings);
-      Object.keys(items).forEach((id) => seenItems.add(Number(id)));
-      groupOut.houses[houseId] = { faction, listings: listings.length, items };
+      const houseItems = aggregate(listings);
+      Object.keys(houseItems).forEach((id) => seenItems.add(Number(id)));
+      groupOut.houses[houseId] = { faction, listings: listings.length, items: houseItems, flips: computeFlips(listings, vendorPays) };
       groupListings += listings.length;
     }
     if (!groupListings) { log(`Group ${g.id}: empty, skipped`); continue; }
@@ -79,14 +84,13 @@ async function main() {
   const reagentIds = new Set();
   for (const p of recipes.professions) for (const r of p.recipes) { for (const x of r[6]) reagentIds.add(x[0]); if (r[3]) reagentIds.add(r[3]); }
 
-  /* 4: item names + vendor prices: { [id]: [name|null, sellPrice|null, dayFetched, buyPrice|null] } */
-  const items = (await store.getJSON(`items:${region}`)) || {};
+  /* 4: item names, vendor prices, quality and type (for item pages) */
   let changed = false;
   for (const id of Object.keys(items)) if (today - items[id][2] >= 30) { delete items[id]; changed = true; } // never keep > 30 days
   const wanted = new Set([...seenItems, ...reagentIds]);
   const todo = [...wanted].filter((id) => {
     const e = items[id];
-    if (!e || e.length < 4) return true;
+    if (!e || (e[0] != null && e.length < 6)) return true; // older entries lack quality/type
     const age = today - e[2];
     return e[0] == null ? age >= ITEM_RETRY_404_DAYS : age >= REFRESH_DAYS;
   }).slice(0, maxNewItems);
@@ -95,9 +99,11 @@ async function main() {
     await pool(todo, 10, async (id) => {
       const r = await api.get(`/data/wow/item/${id}`, api.ns.static, { retries: 2 });
       if (r.status === 200 && r.json) {
-        items[id] = [r.json.name || null, r.json.sell_price ?? null, today, r.json.purchase_price ?? null];
+        const j = r.json;
+        items[id] = [j.name || null, j.sell_price ?? null, today, j.purchase_price ?? null,
+          j.quality && j.quality.type ? j.quality.type.toLowerCase() : null, j.item_class && j.item_class.name ? j.item_class.name : null];
         found++;
-      } else if (r.status === 404) items[id] = [null, null, today, null];
+      } else if (r.status === 404) items[id] = [null, null, today, null, null, null];
     });
     changed = true;
     log(`Item names: looked up ${todo.length}, found ${found}; ${Object.keys(items).length} cached`);

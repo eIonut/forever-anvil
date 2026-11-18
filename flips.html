@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WoW: Forever Vendor Flips — Easy Gold from the Auction House — Forever Tome</title>
+<meta name="description" content="Find WoW: Forever auction house listings priced below what vendors pay. Buy, sell to a vendor, profit — updated hourly for every faction.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700&family=Cinzel:wght@500;700&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="flips">
+<div id="site-header"></div>
+<main>
+<section class="hero page-hero"><div class="wrap">
+  <div class="eyebrow">Tool · Preview</div>
+  <h1>Vendor flips</h1>
+  <p class="lead">Items listed on the Auction House for <b>less than a vendor pays</b> for them. Buy, walk to any vendor, sell — guaranteed profit.</p>
+</div></section>
+
+<div class="wrap section" id="fl-empty" hidden><div class="panel"><h2>No data yet</h2><p>Run <code>node pipeline/run.js</code>, then reload this page.</p></div></div>
+
+<div class="wrap section" id="fl-app">
+  <div class="panel pr-controls fl-controls">
+    <div><label class="field-label" for="fl-region">Region</label>
+      <select class="input" id="fl-region"><option value="eu">Europe</option><option value="us">Americas &amp; Oceania</option></select></div>
+    <div><label class="field-label" for="fl-group">Server group</label><select class="input" id="fl-group"></select></div>
+    <div><label class="field-label" for="fl-faction">Auction House</label>
+      <select class="input" id="fl-faction"><option value="alliance">Alliance</option><option value="horde">Horde</option><option value="neutral">Blackwater (neutral)</option></select></div>
+  </div>
+  <p id="fl-summary" class="fl-summary" aria-live="polite"></p>
+  <div class="table-wrap">
+    <table class="prices">
+      <caption class="sr-only">Items listed below vendor price</caption>
+      <thead><tr><th scope="col">Item</th><th scope="col">Cheapest on AH</th><th scope="col">Vendor pays</th><th scope="col">Profit each</th><th scope="col">Units below vendor price</th><th scope="col">Total profit</th></tr></thead>
+      <tbody id="fl-rows"></tbody>
+    </table>
+  </div>
+  <div class="panel pr-help">
+    <h2>Good to know</h2>
+    <ul class="gems">
+      <li>Prices are a snapshot taken about once an hour — other players spot flips too, so they can be gone by the time you look.</li>
+      <li>"Units below vendor price" counts only the listings cheap enough to flip; buying more than that won't be profitable.</li>
+      <li>Only listings with a buyout are counted. A flip must earn at least 10 copper <b>and</b> 5% of the vendor price per item — tiny margins on expensive items aren't worth the risk.</li>
+      <li>Check the vendor price in the item's tooltip in-game before buying in bulk.</li>
+    </ul>
+    <p class="faint">Data provided by Blizzard Entertainment. Forever Tome is not affiliated with or endorsed by Blizzard.</p>
+  </div>
+</div>
+</main>
+<div id="site-footer"></div>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/pricemath.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

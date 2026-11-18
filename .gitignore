@@ -9,6 +9,10 @@ tools/probe-report.md
 tools/probe-output/
 out/
 
+# generated from API data by pipeline/build-items.js (rebuilt daily before deploy)
+item/
+sitemap.xml
+
 # local tooling
 node_modules/
 .claude/

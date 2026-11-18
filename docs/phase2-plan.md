@@ -212,3 +212,17 @@ All three work on localhost and are under **Tools** in the menu.
 | **Total per region** | **~260–290** |
 
 EU + US together come to about 520–580, which is OK.
+
+---
+
+## 9. Item pages (SEO) and vendor flips (2026-11-19)
+
+- **Vendor flips:** the hourly job finds listings priced below what a vendor pays (`computeFlips`, tested). It stores them inside each group file, so there are no extra KV writes. Shown on `flips.html`. A flip must earn at least 10c **and** 5% per item.
+- **Item pages:** `node pipeline/build-items.js` writes ~5,100 static pages (`item/<id>-<slug>.html`, ~32 MB) plus an A–Z index and `sitemap.xml`. Each page has:
+  - price per region, ruleset and faction
+  - a 30-day chart
+  - vendor price
+  - how to make it, and what it's used to craft
+  - a canonical link and breadcrumb JSON-LD
+- **These pages contain API data, so they are git-ignored and must be rebuilt daily** in the deploy workflow before uploading to Cloudflare Pages. That uses ~30 deploys a month of the 500 allowed. Rebuilding also drops items not seen within 30 days.
+- **Cloudflare Pages free plan:** 20,000 files per site, and ~5,200 item files fit. The canonical/sitemap base URL comes from `--site=` or `SITE_URL`.
