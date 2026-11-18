@@ -1,0 +1,10 @@
+# secrets — never publish these
+.env
+.env.*
+*.key
+
+# local tooling
+node_modules/
+.claude/
+.DS_Store
+Thumbs.db

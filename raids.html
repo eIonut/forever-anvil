@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WoW: Forever Raid Prep — Bosses, Onyxia Attunement &amp; Countdown — Forever Tome</title>
+<meta name="description" content="Get ready for the December 9 WoW: Forever raids: Barrow Deeps, Hyjal Summit and Onyxia's Lair boss order, a raid-readiness checklist and a step-by-step Onyxia attunement tracker for Alliance and Horde.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700&family=Cinzel:wght@500;700&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="raids">
+<div id="site-header"></div>
+<main>
+<section class="hero page-hero"><div class="wrap">
+  <div class="eyebrow">Raid prep hub</div>
+  <h1>Ready for December 9?</h1>
+  <p class="lead">Three raids unlock on December 9. Check the boss order, tick off your preparation, and track your Onyxia attunement step by step.</p>
+  <div class="hero-actions">
+    <a class="btn" href="#attunement">Track my Onyxia attunement</a>
+    <a class="btn btn-ghost" href="resets.html">Weekly lockout tracker</a>
+  </div>
+</div></section>
+
+<div class="wrap layout-side section">
+  <section aria-labelledby="raids-title">
+    <h2 id="raids-title">The three raids</h2>
+    <div class="grid" id="raid-cards"></div>
+  </section>
+  <aside class="grid">
+    <div class="panel" id="countdown"></div>
+    <section class="panel" aria-labelledby="prep-title">
+      <h3 id="prep-title">Raid-ready checklist</h3>
+      <div id="prep-progress"></div>
+      <ul class="step-list" id="prep-list"></ul>
+      <p class="faint" style="margin:8px 0 0">Saved in this browser.</p>
+    </section>
+    <div class="ad-slot" data-slot="sidebar"></div>
+  </aside>
+</div>
+
+<div class="wrap section" id="attunement">
+  <section class="panel attune" aria-labelledby="attune-title">
+    <div class="section-head">
+      <h2 id="attune-title">Onyxia attunement tracker</h2>
+      <div class="seg-buttons" id="faction-switch" role="group" aria-label="Faction">
+        <button type="button" data-f="alliance" aria-pressed="false"><span class="fac fac-a" aria-hidden="true">A</span>Alliance</button>
+        <button type="button" data-f="horde" aria-pressed="false"><span class="fac fac-h" aria-hidden="true">H</span>Horde</button>
+      </div>
+    </div>
+    <p id="attune-intro"></p>
+    <p class="muted" id="attune-start"></p>
+    <div id="attune-progress"></div>
+    <ol class="step-list numbered" id="attune-list"></ol>
+    <div class="note warn">
+      <b>Where guides disagree</b>
+      <ul id="attune-notes"></ul>
+    </div>
+    <p class="faint" id="attune-sources"></p>
+  </section>
+</div>
+<div class="wrap"><div class="ad-slot" data-slot="bottom"></div></div>
+</main>
+<div id="site-footer"></div>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

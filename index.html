@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Forever Tome — WoW: Forever news, guides, dungeons &amp; tools</title>
+<meta name="description" content="Unofficial World of Warcraft: Forever fan hub: latest hotfixes and news, the best class and leveling guides, a dungeon finder by level, race/class combos, raid countdown and roadmap.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700&family=Cinzel:wght@500;700&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="home">
+<div id="site-header"></div>
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <div class="eyebrow">World of Warcraft: Forever · Fan hub</div>
+      <h1>Your tome for the new Azeroth</h1>
+      <p class="lead">Every hotfix, the best guides on the web, and handy tools — in one place. We read the patch notes so you can get back to questing.</p>
+      <div class="hero-actions">
+        <a class="btn" href="dungeons.html">Find a dungeon for my level</a>
+        <a class="btn btn-ghost" href="guides.html">Browse the best guides</a>
+        <a class="btn btn-ghost" href="news.html">Latest hotfixes</a>
+      </div>
+      <div class="stats" id="facts"></div>
+    </div>
+  </section>
+
+  <section class="wrap section" aria-labelledby="start-title">
+    <div class="section-head"><h2 id="start-title">Start here</h2><span class="faint">Pick what you need right now</span></div>
+    <div class="start-grid">
+      <a class="panel start-card" href="faq.html">
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle cx="24" cy="24" r="20" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M18.5 19a5.5 5.5 0 1 1 7.6 5.1c-1.4.6-2.1 1.6-2.1 3.1V29" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"/><circle cx="24" cy="35" r="2" fill="currentColor"/></svg>
+        <div><h3>New to Forever?</h3><p>Quick answers and a glossary of MMO terms.</p></div>
+      </a>
+      <a class="panel start-card" href="dungeons.html">
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M8 42V20L24 8l16 12v22" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M19 42V31a5 5 0 0 1 10 0v11" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M4 42h40" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <div><h3>Find a dungeon</h3><p>Type your level, see what to run.</p></div>
+      </a>
+      <a class="panel start-card" href="classes.html">
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M24 4l16 6v12c0 10-7 17-16 22C15 39 8 32 8 22V10z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M17 24l5 5 9-10" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div><h3>Choose a class</h3><p>Roles, races and what changed.</p></div>
+      </a>
+      <a class="panel start-card" href="raids.html">
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M24 4l5 10 11 2-8 8 2 11-10-5-10 5 2-11-8-8 11-2z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/></svg>
+        <div><h3>Get raid-ready</h3><p>Boss order and Onyxia attunement tracker.</p></div>
+      </a>
+      <a class="panel start-card" href="resets.html">
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><circle cx="24" cy="26" r="17" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M24 15v11l7 5M19 4h10" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <div><h3>Weekly lockouts</h3><p>Reset countdown and lockouts for all your characters.</p></div>
+      </a>
+      <a class="panel start-card" href="systems.html">
+        <svg viewBox="0 0 48 48" aria-hidden="true" focusable="false"><path d="M10 6h22l6 6v30H10z" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/><path d="M16 18h16M16 25h16M16 32h10" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/></svg>
+        <div><h3>How Forever works</h3><p>Legacy, camping, dual spec and more.</p></div>
+      </a>
+    </div>
+  </section>
+
+  <div class="wrap"><div class="ad-slot" data-slot="top"></div></div>
+
+  <div class="wrap layout-side section">
+    <div>
+      <div class="section-head"><h2>Latest news</h2><a href="news.html">All news &rarr;</a></div>
+      <div class="news-list" id="latest-news"></div>
+    </div>
+    <aside class="grid">
+      <div class="panel" id="countdown"></div>
+      <div class="panel">
+        <h3>Quick tools</h3>
+        <ul class="clean">
+          <li><a href="dungeons.html">Dungeon Finder</a> <span class="faint">— what to run at your level</span></li>
+          <li><a href="classes.html#matrix-section">Race / class matrix</a> <span class="faint">— every combo, new ones marked</span></li>
+          <li><a href="checklist.html">Journey checklist</a> <span class="faint">— track your 1–60 milestones</span></li>
+          <li><a href="systems.html">Systems guide</a> <span class="faint">— Legacy, camping, dual spec explained</span></li>
+          <li><a href="faq.html">FAQ &amp; glossary</a> <span class="faint">— quick answers for new players</span></li>
+          <li><a href="roadmap.html">Roadmap</a> <span class="faint">— what's coming and when</span></li>
+        </ul>
+      </div>
+      <div class="ad-slot" data-slot="sidebar"></div>
+      <div class="panel donate-box" data-donate-box></div>
+    </aside>
+  </div>
+
+  <div class="wrap section">
+    <div class="grid grid-2">
+      <div class="panel parchment">
+        <h2>Tips worth knowing</h2>
+        <ul class="gems" id="tips"></ul>
+        <p class="faint" style="color:#6b5a3a;margin:0">Refresh the page for more tips.</p>
+      </div>
+      <div class="panel">
+        <h2>New places to explore</h2>
+        <ul class="clean" id="zones"></ul>
+        <p class="faint" style="margin:10px 0 0">Plus nine new dungeons — see the <a href="dungeons.html">Dungeon Finder</a>.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap section">
+    <div class="panel">
+      <div class="section-head"><h2>New in Forever at a glance</h2><a href="https://warcraft.wiki.gg/wiki/World_of_Warcraft:_Forever" target="_blank" rel="noopener">Full details on Warcraft Wiki &rarr;</a></div>
+      <div class="grid grid-3">
+        <div><h3>Skyborne race</h3><p class="muted">A new race for both factions: High Order Skyborne (Alliance) can be Mages, Windshaper Skyborne (Horde) can be Shamans.</p></div>
+        <div><h3>New race/class combos</h3><p class="muted">Orc Mage, Troll Warlock, Undead Paladin, Human Hunter, Gnome Priest and Dwarf Shaman.</p></div>
+        <div><h3>Classic or Enhanced</h3><p class="muted">Choose original visuals or HD models, quest markers, one-bag and transmog. Switch any time.</p></div>
+        <div><h3>Camping &amp; Legacy</h3><p class="muted">Shared campsites with profession-made buffs, and account-wide Legacy progression that doesn't force alts. <a href="systems.html#camping">How it works &rarr;</a></p></div>
+        <div><h3>Dual spec at 40</h3><p class="muted">Two talent setups for 50 gold from your trainer, free to swap outside combat.</p></div>
+        <div><h3>Darkspear Islands</h3><p class="muted">A new 15v15 battleground off Dustwallow Marsh, plus season-long PvP goals.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="wrap"><div class="ad-slot" data-slot="bottom"></div></div>
+</main>
+<div id="site-footer"></div>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>
