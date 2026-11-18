@@ -891,7 +891,9 @@
           '<td><button type="button" class="btn btn-ghost btn-sm pr-open" data-id="' + r.id + '">Details<span class="sr-only"> for ' + esc(r.name || "item " + r.id) + "</span></button></td></tr>";
       }).join("") || '<tr><td colspan="8" class="empty">No items match.</td></tr>';
       more.hidden = list.length <= state.shown;
-      status.textContent = (term ? list.length.toLocaleString() + " matching items" : "Showing " + Math.min(state.shown, list.length) + " of " + list.length.toLocaleString() + " items");
+      status.textContent = (term
+        ? list.length.toLocaleString() + (list.length === 1 ? " matching item" : " matching items") + (list.length > state.shown ? " (showing " + state.shown + ")" : "")
+        : "Showing " + Math.min(state.shown, list.length) + " of " + list.length.toLocaleString() + " items");
       clearTimeout(searchTimer);
       searchTimer = setTimeout(function () { announce(status.textContent); }, 600);
       setupWowhead();

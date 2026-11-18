@@ -41,6 +41,8 @@
 }
 
 * { box-sizing: border-box; }
+/* "hidden" must always hide, even on elements whose class sets a display (e.g. .btn is inline-flex) */
+[hidden] { display: none !important; }
 html { scroll-behavior: smooth; }
 
 body {
