@@ -44,8 +44,12 @@
   var NAV = [
     ["index.html", "Home", "home"], ["news.html", "News", "news"], ["guides.html", "Guides", "guides"],
     ["classes.html", "Classes", "classes"], ["dungeons.html", "Dungeons", "dungeons"],
-    ["raids.html", "Raids", "raids"], ["systems.html", "Systems", "systems"],
-    ["prices.html", "Prices", "prices"], ["resets.html", "Resets", "resets"], ["checklist.html", "Checklist", "checklist"], ["faq.html", "FAQ", "faq"]
+    ["raids.html", "Raids", "raids"], ["systems.html", "Systems", "systems"], ["faq.html", "FAQ", "faq"]
+  ];
+  // shown in the "Tools" dropdown
+  var TOOLS = [
+    ["prices.html", "Auction prices", "prices"], ["crafting.html", "Craft profits", "crafting"], ["character.html", "Character lookup", "character"],
+    ["resets.html", "Reset & lockouts", "resets"], ["checklist.html", "Journey checklist", "checklist"], ["dungeons.html", "Dungeon finder", "dungeons-tool"]
   ];
   // footer-only links
   var NAV_MORE = [["roadmap.html", "Roadmap"], ["about.html", "About & credits"], ["privacy.html", "Privacy policy"]];
@@ -54,6 +58,11 @@
     if (!C.donateUrl) return "";
     return '<a class="btn btn-donate ' + (extraCls || "") + '" href="' + esc(C.donateUrl) + '" target="_blank" rel="noopener">&#9829; ' + esc(C.donateLabel || "Donate") + "</a>";
   }
+
+  // was the click inside an element matching sel? (safe when the target isn't an element)
+  function inside(e, sel) { var t = e.target; return !!(t && t.closest && t.closest(sel)); }
+
+  function navLink(n) { return '<a href="' + n[0] + '"' + (n[2] === page ? ' class="active" aria-current="page"' : "") + ">" + n[1] + "</a>"; }
 
   function renderHeader() {
     var el = $("#site-header");
@@ -66,7 +75,12 @@
       '<a class="brand" href="index.html" aria-label="' + esc(C.siteName) + ' home"><img src="img/logo.svg" alt="" width="38" height="38">' +
       '<span><span class="brand-name">' + esc(C.siteName) + '</span><span class="brand-sub">' + esc(C.tagline) + "</span></span></a>" +
       '<nav class="nav" id="main-nav" aria-label="Main">' +
-      NAV.map(function (n) { return '<a href="' + n[0] + '"' + (n[2] === page ? ' class="active" aria-current="page"' : "") + ">" + n[1] + "</a>"; }).join("") +
+      NAV.slice(0, -1).map(navLink).join("") +
+      // Tools dropdown (a disclosure button + list; works with keyboard and in the mobile menu)
+      '<div class="nav-tools"><button type="button" class="nav-tools-btn' + (TOOLS.some(function (t) { return t[2] === page; }) ? " active" : "") +
+      '" aria-expanded="false" aria-controls="tools-menu">Tools <span aria-hidden="true">▾</span></button>' +
+      '<ul class="tools-menu" id="tools-menu" hidden>' + TOOLS.map(function (t) { return "<li>" + navLink(t) + "</li>"; }).join("") + "</ul></div>" +
+      navLink(NAV[NAV.length - 1]) +
       "</nav>" +
       '<div class="tools">' +
       '<button class="icon-btn" id="open-search" aria-haspopup="dialog" title="Search (press /)"><span class="sr-only">Search the site</span>' + ICON.search + "</button>" +
@@ -91,8 +105,23 @@
       if (e.key === "Escape" && nav.classList.contains("open")) setMenu(false, true);
     });
     document.addEventListener("click", function (e) {
-      if (nav.classList.contains("open") && !e.target.closest(".nav") && !e.target.closest(".nav-toggle")) setMenu(false);
+      if (nav.classList.contains("open") && !inside(e, ".nav") && !inside(e, ".nav-toggle")) setMenu(false);
     });
+    // Tools dropdown
+    var tb = $(".nav-tools-btn"), tm = $("#tools-menu");
+    function setTools(openIt, focusBtn) {
+      tm.hidden = !openIt; tb.setAttribute("aria-expanded", openIt ? "true" : "false");
+      if (openIt) { var f = tm.querySelector("a"); if (f) f.focus(); } else if (focusBtn) tb.focus();
+    }
+    tb.addEventListener("click", function () { setTools(tm.hidden); });
+    tm.addEventListener("keydown", function (e) {
+      var links = $all("a", tm), i = links.indexOf(document.activeElement);
+      if (e.key === "Escape") { e.stopPropagation(); setTools(false, true); }
+      else if (e.key === "ArrowDown") { e.preventDefault(); (links[i + 1] || links[0]).focus(); }
+      else if (e.key === "ArrowUp") { e.preventDefault(); (links[i - 1] || links[links.length - 1]).focus(); }
+    });
+    document.addEventListener("click", function (e) { if (!tm.hidden && !inside(e, ".nav-tools")) setTools(false); });
+
     fitHeader();
     window.addEventListener("resize", fitHeader);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitHeader);
@@ -115,6 +144,7 @@
       '<footer class="site"><div class="wrap"><div class="cols">' +
       "<div><h4>" + esc(C.siteName) + '</h4><p>An unofficial, fan-made hub that collects the best WoW: Forever news, guides and tools from around the web — and always links back to the original creators.</p>' + donateBtn("btn-sm") + "</div>" +
       "<div><h4>Explore</h4><ul>" + NAV.slice(1).concat(NAV_MORE).map(function (n) { return '<li><a href="' + n[0] + '">' + n[1] + "</a></li>"; }).join("") + "</ul></div>" +
+      "<div><h4>Tools</h4><ul>" + TOOLS.map(function (n) { return '<li><a href="' + n[0] + '">' + n[1] + "</a></li>"; }).join("") + "</ul></div>" +
       "<div><h4>Great sources</h4><ul>" +
       ["https://worldofwarcraft.blizzard.com/en-us/news|Blizzard news", "https://www.wowhead.com/|Wowhead", "https://www.icy-veins.com/wow-forever/class-guides|Icy Veins", "https://warcraft.wiki.gg/wiki/World_of_Warcraft:_Forever|Warcraft Wiki", "https://mobalytics.gg/wow-forever|Mobalytics"]
         .map(function (s) { var p = s.split("|"); return "<li>" + ext(p[0], p[1]) + "</li>"; }).join("") +
@@ -814,6 +844,7 @@
         return { id: +id, min: a[0], market: a[1], qty: a[2], n: a[3], name: n[0] || null, vendor: n[1] ? n[1] : null };
       });
       state.houseId = houseId;
+      drawMovers();
       var upd = new Date(groupData.updated);
       $("#pr-updated").innerHTML = 'Updated <time datetime="' + esc(groupData.updated) + '">' + upd.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) + "</time> · " +
         house.listings.toLocaleString() + " listings · " + rows.length.toLocaleString() + " different items";
@@ -856,6 +887,46 @@
       setupWowhead();
     }
 
+    /* rising / falling / deals for the selected auction house (computed daily by the price job) */
+    var moversCache = {}, moversTab = "rising";
+    function nameOf(id) { var n = names[id]; return n && n[0] ? n[0] : null; }
+    function drawMovers() {
+      var box = $("#mv-body"), key = state.region + ":" + state.group;
+      (moversCache[key] !== undefined ? Promise.resolve(moversCache[key]) : getJSON(priceUrl("movers", state.region, state.group))).then(function (mv) {
+        moversCache[key] = mv;
+        var h = mv && mv.houses && mv.houses[state.houseId];
+        if (!h) { box.innerHTML = '<p class="faint">Price changes will appear after the first daily update.</p>'; return; }
+        if (h.days < 2) {
+          box.innerHTML = '<p class="faint">We have ' + h.days + " day of price history so far. Rising and falling prices appear from the second day, and deals once there are a few days to compare against.</p>";
+          return;
+        }
+        var list = h[moversTab] || [];
+        if (!list.length) { box.innerHTML = '<p class="faint">Nothing notable here right now.</p>'; return; }
+        var head = moversTab === "deals"
+          ? "<tr><th scope=\"col\">Item</th><th scope=\"col\">Cheapest now</th><th scope=\"col\">Usual price</th><th scope=\"col\">Saving</th><th scope=\"col\">Listed</th></tr>"
+          : "<tr><th scope=\"col\">Item</th><th scope=\"col\">Change</th><th scope=\"col\">Market now</th><th scope=\"col\">Before</th></tr>";
+        var rowsHtml = list.slice(0, 15).map(function (x) {
+          var link = itemLink({ id: x[0], name: nameOf(x[0]) });
+          if (moversTab === "deals") {
+            return "<tr><th scope=\"row\">" + link + "</th><td>" + money(x[1]) + "</td><td>" + money(x[2]) + '</td><td><span class="pct up">' + Math.round((1 - x[1] / x[2]) * 100) + "% off</span></td><td>" + x[3].toLocaleString() + "</td></tr>";
+          }
+          return "<tr><th scope=\"row\">" + link + '</th><td><span class="pct ' + (x[1] > 0 ? "up" : "down") + '">' + (x[1] > 0 ? "▲ +" : "▼ ") + x[1] + "%</span></td><td>" + money(x[2]) + "</td><td>" + money(x[3]) + "</td></tr>";
+        }).join("");
+        box.innerHTML = '<div class="table-wrap"><table class="prices"><caption class="sr-only">' + moversTab + " items</caption><thead>" + head + "</thead><tbody>" + rowsHtml + "</tbody></table></div>" +
+          '<p class="faint" style="margin-top:8px">' + (moversTab === "deals"
+            ? "Cheapest listing at 60% or less of the item's usual price over recent days. Deals sell fast — check in-game."
+            : "Market price now compared with about 7 days ago (or the oldest day we have). Items with very few units are left out.") +
+          " Updated once a day.</p>";
+        setupWowhead();
+      });
+    }
+    $("#mv-tabs").addEventListener("click", function (e) {
+      var b = e.target.closest("button"); if (!b) return;
+      moversTab = b.getAttribute("data-t");
+      $all("#mv-tabs button").forEach(function (x) { var on = x === b; x.classList.toggle("active", on); x.setAttribute("aria-pressed", on); });
+      drawMovers();
+    });
+
     function shardOf(id) { return id % 32; }
     function openDetail(id) {
       var r = rows.filter(function (x) { return x.id === id; })[0];
@@ -874,8 +945,8 @@
       detail.scrollIntoView({ block: "nearest" });
       $("#pr-close").focus();
       setupWowhead();
-      var shard = shardOf(id), key = state.region + ":" + shard;
-      (histCache[key] ? Promise.resolve(histCache[key]) : getJSON(priceUrl("history", state.region, shard))).then(function (h) {
+      var part = state.group + "_" + shardOf(id), key = state.region + ":" + part; // history is split per server group
+      (histCache[key] ? Promise.resolve(histCache[key]) : getJSON(priceUrl("history", state.region, part))).then(function (h) {
         histCache[key] = h;
         var pts = h && h[state.houseId] && h[state.houseId][id];
         $("#pr-chart").innerHTML = chartSVG(pts);
@@ -913,6 +984,209 @@
     body.addEventListener("click", function (e) { var b = e.target.closest(".pr-open"); if (b) openDetail(+b.getAttribute("data-id")); });
 
     loadRegion();
+  };
+
+  /* ---------- craft profit calculator ---------- */
+  PAGES.crafting = function () {
+    var PM = window.PriceMath;
+    var regionSel = $("#cr-region"), groupSel = $("#cr-group"), facSel = $("#cr-faction"), profSel = $("#cr-prof"),
+        q = $("#cr-search"), onlyProfit = $("#cr-profitable"), hideThin = $("#cr-hidethin"), sortSel = $("#cr-sort"), body = $("#cr-rows"), status = $("#cr-status"), more = $("#cr-more");
+    var prefs = store("codex-prices") || {}, cprefs = store("codex-crafting") || {};
+    var state = { region: prefs.region || "eu", group: prefs.group || "", faction: prefs.faction || "alliance", prof: cprefs.prof || "", sort: cprefs.sort || "profit", shown: 100 };
+    var meta, items = {}, recipes = null, group = null, rows = [], open = {};
+    regionSel.value = state.region; facSel.value = state.faction; sortSel.value = state.sort;
+
+    function save() {
+      var p = store("codex-prices") || {}; p.region = state.region; p.group = state.group; p.faction = state.faction; store("codex-prices", p);
+      store("codex-crafting", { prof: state.prof, sort: state.sort });
+    }
+    function unavailable(msg) { $("#cr-app").hidden = true; $("#cr-empty").hidden = false; $("#cr-empty-msg").textContent = msg; }
+
+    function loadRegion() {
+      status.textContent = "Loading recipes and prices…";
+      Promise.all([getJSON(priceUrl("meta", state.region)), getJSON(priceUrl("items", state.region)), getJSON(priceUrl("recipes", state.region))]).then(function (r) {
+        meta = r[0]; items = r[1] || {}; recipes = r[2];
+        if (!meta || !meta.groups || !meta.groups.length || !recipes) {
+          unavailable(C.pricesApi ? "The craft calculator is temporarily unavailable." : "No recipe/price data on this computer yet. Run `node pipeline/run.js`, then reload.");
+          return;
+        }
+        $("#cr-app").hidden = false; $("#cr-empty").hidden = true;
+        groupSel.innerHTML = meta.groups.map(function (g) { return '<option value="' + esc(g) + '">Group ' + esc(g) + "</option>"; }).join("");
+        if (meta.groups.indexOf(state.group) < 0) state.group = meta.groups[0];
+        groupSel.value = state.group;
+        var profs = recipes.professions.filter(function (p) { return p.recipes.some(function (r) { return r[6].length; }); });
+        profSel.innerHTML = profs.map(function (p) { return '<option value="' + p.id + '">' + esc(p.name) + " (" + p.recipes.length + ")</option>"; }).join("");
+        if (!profs.some(function (p) { return String(p.id) === String(state.prof); })) state.prof = String(profs[0].id);
+        profSel.value = state.prof;
+        loadGroup();
+      });
+    }
+    function loadGroup() {
+      getJSON(priceUrl("prices", state.region, state.group)).then(function (g) {
+        group = g;
+        $all("option", groupSel).forEach(function (o) {
+          if (g && o.value === g.group) o.textContent = g.ruleset ? g.ruleset + " (group " + g.group + ")" : "Group " + g.group + " — ruleset not confirmed yet";
+        });
+        compute();
+      });
+    }
+
+    function priceFn(houseItems) {
+      return function (id) {
+        var a = houseItems[id], it = items[id] || [];
+        return { ah: a ? a[1] : null, vendor: it[3] ? it[3] : null, sell: it[1] ? it[1] : null };
+      };
+    }
+    function compute() {
+      var house = null;
+      if (group) Object.keys(group.houses).forEach(function (id) { if (group.houses[id].faction === state.faction) house = group.houses[id]; });
+      var price = priceFn(house ? house.items : {});
+      var prof = recipes.professions.filter(function (p) { return String(p.id) === String(state.prof); })[0];
+      rows = (prof ? prof.recipes : []).filter(function (r) { return r[6].length; }).map(function (r) {
+        var res = PM.craftProfit({ q: r[5], item: r[3], r: r[6] }, price);
+        var sold = house && r[3] ? house.items[r[3]] : null;
+        return { id: r[0], name: r[1], cat: r[2], item: r[3], itemName: r[4], q: r[5], reagents: r[6], res: res, listed: sold ? sold[3] : 0 };
+      });
+      $("#cr-updated").textContent = group ? "Prices from " + new Date(group.updated).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) + " · " + (prof ? prof.name : "") + ": " + rows.length + " recipes" : "";
+      draw();
+    }
+
+    function sortRows(list) {
+      return list.sort(function (a, b) {
+        if (state.sort === "name") return a.name.localeCompare(b.name);
+        if (state.sort === "margin") return (b.res.margin == null ? -1e9 : b.res.margin) - (a.res.margin == null ? -1e9 : a.res.margin);
+        if (state.sort === "cost") return (a.res.costComplete ? a.res.cost : 1e12) - (b.res.costComplete ? b.res.cost : 1e12);
+        return (b.res.profit == null ? -1e12 : b.res.profit) - (a.res.profit == null ? -1e12 : a.res.profit);
+      });
+    }
+    function profitCell(p) {
+      if (p == null) return '<span class="faint">—</span>';
+      return '<span class="' + (p >= 0 ? "pct up" : "pct down") + '">' + (p < 0 ? "−" : "+") + "</span> " + money(Math.abs(p));
+    }
+    function itemOrRecipe(r) {
+      if (!r.item) return esc(r.name) + ' <span class="tag">enchant</span>';
+      var it = items[r.item] || [];
+      return '<a class="wh item-link" href="https://www.wowhead.com/forever/item=' + r.item + '" target="_blank" rel="noopener nofollow" data-wh-rename-link="false">' + esc(r.itemName || it[0] || r.name) + "</a>" + (r.q > 1 ? ' <span class="faint">×' + r.q + "</span>" : "");
+    }
+    function detailRow(r) {
+      var res = r.res;
+      return '<tr class="cr-detail"><td colspan="6"><ul class="mats">' + r.reagents.map(function (x, i) {
+        var p = res.parts[i];
+        var src = p.source === "ah" ? "Auction House" : p.source === "vendor" ? "vendor price (estimate — check a vendor sells it)" : "no price found";
+        return '<li><b>' + x[1] + "×</b> " + '<a class="wh item-link" href="https://www.wowhead.com/forever/item=' + x[0] + '" target="_blank" rel="noopener nofollow" data-wh-rename-link="false">' + esc(x[2]) + "</a> — " +
+          (p.unit != null ? money(p.unit) + " each = " + money(p.unit * x[1]) : "?") + ' <span class="faint">(' + src + ")</span></li>";
+      }).join("") + "</ul>" +
+        '<p class="faint">Sells on the AH for ' + money(res.sellAh) + (res.sellVendor ? ", to a vendor for " + money(res.sellVendor) : "") + ". Profit = AH price minus the 5% AH cut minus materials. It ignores deposits, whether it sells, and your time.</p></td></tr>";
+    }
+    var announceTimer;
+    function draw() {
+      var term = (q.value || "").toLowerCase().trim();
+      var list = rows.filter(function (r) {
+        if (onlyProfit.checked && !(r.res.profit > 0)) return false;
+        if (hideThin.checked && r.item && r.listed < 3) return false;
+        return !term || r.name.toLowerCase().indexOf(term) >= 0 || r.reagents.some(function (x) { return (x[2] || "").toLowerCase().indexOf(term) >= 0; });
+      });
+      sortRows(list);
+      body.innerHTML = list.slice(0, state.shown).map(function (r) {
+        var res = r.res, isOpen = !!open[r.id];
+        return '<tr><th scope="row">' + itemOrRecipe(r) + '<span class="cat">' + esc(r.cat) + "</span></th>" +
+          "<td>" + (res.costComplete ? money(res.cost) : '<span class="faint" title="A material has no price">?</span>') + "</td>" +
+          "<td>" + (r.item ? money(res.sellAh) + (res.sellAh != null ? '<span class="cat">' + r.listed + " listed" +
+            (r.listed < 3 ? ' · <span class="thin" title="Very few on sale, so this asking price may not be what it really sells for">⚠ thin market</span>' : "") + "</span>" : "") : '<span class="faint">—</span>') + "</td>" +
+          "<td>" + profitCell(res.profit) + "</td>" +
+          '<td class="col-hide-sm">' + (res.margin != null ? res.margin + "%" : '<span class="faint">—</span>') + "</td>" +
+          '<td><button type="button" class="btn btn-ghost btn-sm cr-toggle" data-id="' + r.id + '" aria-expanded="' + isOpen + '">Materials<span class="sr-only"> for ' + esc(r.name) + "</span></button></td></tr>" +
+          (isOpen ? detailRow(r) : "");
+      }).join("") || '<tr><td colspan="6" class="empty">No recipes match.</td></tr>';
+      more.hidden = list.length <= state.shown;
+      status.textContent = "Showing " + Math.min(state.shown, list.length) + " of " + list.length + " recipes";
+      clearTimeout(announceTimer); announceTimer = setTimeout(function () { announce(status.textContent); }, 600);
+      setupWowhead();
+    }
+
+    regionSel.addEventListener("change", function () { state.region = regionSel.value; save(); loadRegion(); });
+    groupSel.addEventListener("change", function () { state.group = groupSel.value; save(); loadGroup(); });
+    facSel.addEventListener("change", function () { state.faction = facSel.value; save(); compute(); });
+    profSel.addEventListener("change", function () { state.prof = profSel.value; state.shown = 100; open = {}; save(); compute(); });
+    sortSel.addEventListener("change", function () { state.sort = sortSel.value; save(); draw(); });
+    q.addEventListener("input", function () { state.shown = 100; draw(); });
+    onlyProfit.addEventListener("change", draw);
+    hideThin.addEventListener("change", draw);
+    more.addEventListener("click", function () { state.shown += 100; draw(); });
+    body.addEventListener("click", function (e) {
+      var b = e.target.closest(".cr-toggle"); if (!b) return;
+      var id = b.getAttribute("data-id"); open[id] = !open[id]; draw();
+      var nb = $('.cr-toggle[data-id="' + id + '"]'); if (nb) nb.focus();
+    });
+    loadRegion();
+  };
+
+  /* ---------- character lookup ---------- */
+  PAGES.character = function () {
+    var form = $("#ch-form"), regionSel = $("#ch-region"), nameIn = $("#ch-name"), out = $("#ch-result");
+    var params = new URLSearchParams(location.search);
+    var saved = store("codex-char") || {};
+    regionSel.value = params.get("r") || saved.region || "eu";
+    nameIn.value = (params.get("n") || "").replace(/-/g, " ");
+    var QUAL = { poor: "q-poor", common: "q-common", uncommon: "q-uncommon", rare: "q-rare", epic: "q-epic", legendary: "q-legendary" };
+    var ERR = {
+      "not-found": "We couldn't find that character. Check the spelling (first and last name), and note that characters only appear after reaching level 10 and logging out once.",
+      "bad-name": "Please enter a first and last name, like \"Thrallina Stormhoof\".",
+      "too-many": "Too many lookups in a short time — wait a minute and try again.",
+      "not-configured": "The character lookup isn't set up on this server yet (missing Blizzard API keys).",
+      "unavailable": "Blizzard's character service didn't answer. Please try again in a few minutes."
+    };
+
+    function render(d) {
+      var c = d.character, cls = (D.classes || []).filter(function (x) { return x.name === c.class; })[0];
+      var full = esc([c.name, c.surname].filter(Boolean).join(" ") || c.slug);
+      var share = location.origin + location.pathname + "?r=" + encodeURIComponent(d.region) + "&n=" + encodeURIComponent(c.slug);
+      out.innerHTML =
+        '<article class="panel ch-card"' + (cls ? ' style="--cc: var(--c-' + cls.id + ')"' : "") + ">" +
+        '<div class="ch-head">' + (c.avatar ? '<img class="ch-avatar" src="' + esc(c.avatar) + '" alt="" width="84" height="84">' : '<span class="class-icon ch-avatar" aria-hidden="true">' + esc((c.class || "?").charAt(0)) + "</span>") +
+        "<div><h2>" + full + "</h2>" +
+        '<p class="ch-sub">Level ' + esc(c.level) + " " + esc(c.race || "") + ' <b style="color:var(--cc, var(--gold))">' + esc(c.class || "") + "</b>" +
+        (c.guild ? ' · &lt;' + esc(c.guild) + "&gt;" : "") + "</p>" +
+        '<p class="faint">' + [c.faction, c.ruleset ? c.ruleset + " ruleset" : null, d.region.toUpperCase(), c.lastLogin ? "last seen " + c.lastLogin : null].filter(Boolean).map(esc).join(" · ") + "</p></div>" +
+        '<button type="button" class="btn btn-ghost btn-sm" id="ch-share">Copy link</button></div>' +
+        (d.partial ? '<p class="note">Some sections aren\'t available yet — Blizzard updates them a little while after the character logs out.</p>' : "") +
+        '<div class="grid grid-2 ch-sections">' +
+        '<section><h3>Equipped gear</h3>' + (d.gear.length ? '<ul class="ch-gear">' + d.gear.map(function (g) {
+          return '<li><span class="slot">' + esc(g.slot || "") + '</span><a class="wh ' + (QUAL[g.quality] || "") + '" href="https://www.wowhead.com/forever/item=' + g.id + '" target="_blank" rel="noopener nofollow" data-wh-rename-link="false">' + esc(g.name || "Item #" + g.id) + "</a>" + (g.level ? ' <span class="faint">ilvl ' + g.level + "</span>" : "") + "</li>";
+        }).join("") + "</ul>" : '<p class="faint">No gear data.</p>') + "</section>" +
+        "<section><h3>Professions</h3>" + (d.professions.length ? '<ul class="ch-prof">' + d.professions.map(function (p) {
+          var pct = p.max ? Math.round(p.skill / p.max * 100) : 0;
+          return "<li><span>" + esc(p.name) + "</span><b>" + (p.skill != null ? p.skill + (p.max ? " / " + p.max : "") : "") + '</b><div class="progress" aria-hidden="true"><i style="width:' + pct + '%"></i></div></li>';
+        }).join("") + "</ul>" : '<p class="faint">No professions learned.</p>') +
+        '<h3 style="margin-top:18px">Top reputations</h3>' + (d.reputations.length ? '<ul class="clean ch-rep">' + d.reputations.map(function (r) {
+          return "<li><span>" + esc(r.faction) + '</span> <b class="faint">' + esc(r.standing || "") + "</b></li>";
+        }).join("") + "</ul>" : '<p class="faint">No reputation data.</p>') + "</section></div>" +
+        '<p class="faint">Fetched ' + new Date(d.fetched).toLocaleString() + ". Data provided by Blizzard Entertainment.</p></article>";
+      $("#ch-share").addEventListener("click", function () {
+        var done = function () { announce("Link copied"); $("#ch-share").textContent = "Copied!"; };
+        if (navigator.clipboard) navigator.clipboard.writeText(share).then(done, function () { prompt("Copy this link:", share); });
+        else prompt("Copy this link:", share);
+      });
+      setupWowhead();
+    }
+
+    function lookup() {
+      var name = nameIn.value.trim(), region = regionSel.value;
+      if (!name) { nameIn.focus(); return; }
+      store("codex-char", { region: region });
+      out.innerHTML = '<p class="faint">Looking up ' + esc(name) + "…</p>";
+      var base = (C.characterApi || "/api").replace(/\/$/, "");
+      fetch(base + "/character?region=" + encodeURIComponent(region) + "&name=" + encodeURIComponent(name))
+        .then(function (r) { return r.json().catch(function () { return { error: "unavailable" }; }); })
+        .then(function (d) {
+          if (!d || d.error) { out.innerHTML = '<div class="panel note warn">' + esc(ERR[d && d.error] || ERR.unavailable) + "</div>"; return; }
+          render(d);
+          history.replaceState(null, "", "?r=" + encodeURIComponent(region) + "&n=" + encodeURIComponent(d.character.slug));
+        })
+        .catch(function () { out.innerHTML = '<div class="panel note warn">' + esc(ERR.unavailable) + "</div>"; });
+    }
+    form.addEventListener("submit", function (e) { e.preventDefault(); lookup(); });
+    if (nameIn.value) lookup();
   };
 
   PAGES.about = function () {
@@ -975,7 +1249,7 @@
     });
     panel.addEventListener("keydown", function (e) { if (e.key === "Escape") { e.stopPropagation(); open(false); } });
     document.addEventListener("click", function (e) {
-      if (!panel.hidden && !e.target.closest("#settings-panel") && !e.target.closest("#open-settings")) {
+      if (!panel.hidden && !inside(e, "#settings-panel") && !inside(e, "#open-settings")) {
         panel.hidden = true; btn.setAttribute("aria-expanded", "false");
       }
     });

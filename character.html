@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WoW: Forever Character Lookup — Forever Tome</title>
+<meta name="description" content="Look up any WoW: Forever character: level, race, class, guild, equipped gear, professions and reputations.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700&family=Cinzel:wght@500;700&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="character">
+<div id="site-header"></div>
+<main>
+<section class="hero page-hero"><div class="wrap">
+  <div class="eyebrow">Tool · Preview</div>
+  <h1>Character lookup</h1>
+  <p class="lead">See any character's gear, professions and reputations — and share the link with your guild.</p>
+</div></section>
+
+<div class="wrap section">
+  <form class="panel ch-form" id="ch-form">
+    <div><label class="field-label" for="ch-region">Region</label>
+      <select class="input" id="ch-region"><option value="eu">Europe</option><option value="us">Americas &amp; Oceania</option><option value="kr">Korea</option><option value="tw">Taiwan</option></select></div>
+    <div class="ch-name"><label class="field-label" for="ch-name">Character name</label>
+      <input class="input" id="ch-name" placeholder="Firstname Lastname" autocomplete="off" maxlength="40" aria-describedby="ch-hint"></div>
+    <button class="btn" type="submit">Look up</button>
+    <p class="faint" id="ch-hint">Forever characters have a first and last name, e.g. "Thrallina Stormhoof". The character must be level 10+ and have logged out at least once since.</p>
+  </form>
+  <div id="ch-result" aria-live="polite"></div>
+  <p class="faint" style="margin-top:16px">Data provided by Blizzard Entertainment and shown live (cached up to 15 minutes); we don't store profiles. Want a character hidden? See our <a href="privacy.html">privacy policy</a>.</p>
+</div>
+</main>
+<div id="site-footer"></div>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

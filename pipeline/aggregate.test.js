@@ -2,7 +2,51 @@
 "use strict";
 const test = require("node:test");
 const assert = require("node:assert/strict");
-const { unitPrice, aggregate, updateHistory, pruneHistory, DAY_MS, SHARDS } = require("./aggregate");
+const { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, DAY_MS, SHARDS } = require("./aggregate");
+
+test("movers: rising, falling vs ~7 days ago; thin items ignored", () => {
+  const T = 1000;
+  const hist = {
+    1: [[T - 7, 100, 90, 50], [T - 3, 120, 110, 50], [T, 150, 140, 50]],  // +50% vs 7 days ago
+    2: [[T - 7, 200, 190, 50], [T, 100, 95, 50]],                        // -50%
+    3: [[T - 7, 100, 90, 2], [T, 900, 900, 2]],                          // too few units → ignored
+    4: [[T, 100, 100, 50]]                                               // no past → ignored
+  };
+  const latest = { 1: [140, 150, 50, 5], 2: [95, 100, 50, 5], 3: [900, 900, 2, 1], 4: [100, 100, 50, 5] };
+  const m = computeMovers(hist, latest, T);
+  assert.equal(m.days, 8);
+  assert.deepEqual(m.rising, [[1, 50, 150, 100]]);
+  assert.deepEqual(m.falling, [[2, -50, 100, 200]]);
+});
+
+test("movers: deal when the cheapest listing is ≤ 60% of the usual price", () => {
+  const T = 500;
+  const hist = { 7: [[T - 3, 1000, 950, 30], [T - 2, 1100, 1000, 30], [T - 1, 900, 880, 30]] };
+  const m = computeMovers(hist, { 7: [500, 980, 30, 4] }, T);
+  assert.deepEqual(m.deals, [[7, 500, 1000, 30]]); // usual = median 1000, cheapest now 500
+  const none = computeMovers(hist, { 7: [700, 980, 30, 4] }, T);
+  assert.equal(none.deals.length, 0);
+});
+
+test("craft profit: AH price first, vendor price as fallback, 5% AH cut", () => {
+  const prices = {
+    10: { ah: 100, vendor: 400, sell: 20 },   // reagent on AH → 100
+    11: { ah: null, vendor: 10, sell: 2 },    // vendor-only reagent → 10
+    20: { ah: 1000, vendor: null, sell: 150 } // crafted item
+  };
+  const r = craftProfit({ q: 1, item: 20, r: [[10, 3], [11, 2]] }, (id) => prices[id] || { ah: null, vendor: null, sell: null });
+  assert.equal(r.cost, 320);
+  assert.equal(r.profit, 1000 * 0.95 - 320);
+  assert.equal(r.margin, Math.round((950 - 320) / 320 * 100));
+  assert.equal(r.parts[1].source, "vendor");
+});
+
+test("craft profit: unknown reagent price → no profit shown", () => {
+  const r = craftProfit({ q: 2, item: 20, r: [[99, 1]] }, (id) => (id === 20 ? { ah: 500, vendor: null, sell: 40 } : { ah: null, vendor: null, sell: null }));
+  assert.equal(r.costComplete, false);
+  assert.equal(r.profit, null);
+  assert.equal(r.sellAh, 1000); // crafts 2
+});
 
 test("unit price from buyout and quantity, or unit_price for commodities", () => {
   assert.equal(unitPrice({ buyout: 100, quantity: 4 }), 25);

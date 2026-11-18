@@ -41,6 +41,18 @@
   </div>
   <p class="note">Blizzard's data doesn't name which ruleset (PvP, Normal, RP…) each server group is. We're confirming them with in-game checks; until then groups are shown by letter.</p>
 
+  <section class="panel pr-movers" aria-labelledby="mv-title">
+    <div class="section-head">
+      <h2 id="mv-title">Price changes &amp; deals</h2>
+      <div class="seg-buttons" id="mv-tabs" role="group" aria-label="Show">
+        <button type="button" data-t="rising" aria-pressed="true" class="active">Rising</button>
+        <button type="button" data-t="falling" aria-pressed="false">Falling</button>
+        <button type="button" data-t="deals" aria-pressed="false">Deals</button>
+      </div>
+    </div>
+    <div id="mv-body"><p class="faint">Loading…</p></div>
+  </section>
+
   <section class="panel pr-detail" id="pr-detail" hidden aria-labelledby="pr-detail-title"></section>
 
   <div class="section-head" style="margin-top:18px"><p class="faint" id="pr-updated" style="margin:0"></p><p class="faint" id="pr-status" style="margin:0"></p></div>

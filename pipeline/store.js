@@ -21,6 +21,9 @@ function localStore(dir) {
       writes++;
       return text.length;
     },
+    async remove(key) {
+      try { fs.unlinkSync(file(key)); } catch (e) { /* not there */ }
+    },
     writeCount: () => writes
   };
 }

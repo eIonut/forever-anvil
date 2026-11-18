@@ -175,5 +175,35 @@ Spot check: Copper Ore, Peacebloom and Light Leather in Alliance group A matched
 
 **Still to do for M2:**
 - `store.kv` (Cloudflare Workers KV) and the GitHub Actions workflow. Both need the Cloudflare account.
-- **Before the 48-hour test,** shrink the history shards (more shards, or per group) so a single item chart doesn't download 1.5 MB.
+- ~~Shrink the history shards~~ Done 2026-11-19: history is now split per group (`history:{region}:{group}:{shard}`).
 - Map the house groups to rulesets (in-game price check pending; see `tools/house-compare.js`).
+
+---
+
+## 8. M3–M5 built locally (2026-11-19)
+
+All three work on localhost and are under **Tools** in the menu.
+
+- **M3, Prices page:** a "Price changes & deals" panel (Rising, Falling, Deals) per auction house, computed daily by the job (`movers:{region}:{group}`). It shows a "1 day of history so far" message until there's enough data. The display was checked with temporary test data, then the real data was restored.
+- **M4, Character lookup** (`character.html`):
+  - `pipeline/character.js` returns only the shown fields.
+  - The local server's `/api/character` route keeps the key on the server, caches for 15 minutes, rate-limits 30 lookups per minute, and checks an opt-out list of hashes (`data/optout.json`, filled with `tools/optout.js`).
+  - Bad names, bad regions and unknown characters are all handled.
+  - **Not yet tested with a real character:** field shapes for gear, professions and reputations are coded defensively from the forum report.
+- **M5, Craft profit calculator** (`crafting.html`):
+  - Covers 2,493 recipes across 12 professions, refreshed every 25 days.
+  - Materials use the AH market price, falling back to Blizzard's vendor price; profit allows for the 5% AH cut.
+  - It shows how many are listed and hides "thin markets" (fewer than 3 listed) by default, because a single listing can show an unrealistic profit.
+- **Shared math:** the price math moved to `js/pricemath.js`, used by both the job and the browser. 10 tests, all passing.
+- **Security fix:** `serve.js` no longer serves dotfiles (`.env`, `.git`).
+
+**Write budget per region per day** (KV free limit 1,000):
+
+| Writes | Count |
+|---|---|
+| Hourly: 4 group files + meta (+ items when changed) | ~120–150 |
+| Daily: 128 history shards + 4 movers files | 132 |
+| Every 25 days: recipes | 1 |
+| **Total per region** | **~260–290** |
+
+EU + US together come to about 520–580, which is OK.

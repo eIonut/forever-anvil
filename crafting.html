@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WoW: Forever Crafting Profit Calculator — Forever Tome</title>
+<meta name="description" content="Which WoW: Forever recipes make gold? Material costs from live auction prices, sale price, profit after the AH cut, for every profession.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700&family=Cinzel:wght@500;700&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="crafting">
+<div id="site-header"></div>
+<main>
+<section class="hero page-hero"><div class="wrap">
+  <div class="eyebrow">Tool · Preview</div>
+  <h1>Craft profit calculator</h1>
+  <p class="lead">Is it worth crafting? Material costs from current Auction House prices, what the result sells for, and your profit after the AH's 5% cut — for every recipe.</p>
+</div></section>
+
+<div class="wrap section" id="cr-empty" hidden><div class="panel"><h2>No data yet</h2><p id="cr-empty-msg"></p></div></div>
+
+<div class="wrap section" id="cr-app">
+  <div class="panel pr-controls cr-controls">
+    <div><label class="field-label" for="cr-prof">Profession</label><select class="input" id="cr-prof"></select></div>
+    <div><label class="field-label" for="cr-region">Region</label>
+      <select class="input" id="cr-region"><option value="eu">Europe</option><option value="us">Americas &amp; Oceania</option></select></div>
+    <div><label class="field-label" for="cr-group">Server group</label><select class="input" id="cr-group"></select></div>
+    <div><label class="field-label" for="cr-faction">Auction House</label>
+      <select class="input" id="cr-faction"><option value="alliance">Alliance</option><option value="horde">Horde</option><option value="neutral">Blackwater (neutral)</option></select></div>
+    <div><label class="field-label" for="cr-sort">Sort by</label>
+      <select class="input" id="cr-sort"><option value="profit">Profit</option><option value="margin">Profit margin</option><option value="cost">Cheapest to make</option><option value="name">Name</option></select></div>
+    <div class="pr-search"><label class="field-label" for="cr-search">Find a recipe or material</label>
+      <input class="input" type="search" id="cr-search" placeholder="e.g. Bolt of Linen, Copper" autocomplete="off"></div>
+    <label class="cr-check"><input type="checkbox" id="cr-profitable"> Only profitable recipes</label>
+    <label class="cr-check"><input type="checkbox" id="cr-hidethin" checked> Hide thin markets (fewer than 3 listed)</label>
+  </div>
+
+  <div class="section-head" style="margin-top:18px"><p class="faint" id="cr-updated" style="margin:0"></p><p class="faint" id="cr-status" style="margin:0"></p></div>
+  <div class="table-wrap">
+    <table class="prices crafting">
+      <caption class="sr-only">Recipes with material cost, sale price and profit</caption>
+      <thead><tr><th scope="col">Recipe</th><th scope="col">Materials cost</th><th scope="col">Sells for (AH)</th><th scope="col">Profit</th><th scope="col" class="col-hide-sm">Margin</th><th scope="col"><span class="sr-only">Materials</span></th></tr></thead>
+      <tbody id="cr-rows"></tbody>
+    </table>
+  </div>
+  <p style="text-align:center;margin-top:14px"><button type="button" class="btn btn-ghost" id="cr-more" hidden>Show 100 more</button></p>
+
+  <div class="panel pr-help">
+    <h2>How it works</h2>
+    <ul class="gems">
+      <li><b>Materials cost</b> uses each material's market price on the Auction House you picked. If a material isn't on the AH (like threads and dyes sold by trade vendors), we use Blizzard's vendor price — open "Materials" to see which.</li>
+      <li><b>Profit</b> = AH price of what you make, minus the AH's 5% cut, minus materials. It doesn't include listing deposits, whether it actually sells, or the skill-ups you gain.</li>
+      <li>"?" means at least one material has no price, so we can't work out a profit.</li>
+      <li>Recipe data comes from Blizzard and is refreshed every 25 days; prices every hour.</li>
+    </ul>
+    <p class="faint">Data provided by Blizzard Entertainment. Forever Tome is not affiliated with or endorsed by Blizzard.</p>
+  </div>
+</div>
+</main>
+<div id="site-footer"></div>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/pricemath.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

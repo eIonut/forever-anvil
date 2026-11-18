@@ -20,6 +20,9 @@ Needs a Battle.net API client. Copy `.env.example` to `.env` and fill it in; `.e
 | `node tools/house-compare.js` | Prices of common items per auction-house group (to identify rulesets) |
 | `node pipeline/run.js` | The price job: downloads auctions, computes prices, saves to `out/` |
 | `node --test pipeline/aggregate.test.js` | Tests for the price math |
+| `node tools/optout.js eu "Firstname Lastname"` | Hide a character from the character lookup (stores a fingerprint, not the name) |
+
+With `node serve.js` running and `.env` filled in, the **Prices**, **Craft profits** and **Character lookup** pages (under *Tools*) work on localhost. The local server also answers `/api/character`; once the site is online, a Cloudflare Worker will provide the same endpoint.
 
 `out/` holds Blizzard API data and is git-ignored. Blizzard's API terms allow keeping that data for at most **30 days**; the job prunes it automatically each time it runs. Delete `out/` if you stop running it. See [docs/phase2-plan.md](docs/phase2-plan.md) for the full plan.
 
