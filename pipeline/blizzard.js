@@ -48,7 +48,8 @@ function createClient({ clientId, clientSecret, region }) {
         continue;
       }
       if (!res.ok) { await res.arrayBuffer().catch(() => {}); return { status: res.status, json: null }; }
-      return { status: res.status, json: await res.json() };
+      // Last-Modified tells us when Blizzard last refreshed this data (useful for character profiles)
+      return { status: res.status, json: await res.json(), lastModified: res.headers.get("last-modified") || null };
     }
   }
 

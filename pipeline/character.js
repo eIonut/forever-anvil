@@ -13,6 +13,12 @@ function normalizeName(input) {
 
 const pick = (o, k) => (o && o[k] && (o[k].name || o[k])) || null;
 
+// latest of several HTTP dates, as ISO text (or null)
+function newest(dates) {
+  const t = dates.map((d) => (d ? Date.parse(d) : NaN)).filter((x) => !isNaN(x));
+  return t.length ? new Date(Math.max.apply(null, t)).toISOString() : null;
+}
+
 async function lookupCharacter(api, nameInput) {
   const slug = normalizeName(nameInput);
   if (!slug) return { error: "bad-name" };
@@ -72,9 +78,11 @@ async function lookupCharacter(api, nameInput) {
       gender: pick(s, "gender"),
       guild: s.guild ? s.guild.name || null : null,
       ruleset: s.ruleset ? s.ruleset.name || null : null,
-      lastLogin: s.last_login_timestamp ? new Date(s.last_login_timestamp).toISOString().slice(0, 10) : null,
+      lastLogin: s.last_login_timestamp ? new Date(s.last_login_timestamp).toISOString() : null,
       avatar
     },
+    // when Blizzard last refreshed this profile (profiles only update after the character logs out)
+    blizzardUpdated: newest([sum, eq, prof, rep].map((r) => r.lastModified)),
     gear, professions, reputations,
     partial: [eq, prof, rep].some((r) => r.status !== 200) // some sections not ready yet (e.g. right after logout)
   };

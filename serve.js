@@ -81,7 +81,8 @@ http.createServer((req, res) => {
   if (!file.startsWith(ROOT) || BLOCKED.test(path.relative(ROOT, file))) { res.writeHead(404); return res.end("Not found"); }
   fs.readFile(file, (err, data) => {
     if (err) { res.writeHead(404); return res.end("Not found"); }
-    res.writeHead(200, { "Content-Type": TYPES[path.extname(file)] || "application/octet-stream" });
+    // no-cache: the browser may keep a copy but must check for a newer one each time (avoids stale scripts while developing)
+    res.writeHead(200, { "Content-Type": TYPES[path.extname(file)] || "application/octet-stream", "Cache-Control": "no-cache" });
     res.end(data);
   });
 }).listen(PORT, () => console.log("Forever Tome running at http://localhost:" + PORT));

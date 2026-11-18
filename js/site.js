@@ -1126,6 +1126,17 @@
     loadRegion();
   };
 
+  // "3 hours ago", "yesterday", "5 days ago"
+  function ago(iso) {
+    var s = (Date.now() - new Date(iso).getTime()) / 1000;
+    if (isNaN(s)) return "";
+    if (s < 90) return "just now";
+    if (s < 3600) return Math.round(s / 60) + " minutes ago";
+    if (s < 86400) { var h = Math.round(s / 3600); return h + (h === 1 ? " hour ago" : " hours ago"); }
+    var dd = Math.floor(s / 86400);
+    return dd === 1 ? "yesterday" : dd + " days ago";
+  }
+
   /* ---------- character lookup ---------- */
   PAGES.character = function () {
     var form = $("#ch-form"), regionSel = $("#ch-region"), nameIn = $("#ch-name"), out = $("#ch-result");
@@ -1152,9 +1163,13 @@
         "<div><h2>" + full + "</h2>" +
         '<p class="ch-sub">Level ' + esc(c.level) + " " + esc(c.race || "") + ' <b style="color:var(--cc, var(--gold))">' + esc(c.class || "") + "</b>" +
         (c.guild ? ' · &lt;' + esc(c.guild) + "&gt;" : "") + "</p>" +
-        '<p class="faint">' + [c.faction, c.ruleset ? c.ruleset + " ruleset" : null, d.region.toUpperCase(), c.lastLogin ? "last seen " + c.lastLogin : null].filter(Boolean).map(esc).join(" · ") + "</p></div>" +
+        '<p class="faint">' + [c.faction, c.ruleset ? c.ruleset + " ruleset" : null, d.region.toUpperCase(), c.lastLogin ? "last logged in " + ago(c.lastLogin) : null].filter(Boolean).map(esc).join(" · ") + "</p></div>" +
         '<button type="button" class="btn btn-ghost btn-sm" id="ch-share">Copy link</button></div>' +
-        (d.partial ? '<p class="note">Some sections aren\'t available yet — Blizzard updates them a little while after the character logs out.</p>' : "") +
+        '<p class="note fresh">' + (d.blizzardUpdated
+          ? "<b>Blizzard last updated this profile " + esc(ago(d.blizzardUpdated)) + "</b> (" + esc(new Date(d.blizzardUpdated).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })) + "). "
+          : "") +
+          "Profiles only refresh after the character logs out, and Blizzard can take several hours — sometimes until the next day — so very recent gear or skill changes may not show yet." +
+          (d.partial ? " Some sections aren't available yet." : "") + "</p>" +
         '<div class="grid grid-2 ch-sections">' +
         '<section><h3>Equipped gear</h3>' + (d.gear.length ? '<ul class="ch-gear">' + d.gear.map(function (g) {
           return '<li><span class="slot">' + esc(g.slot || "") + '</span><a class="wh ' + (QUAL[g.quality] || "") + '" href="https://www.wowhead.com/forever/item=' + g.id + '" target="_blank" rel="noopener nofollow" data-wh-rename-link="false">' + esc(g.name || "Item #" + g.id) + "</a>" + (g.level ? ' <span class="faint">ilvl ' + g.level + "</span>" : "") + "</li>";
