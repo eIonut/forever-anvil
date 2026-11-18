@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WoW: Forever Crafting Planner &amp; Shopping List — Forever Tome</title>
+<meta name="description" content="Plan your WoW: Forever crafting: add recipes, get one combined shopping list with live Auction House and vendor prices, and see your total cost and profit.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@400;500;700&family=Cinzel:wght@500;700&family=Cinzel+Decorative:wght@700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body data-page="planner">
+<div id="site-header"></div>
+<main>
+<section class="hero page-hero"><div class="wrap">
+  <div class="eyebrow">Tool · Preview</div>
+  <h1>Crafting planner</h1>
+  <p class="lead">Plan what you'll craft and get one combined shopping list — what to buy on the Auction House, what from a vendor, and what it all costs right now.</p>
+</div></section>
+
+<div class="wrap section" id="pl-empty" hidden><div class="panel"><h2>No data yet</h2><p>Run <code>node pipeline/run.js</code>, then reload this page.</p></div></div>
+
+<div class="wrap section" id="pl-app">
+  <div class="panel pr-controls fl-controls">
+    <div><label class="field-label" for="pl-region">Region</label>
+      <select class="input" id="pl-region"><option value="eu">Europe</option><option value="us">Americas &amp; Oceania</option></select></div>
+    <div><label class="field-label" for="pl-group">Server group</label><select class="input" id="pl-group"></select></div>
+    <div><label class="field-label" for="pl-faction">Auction House</label>
+      <select class="input" id="pl-faction"><option value="alliance">Alliance</option><option value="horde">Horde</option><option value="neutral">Blackwater (neutral)</option></select></div>
+  </div>
+
+  <div class="layout-side" style="margin-top:18px">
+    <div class="grid">
+      <section class="panel" aria-labelledby="pl-rec-title">
+        <div class="section-head"><h2 id="pl-rec-title">What you'll craft</h2><button type="button" class="btn btn-ghost btn-sm" id="pl-clear">Clear plan</button></div>
+        <div class="pl-search">
+          <label class="field-label" for="pl-add">Add a recipe</label>
+          <input class="input" id="pl-add" type="search" placeholder="Type a recipe or item, e.g. Linen" autocomplete="off" aria-controls="pl-suggest">
+          <ul class="pl-suggest" id="pl-suggest" aria-live="polite"></ul>
+        </div>
+        <ul class="pl-list" id="pl-recipes"></ul>
+      </section>
+
+      <section class="panel" aria-labelledby="pl-mat-title">
+        <div class="section-head"><h2 id="pl-mat-title">Shopping list</h2><button type="button" class="btn btn-sm" id="pl-copy" hidden>Copy shopping list</button></div>
+        <div class="table-wrap">
+          <table class="prices">
+            <caption class="sr-only">Materials needed for your plan</caption>
+            <thead><tr><th scope="col">Material</th><th scope="col">Need</th><th scope="col">Have</th><th scope="col">Buy</th><th scope="col">Price each</th><th scope="col">Cost</th></tr></thead>
+            <tbody id="pl-mats"></tbody>
+          </table>
+        </div>
+        <p class="faint" style="margin-top:8px">Type how many you already have in the <b>Have</b> column and the list updates. "vendor" prices are Blizzard's vendor price for items not on the AH — check a trade vendor sells them.</p>
+      </section>
+    </div>
+
+    <aside class="grid">
+      <section class="panel pl-totals" aria-labelledby="pl-sum-title">
+        <h2 id="pl-sum-title">Totals</h2>
+        <dl>
+          <div><dt>Materials to buy</dt><dd id="pl-total-cost"></dd></div>
+          <div><dt>Results sell for <span class="faint">(after 5% AH cut)</span></dt><dd id="pl-total-sales"></dd></div>
+          <div><dt>Profit</dt><dd id="pl-total-profit"></dd></div>
+        </dl>
+        <p class="faint" id="pl-updated"></p>
+        <p class="faint">Your plan is saved in this browser — no account needed.</p>
+      </section>
+      <div class="ad-slot" data-slot="sidebar"></div>
+    </aside>
+  </div>
+  <p class="faint" style="margin-top:16px">Data provided by Blizzard Entertainment. Forever Tome is not affiliated with or endorsed by Blizzard.</p>
+</div>
+</main>
+<div id="site-footer"></div>
+<script src="js/config.js"></script>
+<script src="js/data.js"></script>
+<script src="js/pricemath.js"></script>
+<script src="js/site.js"></script>
+</body>
+</html>

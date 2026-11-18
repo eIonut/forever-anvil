@@ -49,7 +49,8 @@
   // shown in the "Tools" dropdown
   var TOOLS = [
     ["prices.html", "Auction prices", "prices"], ["flips.html", "Vendor flips", "flips"], ["item/index.html", "Item price pages", "items"],
-    ["crafting.html", "Craft profits", "crafting"], ["character.html", "Character lookup", "character"],
+    ["crafting.html", "Craft profits", "crafting"], ["planner.html", "Crafting planner", "planner"], ["recipe/index.html", "Recipe pages", "recipes"],
+    ["talents.html", "Talent calculator", "talents"], ["character.html", "Character lookup", "character"],
     ["resets.html", "Reset & lockouts", "resets"], ["checklist.html", "Journey checklist", "checklist"], ["dungeons.html", "Dungeon finder", "dungeons-tool"]
   ];
   // footer-only links
@@ -1015,6 +1016,328 @@
     return '<a class="wh item-link" href="https://www.wowhead.com/forever/item=' + id + '" target="_blank" rel="noopener nofollow" data-wh-rename-link="true">Item #' + id + "</a>";
   }
 
+  /* ---------- talent calculator ---------- */
+  PAGES.talents = function () {
+    var TM = window.TalentMath;
+    var data = null, cls = null, specs = [], build = {}, level = 60, selected = null; // selected = { t, node }
+    var classBar = $("#tc-classes"), treesBox = $("#tc-trees"), tip = $("#tc-tip"), detail = $("#tc-detail");
+    var levelIn = $("#tc-level");
+
+    function readHash() {
+      var h = new URLSearchParams(location.hash.replace(/^#/, ""));
+      return { c: h.get("c"), b: h.get("b"), l: parseInt(h.get("l"), 10) };
+    }
+    function writeHash() {
+      if (!cls) return;
+      var code = TM.encode(specs, build);
+      var hash = "c=" + encodeURIComponent(cls.name.toLowerCase()) + (code !== "-" && code.replace(/-/g, "") ? "&b=" + code : "") + (level !== 60 ? "&l=" + level : "");
+      history.replaceState(null, "", "#" + hash);
+      store("codex-talents", { c: cls.name.toLowerCase(), b: code, l: level });
+    }
+
+    getJSON(priceUrl("talents", "eu")).then(function (d) {
+      if (!d || !d.classes) { $("#tc-app").hidden = true; $("#tc-empty").hidden = false; return; }
+      data = d;
+      classBar.innerHTML = d.classes.map(function (c) {
+        var col = "var(--c-" + c.name.toLowerCase() + ")";
+        return '<button type="button" class="tc-class" data-c="' + esc(c.name.toLowerCase()) + '" aria-pressed="false" style="--cc:' + col + '">' +
+          (c.icon ? '<img src="' + esc(c.icon) + '" alt="" width="28" height="28">' : "") + "<span>" + esc(c.name) + "</span></button>";
+      }).join("");
+      var h = readHash(), saved = store("codex-talents") || {};
+      var pick = h.c || saved.c || "warrior";
+      level = h.l || saved.l || 60;
+      levelIn.value = level;
+      selectClass(pick, h.c ? h.b : (pick === saved.c ? saved.b : null));
+    });
+
+    function selectClass(name, code) {
+      cls = data.classes.filter(function (c) { return c.name.toLowerCase() === name; })[0] || data.classes[0];
+      specs = cls.specs;
+      // links can be hand-edited: re-apply the real rules before showing a shared build
+      build = code ? TM.sanitize(specs, TM.decode(specs, code), TM.pointsForLevel(level)) : {};
+      selected = null;
+      detail.hidden = true;
+      $all(".tc-class", classBar).forEach(function (b) { var on = b.getAttribute("data-c") === cls.name.toLowerCase(); b.setAttribute("aria-pressed", on); b.classList.toggle("active", on); });
+      document.querySelector(".tc-app").style.setProperty("--cc", "var(--c-" + cls.name.toLowerCase() + ")");
+      drawTrees();
+    }
+
+    function nodeState(t, n) {
+      var r = TM.rankOf(build, t, n), max = TM.maxRank(n);
+      if (r >= max) return "max";
+      if (r > 0) return "partial";
+      return TM.whyLocked(specs, build, t, n, TM.pointsForLevel(level)) ? "locked" : "open";
+    }
+    function reqText(t, n) {
+      var why = TM.whyLocked(specs, build, t, n, TM.pointsForLevel(level));
+      if (!why || why === "max") return "";
+      if (why === "no-points") return "No talent points left at level " + level + ".";
+      if (why.indexOf("row:") === 0) return "Requires " + why.slice(4) + " points in " + specs[t].name + ".";
+      var req = specs[t].nodes.filter(function (x) { return String(x[0]) === why.slice(4); })[0];
+      return req ? "Requires " + TM.maxRank(req) + " point" + (TM.maxRank(req) > 1 ? "s" : "") + " in " + req[3] + "." : "";
+    }
+    function label(t, n) {
+      var r = TM.rankOf(build, t, n), max = TM.maxRank(n), req = reqText(t, n);
+      return n[3] + ", rank " + r + " of " + max + "." + (req ? " " + req : "");
+    }
+
+    function drawTrees() {
+      var available = TM.pointsForLevel(level), spent = TM.total(build);
+      $("#tc-name").textContent = cls.name;
+      $("#tc-split").textContent = specs.map(function (s, t) { return TM.treeTotal(build, t); }).join(" / ");
+      $("#tc-left").textContent = available - spent;
+      $("#tc-left").classList.toggle("over", spent > available);
+      $("#tc-spent").textContent = spent + " / " + available + " spent";
+      $("#tc-bar").style.width = Math.min(100, available ? spent / available * 100 : 0) + "%";
+      $("#tc-split-sr").textContent = specs.map(function (s, t) { return s.name + " " + TM.treeTotal(build, t); }).join(", ");
+
+      treesBox.innerHTML = specs.map(function (s, t) {
+        // arrows: from prerequisite (row, col) to dependent (row, col), in grid units
+        var arrows = "";
+        s.nodes.forEach(function (n) {
+          n[6].forEach(function (req) {
+            var p = s.nodes.filter(function (x) { return x[0] === req; })[0];
+            if (!p) return;
+            var met = TM.rankOf(build, t, p) >= TM.maxRank(p);
+            var x1 = (p[2] - 0.5) * 100, y1 = (p[1] - 0.5) * 100 + 30, x2 = (n[2] - 0.5) * 100, y2 = (n[1] - 0.5) * 100 - 32;
+            if (p[1] === n[1]) { y1 = y2 = (n[1] - 0.5) * 100; x1 += (n[2] > p[2] ? 32 : -32); x2 += (n[2] > p[2] ? -32 : 32); }
+            arrows += '<path class="tc-arrow' + (met ? " met" : "") + '" d="M' + x1 + " " + y1 + (p[2] !== n[2] && p[1] !== n[1] ? " L" + x1 + " " + ((y1 + y2) / 2) + " L" + x2 + " " + ((y1 + y2) / 2) : "") + " L" + x2 + " " + y2 + '" marker-end="url(#tc-head-' + (met ? "met" : "off") + ')"/>';
+          });
+        });
+        return '<section class="tc-tree" aria-labelledby="tc-tree-' + t + '" style="--spec-icon:url(\'' + esc(s.icon || "") + '\')">' +
+          '<header class="tc-tree-head">' + (s.icon ? '<img src="' + esc(s.icon) + '" alt="" width="30" height="30">' : "") +
+          '<h2 id="tc-tree-' + t + '">' + esc(s.name) + '</h2><span class="tc-tree-pts">' + TM.treeTotal(build, t) + "</span>" +
+          '<button type="button" class="icon-btn tc-reset-tree" data-t="' + t + '" title="Reset ' + esc(s.name) + '"><span aria-hidden="true">↺</span><span class="sr-only">Reset ' + esc(s.name) + "</span></button></header>" +
+          '<div class="tc-grid">' +
+          '<svg class="tc-lines" viewBox="0 0 400 700" preserveAspectRatio="none" aria-hidden="true"><defs>' +
+          '<marker id="tc-head-off" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8z" class="tc-arrowhead"/></marker>' +
+          '<marker id="tc-head-met" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8z" class="tc-arrowhead met"/></marker></defs>' + arrows + "</svg>" +
+          [1, 2, 3, 4, 5, 6, 7].map(function (row) { return '<span class="tc-rowlabel" style="grid-row:' + row + '" aria-hidden="true">' + (row - 1) * 5 + "</span>"; }).join("") +
+          s.nodes.map(function (n) {
+            var st = nodeState(t, n), r = TM.rankOf(build, t, n);
+            return '<button type="button" class="tc-talent s-' + st + '" style="grid-row:' + n[1] + ";grid-column:" + (n[2] + 1) + '" data-t="' + t + '" data-n="' + n[0] + '" aria-label="' + esc(label(t, n)) + '"' +
+              (st === "locked" ? ' aria-disabled="true"' : "") + ">" +
+              (n[4] ? '<img src="' + esc(n[4]) + '" alt="" width="44" height="44" loading="lazy">' : "") +
+              '<span class="tc-rank" aria-hidden="true">' + r + "/" + TM.maxRank(n) + "</span></button>";
+          }).join("") + "</div></section>";
+      }).join("");
+      writeHash();
+      if (selected) showDetail(selected.t, selected.node);
+    }
+
+    function find(t, id) { return specs[t].nodes.filter(function (n) { return String(n[0]) === String(id); })[0]; }
+    function descHTML(t, n) {
+      var r = TM.rankOf(build, t, n), max = TM.maxRank(n), req = reqText(t, n);
+      var cur = r > 0 ? n[5][r - 1] : n[5][0], next = r > 0 && r < max ? n[5][r] : null;
+      return "<b class=\"tc-tip-name\">" + esc(n[3]) + '</b><span class="tc-tip-rank">Rank ' + r + "/" + max + "</span>" +
+        (req ? '<p class="tc-req">' + esc(req) + "</p>" : "") +
+        "<p>" + esc(cur) + "</p>" + (next ? '<p class="tc-next"><b>Next rank:</b> ' + esc(next) + "</p>" : "");
+    }
+    function showTip(btn) {
+      var t = +btn.getAttribute("data-t"), n = find(t, btn.getAttribute("data-n"));
+      tip.innerHTML = descHTML(t, n) + '<p class="faint tc-tip-help">Click to learn · right-click to unlearn</p>';
+      tip.hidden = false;
+      var b = btn.getBoundingClientRect(), app = $(".tc-app").getBoundingClientRect();
+      var left = Math.min(b.right - app.left + 10, app.width - tip.offsetWidth - 8);
+      if (b.right + tip.offsetWidth + 20 > window.innerWidth) left = Math.max(8, b.left - app.left - tip.offsetWidth - 10);
+      tip.style.left = left + "px";
+      tip.style.top = (b.top - app.top) + "px";
+    }
+    function showDetail(t, n) {
+      selected = { t: t, node: n };
+      detail.innerHTML = '<div class="tc-detail-icon">' + (n[4] ? '<img src="' + esc(n[4]) + '" alt="" width="48" height="48">' : "") + "</div><div>" + descHTML(t, n) + "</div>" +
+        '<div class="tc-detail-btns"><button type="button" class="btn btn-ghost btn-sm" data-act="minus">− Unlearn</button><button type="button" class="btn btn-sm" data-act="plus">+ Learn</button>' +
+        '<button type="button" class="btn btn-ghost btn-sm" data-act="close">Close</button></div>';
+      detail.hidden = false;
+    }
+    function change(btn, dir) {
+      var t = +btn.getAttribute("data-t"), n = find(t, btn.getAttribute("data-n"));
+      var ok = dir > 0 ? TM.add(specs, build, t, n, TM.pointsForLevel(level)) : TM.remove(specs, build, t, n);
+      if (!ok) {
+        announce(dir > 0 ? (reqText(t, n) || n[3] + " is at max rank.") : "Can't unlearn " + n[3] + " — other talents depend on it.");
+        btn.classList.add("tc-shake"); setTimeout(function () { btn.classList.remove("tc-shake"); }, 300);
+      }
+      selected = { t: t, node: n };
+      var id = btn.getAttribute("data-n");
+      drawTrees();
+      var again = treesBox.querySelector('.tc-talent[data-t="' + t + '"][data-n="' + id + '"]');
+      if (again) { again.focus(); if (!tip.hidden) showTip(again); }
+      if (ok) announce(n[3] + " rank " + TM.rankOf(build, t, n) + " of " + TM.maxRank(n) + ". " + (TM.pointsForLevel(level) - TM.total(build)) + " points left.");
+    }
+
+    treesBox.addEventListener("click", function (e) {
+      var b = e.target.closest(".tc-talent");
+      if (b) { change(b, e.shiftKey ? -1 : 1); return; }
+      var r = e.target.closest(".tc-reset-tree");
+      if (r) { delete build[+r.getAttribute("data-t")]; selected = null; detail.hidden = true; drawTrees(); announce("Tree reset"); }
+    });
+    treesBox.addEventListener("contextmenu", function (e) { var b = e.target.closest(".tc-talent"); if (b) { e.preventDefault(); change(b, -1); } });
+    treesBox.addEventListener("keydown", function (e) {
+      var b = e.target.closest(".tc-talent"); if (!b) return;
+      if (e.key === "Delete" || e.key === "Backspace" || e.key === "-") { e.preventDefault(); change(b, -1); }
+      else if (e.key === "+" ) { e.preventDefault(); change(b, 1); }
+    });
+    treesBox.addEventListener("mouseover", function (e) { var b = e.target.closest(".tc-talent"); if (b) showTip(b); });
+    treesBox.addEventListener("mouseout", function (e) { if (e.target.closest(".tc-talent")) tip.hidden = true; });
+    treesBox.addEventListener("focusin", function (e) { var b = e.target.closest(".tc-talent"); if (b) { showTip(b); var t = +b.getAttribute("data-t"); showDetail(t, find(t, b.getAttribute("data-n"))); } });
+    treesBox.addEventListener("focusout", function () { tip.hidden = true; });
+    detail.addEventListener("click", function (e) {
+      var a = e.target.closest("[data-act]"); if (!a || !selected) return;
+      if (a.getAttribute("data-act") === "close") {
+        var back = treesBox.querySelector('.tc-talent[data-t="' + selected.t + '"][data-n="' + selected.node[0] + '"]');
+        detail.hidden = true; selected = null; if (back) back.focus({ preventScroll: true }); detail.hidden = true; return;
+      }
+      var b = treesBox.querySelector('.tc-talent[data-t="' + selected.t + '"][data-n="' + selected.node[0] + '"]');
+      if (b) change(b, a.getAttribute("data-act") === "plus" ? 1 : -1);
+      var again = detail.querySelector('[data-act="' + a.getAttribute("data-act") + '"]'); if (again) again.focus();
+    });
+    classBar.addEventListener("click", function (e) {
+      var b = e.target.closest(".tc-class"); if (!b) return;
+      detail.hidden = true; selectClass(b.getAttribute("data-c"), null); announce(cls.name + " talents");
+    });
+    levelIn.addEventListener("change", function () {
+      level = Math.max(10, Math.min(60, parseInt(levelIn.value, 10) || 60)); levelIn.value = level; drawTrees();
+    });
+    $("#tc-reset").addEventListener("click", function () { build = {}; selected = null; detail.hidden = true; drawTrees(); announce("All talents reset"); });
+    $("#tc-share").addEventListener("click", function () {
+      var url = location.href;
+      var done = function () { announce("Build link copied"); $("#tc-share").textContent = "Link copied!"; setTimeout(function () { $("#tc-share").textContent = "Copy build link"; }, 2500); };
+      if (navigator.clipboard) navigator.clipboard.writeText(url).then(done, function () { prompt("Copy this link:", url); }); else prompt("Copy this link:", url);
+    });
+    window.addEventListener("hashchange", function () { var h = readHash(); if (data && h.c) { level = h.l || 60; levelIn.value = level; selectClass(h.c, h.b); } });
+  };
+
+  /* ---------- crafting plan (shared by planner, craft page and recipe pages) ---------- */
+  var PLAN_KEY = "codex-plan";
+  function getPlan() { var p = store(PLAN_KEY); return p && Array.isArray(p.list) ? p : { list: [], have: {} }; }
+  function setPlan(p) { store(PLAN_KEY, p); updatePlanBadge(); }
+  function addToPlan(recipeId, crafts) {
+    var p = getPlan(), id = Number(recipeId), e = p.list.filter(function (x) { return x.r === id; })[0];
+    if (e) e.n += crafts || 1; else p.list.push({ r: id, n: crafts || 1 });
+    setPlan(p);
+    return p.list.length;
+  }
+  function updatePlanBadge() {
+    var n = getPlan().list.length;
+    $all("[data-plan-count]").forEach(function (el) { el.textContent = n; el.hidden = !n; });
+  }
+  // "+ Add to my crafting plan" buttons anywhere on the page
+  document.addEventListener("click", function (e) {
+    var b = e.target && e.target.closest ? e.target.closest(".plan-add") : null;
+    if (!b) return;
+    var n = addToPlan(b.getAttribute("data-recipe"), 1);
+    var old = b.textContent;
+    b.textContent = "✓ Added (" + n + " in plan)";
+    announce("Added to your crafting plan");
+    setTimeout(function () { if (document.body.contains(b)) b.textContent = old; }, 3000);
+  });
+
+  PAGES.planner = function () {
+    var PM = window.PriceMath;
+    var regionSel = $("#pl-region"), groupSel = $("#pl-group"), facSel = $("#pl-faction"), addIn = $("#pl-add"), addList = $("#pl-suggest");
+    var prefs = store("codex-prices") || {};
+    var state = { region: prefs.region || "eu", group: prefs.group || "", faction: prefs.faction || "alliance" };
+    var meta, items = {}, recipes = null, group = null, byId = {};
+    regionSel.value = state.region; facSel.value = state.faction;
+    function save() { var p = store("codex-prices") || {}; p.region = state.region; p.group = state.group; p.faction = state.faction; store("codex-prices", p); }
+
+    function load() {
+      Promise.all([getJSON(priceUrl("meta", state.region)), getJSON(priceUrl("items", state.region)), getJSON(priceUrl("recipes", state.region))]).then(function (r) {
+        meta = r[0]; items = r[1] || {}; recipes = r[2];
+        if (!meta || !recipes) { $("#pl-app").hidden = true; $("#pl-empty").hidden = false; return; }
+        byId = {};
+        recipes.professions.forEach(function (p) { p.recipes.forEach(function (x) { if (x[6].length) byId[x[0]] = { id: x[0], name: x[1], prof: p.name, item: x[3], itemName: x[4], q: x[5], r: x[6] }; }); });
+        groupSel.innerHTML = meta.groups.map(function (g) { return '<option value="' + esc(g) + '">' + esc(groupLabel(meta, g)) + "</option>"; }).join("");
+        if (meta.groups.indexOf(state.group) < 0) state.group = meta.groups[0];
+        groupSel.value = state.group;
+        loadGroup();
+      });
+    }
+    function loadGroup() { getJSON(priceUrl("prices", state.region, state.group)).then(function (g) { group = g; draw(); }); }
+    function priceFn() {
+      var house = null;
+      if (group) Object.keys(group.houses).forEach(function (id) { if (group.houses[id].faction === state.faction) house = group.houses[id]; });
+      var hi = house ? house.items : {};
+      return function (id) { var a = hi[id], it = items[id] || []; return { ah: a ? a[1] : null, vendor: it[3] || null, sell: it[1] || null }; };
+    }
+    function nameOf(id) { var n = items[id]; return n && n[0] ? n[0] : null; }
+
+    function draw() {
+      var plan = getPlan(), price = priceFn();
+      plan.list = plan.list.filter(function (x) { return byId[x.r]; });
+      var rows = plan.list.map(function (x) { return { recipe: byId[x.r], crafts: x.n }; });
+      var res = PM.planShoppingList(rows.map(function (x) { return { recipe: x.recipe, crafts: x.crafts }; }), plan.have, price);
+
+      $("#pl-recipes").innerHTML = rows.length ? rows.map(function (x) {
+        var r = x.recipe;
+        return '<li><div class="pl-rec"><a href="' + esc(PM.recipePath(r.id, r.name)) + '">' + esc(r.name) + '</a> <span class="faint">' + esc(r.prof) + "</span></div>" +
+          '<label class="pl-qty"><span class="sr-only">Times to craft ' + esc(r.name) + '</span><input class="input" type="number" min="1" max="999" value="' + x.crafts + '" data-r="' + r.id + '"></label>' +
+          '<button type="button" class="icon-btn pl-remove" data-r="' + r.id + '"><span aria-hidden="true">×</span><span class="sr-only">Remove ' + esc(r.name) + "</span></button></li>";
+      }).join("") : '<li class="empty">Your plan is empty. Add recipes with the search box above, or with "+ Add to my crafting plan" on any recipe page.</li>';
+
+      $("#pl-mats").innerHTML = res.mats.length ? res.mats.sort(function (a, b) { return (b.cost || 0) - (a.cost || 0); }).map(function (m) {
+        var n = nameOf(m.id) || ("Item #" + m.id);
+        return '<tr><th scope="row">' + itemPageLink(m.id, nameOf(m.id)) + "</th><td>" + m.need + "</td>" +
+          '<td><label><span class="sr-only">Already have ' + esc(n) + '</span><input class="input pl-have" type="number" min="0" value="' + m.have + '" data-i="' + m.id + '"></label></td>' +
+          "<td><b>" + m.buy + "</b></td><td>" + (m.unit != null ? money(m.unit) : '<span class="faint">no price</span>') +
+          ' <span class="faint">' + (m.source === "ah" ? "AH" : m.source === "vendor" ? "vendor" : "") + "</span></td><td>" + (m.cost != null ? money(m.cost) : "—") + "</td></tr>";
+      }).join("") : '<tr><td colspan="6" class="empty">Materials appear here once you add recipes.</td></tr>';
+
+      $("#pl-total-cost").innerHTML = res.complete ? money(res.cost) : money(res.cost) + ' <span class="faint">+ items with no price</span>';
+      $("#pl-total-sales").innerHTML = res.sales ? money(res.sales) + (res.salesComplete ? "" : ' <span class="faint">(some results not on AH)</span>') : '<span class="faint">—</span>';
+      $("#pl-total-profit").innerHTML = res.profit != null ? '<span class="pct ' + (res.profit >= 0 ? "up" : "down") + '">' + (res.profit >= 0 ? "+" : "−") + "</span> " + money(Math.abs(res.profit)) : '<span class="faint">—</span>';
+      $("#pl-updated").textContent = group ? "Prices from " + new Date(group.updated).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "";
+      $("#pl-copy").hidden = !res.mats.some(function (m) { return m.buy > 0; });
+      state.lastList = res.mats.filter(function (m) { return m.buy > 0; }).map(function (m) { return m.buy + "x " + (nameOf(m.id) || "Item #" + m.id) + (m.source === "vendor" ? " (vendor)" : ""); });
+      setupWowhead();
+    }
+
+    // add recipes by name
+    addIn.addEventListener("input", function () {
+      var term = addIn.value.toLowerCase().trim();
+      if (term.length < 2) { addList.innerHTML = ""; return; }
+      var hits = Object.keys(byId).map(function (k) { return byId[k]; }).filter(function (r) {
+        return r.name.toLowerCase().indexOf(term) >= 0 || (r.itemName || "").toLowerCase().indexOf(term) >= 0;
+      }).slice(0, 8);
+      addList.innerHTML = hits.map(function (r) { return '<li><button type="button" class="pl-pick" data-r="' + r.id + '">' + esc(r.name) + ' <span class="faint">' + esc(r.prof) + "</span></button></li>"; }).join("") ||
+        '<li class="faint" style="padding:8px">No recipe matches.</li>';
+    });
+    addList.addEventListener("click", function (e) {
+      var b = e.target.closest(".pl-pick"); if (!b) return;
+      addToPlan(b.getAttribute("data-r"), 1); addIn.value = ""; addList.innerHTML = ""; addIn.focus();
+      announce("Recipe added"); draw();
+    });
+    $("#pl-recipes").addEventListener("change", function (e) {
+      var r = e.target.getAttribute("data-r"); if (!r) return;
+      var p = getPlan(); p.list.forEach(function (x) { if (String(x.r) === r) x.n = Math.max(1, Math.min(999, parseInt(e.target.value, 10) || 1)); });
+      setPlan(p); draw();
+    });
+    $("#pl-recipes").addEventListener("click", function (e) {
+      var b = e.target.closest(".pl-remove"); if (!b) return;
+      var p = getPlan(); p.list = p.list.filter(function (x) { return String(x.r) !== b.getAttribute("data-r"); });
+      setPlan(p); announce("Recipe removed"); draw(); addIn.focus();
+    });
+    $("#pl-mats").addEventListener("change", function (e) {
+      var i = e.target.getAttribute("data-i"); if (!i) return;
+      var p = getPlan(); var v = Math.max(0, parseInt(e.target.value, 10) || 0);
+      if (v) p.have[i] = v; else delete p.have[i];
+      setPlan(p); draw();
+    });
+    $("#pl-clear").addEventListener("click", function () {
+      if (!confirm("Remove every recipe from your plan?")) return;
+      setPlan({ list: [], have: {} }); announce("Plan cleared"); draw();
+    });
+    $("#pl-copy").addEventListener("click", function () {
+      var text = "Shopping list (Forever Tome):\n" + (state.lastList || []).join("\n");
+      var done = function () { announce("Shopping list copied"); $("#pl-copy").textContent = "Copied!"; setTimeout(function () { $("#pl-copy").textContent = "Copy shopping list"; }, 2500); };
+      if (navigator.clipboard) navigator.clipboard.writeText(text).then(done, function () { prompt("Copy this list:", text); }); else prompt("Copy this list:", text);
+    });
+    regionSel.addEventListener("change", function () { state.region = regionSel.value; save(); load(); });
+    groupSel.addEventListener("change", function () { state.group = groupSel.value; save(); loadGroup(); });
+    facSel.addEventListener("change", function () { state.faction = facSel.value; save(); draw(); });
+    load();
+  };
+
   /* ---------- item index (item/index.html): filter the A–Z list as you type ---------- */
   PAGES.items = function () {
     var box = $("#idx-search");
@@ -1168,10 +1491,12 @@
       if (p == null) return '<span class="faint">—</span>';
       return '<span class="' + (p >= 0 ? "pct up" : "pct down") + '">' + (p < 0 ? "−" : "+") + "</span> " + money(Math.abs(p));
     }
+    // recipe name → its own recipe page (cost, profit on every AH)
     function itemOrRecipe(r) {
-      if (!r.item) return esc(r.name) + ' <span class="tag">enchant</span>';
+      var href = esc(PM.recipePath(r.id, r.name));
+      if (!r.item) return '<a class="item-link" href="' + href + '">' + esc(r.name) + '</a> <span class="tag">enchant</span>';
       var it = items[r.item] || [];
-      return '<a class="wh item-link" href="https://www.wowhead.com/forever/item=' + r.item + '" target="_blank" rel="noopener nofollow" data-wh-rename-link="false">' + esc(r.itemName || it[0] || r.name) + "</a>" + (r.q > 1 ? ' <span class="faint">×' + r.q + "</span>" : "");
+      return '<a class="item-link" href="' + href + '">' + esc(r.itemName || it[0] || r.name) + "</a>" + (r.q > 1 ? ' <span class="faint">×' + r.q + "</span>" : "");
     }
     function detailRow(r) {
       var res = r.res;
@@ -1201,7 +1526,8 @@
             (r.listed < 3 ? ' · <span class="thin" title="Very few on sale, so this asking price may not be what it really sells for">⚠ thin market</span>' : "") + "</span>" : "") : '<span class="faint">—</span>') + "</td>" +
           "<td>" + profitCell(res.profit) + "</td>" +
           '<td class="col-hide-sm">' + (res.margin != null ? res.margin + "%" : '<span class="faint">—</span>') + "</td>" +
-          '<td><button type="button" class="btn btn-ghost btn-sm cr-toggle" data-id="' + r.id + '" aria-expanded="' + isOpen + '">Materials<span class="sr-only"> for ' + esc(r.name) + "</span></button></td></tr>" +
+          '<td class="cr-actions"><button type="button" class="btn btn-ghost btn-sm cr-toggle" data-id="' + r.id + '" aria-expanded="' + isOpen + '">Materials<span class="sr-only"> for ' + esc(r.name) + "</span></button>" +
+          '<button type="button" class="btn btn-sm plan-add" data-recipe="' + r.id + '" title="Add to my crafting plan">+ Plan<span class="sr-only"> ' + esc(r.name) + "</span></button></td></tr>" +
           (isOpen ? detailRow(r) : "");
       }).join("") || '<tr><td colspan="6" class="empty">No recipes match.</td></tr>';
       more.hidden = list.length <= state.shown;
@@ -1484,6 +1810,7 @@
   setupDonateBoxes();
   setupAds();
   setupWowhead();
+  updatePlanBadge();
   // sections are rendered by script, so re-apply #anchor jumps once they exist
   if (location.hash) {
     var target = document.getElementById(decodeURIComponent(location.hash.slice(1)));

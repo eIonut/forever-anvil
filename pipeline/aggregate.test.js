@@ -4,6 +4,40 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, DAY_MS, SHARDS } = require("./aggregate");
 
+test("recipe page address", () => {
+  const { recipePath } = require("./aggregate");
+  assert.equal(recipePath(2359, "Bolt of Linen Cloth"), "recipe/2359-bolt-of-linen-cloth.html");
+});
+
+test("shopping list: combines materials, subtracts what you have, totals cost and sales", () => {
+  const { planShoppingList } = require("./aggregate");
+  const prices = {
+    1: { ah: 10, vendor: null, sell: 2 },   // cloth on AH
+    2: { ah: null, vendor: 5, sell: 1 },    // thread from vendor
+    10: { ah: 100, vendor: null, sell: 20 },// bolt (crafted)
+    11: { ah: 300, vendor: null, sell: 50 } // shirt (crafted)
+  };
+  const price = (id) => prices[id] || { ah: null, vendor: null, sell: null };
+  const plan = [
+    { recipe: { id: 100, q: 1, item: 10, r: [[1, 2]] }, crafts: 5 },          // 10 cloth
+    { recipe: { id: 101, q: 1, item: 11, r: [[1, 3], [2, 1]] }, crafts: 2 }    // 6 cloth + 2 thread
+  ];
+  const res = planShoppingList(plan, { 1: 4 }, price);
+  const cloth = res.mats.find((m) => m.id === 1), thread = res.mats.find((m) => m.id === 2);
+  assert.deepEqual([cloth.need, cloth.have, cloth.buy, cloth.cost], [16, 4, 12, 120]);
+  assert.deepEqual([thread.buy, thread.source, thread.cost], [2, "vendor", 10]);
+  assert.equal(res.cost, 130);
+  assert.equal(res.sales, Math.round((5 * 100 + 2 * 300) * 0.95)); // 1045
+  assert.equal(res.profit, 1045 - 130);
+});
+
+test("shopping list: unknown material price → no profit", () => {
+  const { planShoppingList } = require("./aggregate");
+  const res = planShoppingList([{ recipe: { id: 1, q: 1, item: 5, r: [[9, 1]] }, crafts: 1 }], {}, (id) => (id === 5 ? { ah: 50 } : { ah: null, vendor: null }));
+  assert.equal(res.complete, false);
+  assert.equal(res.profit, null);
+});
+
 test("item page address: id + readable slug", () => {
   const { itemPath } = require("./aggregate");
   assert.equal(itemPath(2770, "Copper Ore"), "item/2770-copper-ore.html");

@@ -20,6 +20,7 @@ const { createClient, pool } = require("./blizzard");
 const { aggregate, updateHistory, pruneHistory, computeMovers, computeFlips, dayNumber, SHARDS } = require("./aggregate");
 const { GROUPS, AUCTION_RULESET } = require("./houses");
 const { localStore } = require("./store");
+const { fetchTalents } = require("./talents");
 
 const ROOT = path.join(__dirname, "..");
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, "").split("=")));
@@ -81,6 +82,12 @@ async function main() {
     recipes = await fetchRecipes(api, today, log);
     await store.putJSON(`recipes:${region}`, recipes);
   }
+  // talent trees for the talent calculator (static data, every 25 days)
+  const talents = await store.getJSON(`talents:${region}`);
+  if (!talents || today - talents.day >= REFRESH_DAYS || args["force-talents"] === "true") {
+    await store.putJSON(`talents:${region}`, await fetchTalents(api, today, log));
+  }
+
   const reagentIds = new Set();
   for (const p of recipes.professions) for (const r of p.recipes) { for (const x of r[6]) reagentIds.add(x[0]); if (r[3]) reagentIds.add(r[3]); }
 

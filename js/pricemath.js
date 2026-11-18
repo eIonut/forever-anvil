@@ -174,15 +174,49 @@ function computeFlips(listings, vendorPrice, opts) {
     .slice(0, opts.top);
 }
 
-// Web address of an item's page: "item/2770-copper-ore.html" (same rule for the generator and the site)
-function itemPath(id, name) {
-  const slug = String(name || "")
+// Web addresses of generated pages, same rule for the generator and the site:
+//   itemPath(2770, "Copper Ore")         → "item/2770-copper-ore.html"
+//   recipePath(2359, "Bolt of Linen Cloth") → "recipe/2359-bolt-of-linen-cloth.html"
+function slugify(name) {
+  return String(name || "")
     .normalize("NFKD").replace(/[̀-ͯ]/g, "")   // é → e
     .toLowerCase().replace(/'/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
-  return "item/" + id + (slug ? "-" + slug : "") + ".html";
+}
+function itemPath(id, name) { const s = slugify(name); return "item/" + id + (s ? "-" + s : "") + ".html"; }
+function recipePath(id, name) { const s = slugify(name); return "recipe/" + id + (s ? "-" + s : "") + ".html"; }
+
+// Combined shopping list for a crafting plan.
+// plan: [{ recipe: { id, q, item, r: [[reagentId, qty], ...] }, crafts }]
+// have: { itemId: unitsAlreadyOwned }; price(id) → { ah, vendor, sell }
+// Returns { mats: [{ id, need, have, buy, unit, source, cost }], cost, complete, sales, profit }
+function planShoppingList(plan, have, price) {
+  const need = new Map();
+  let sales = 0, salesComplete = true;
+  for (const p of plan) {
+    const crafts = Math.max(0, Math.floor(p.crafts || 0));
+    for (const [id, qty] of p.recipe.r) need.set(id, (need.get(id) || 0) + qty * crafts);
+    if (p.recipe.item) {
+      const out = price(p.recipe.item);
+      if (out.ah != null) sales += out.ah * (p.recipe.q || 1) * crafts; else salesComplete = false;
+    }
+  }
+  let cost = 0, complete = true;
+  const mats = [...need.entries()].map(([id, n]) => {
+    const own = Math.max(0, Math.floor((have && have[id]) || 0));
+    const buy = Math.max(0, n - own);
+    const pr = price(id);
+    const unit = pr.ah != null ? pr.ah : pr.vendor;
+    const source = pr.ah != null ? "ah" : pr.vendor != null ? "vendor" : null;
+    const c = unit != null ? unit * buy : null;
+    if (buy > 0 && unit == null) complete = false;
+    if (c != null) cost += c;
+    return { id, need: n, have: Math.min(own, n), buy, unit, source, cost: c };
+  });
+  const net = Math.round(sales * 0.95); // AH keeps 5%
+  return { mats, cost: Math.round(cost), complete, sales: net, salesComplete, profit: complete && salesComplete ? net - Math.round(cost) : null };
 }
 
-var api = { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, itemPath, dayNumber, HISTORY_DAYS, SHARDS, DAY_MS };
+var api = { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, planShoppingList, itemPath, recipePath, dayNumber, HISTORY_DAYS, SHARDS, DAY_MS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.PriceMath = api;
 })(typeof window !== "undefined" ? window : globalThis);

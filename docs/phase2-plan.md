@@ -226,3 +226,21 @@ EU + US together come to about 520–580, which is OK.
   - a canonical link and breadcrumb JSON-LD
 - **These pages contain API data, so they are git-ignored and must be rebuilt daily** in the deploy workflow before uploading to Cloudflare Pages. That uses ~30 deploys a month of the 500 allowed. Rebuilding also drops items not seen within 30 days.
 - **Cloudflare Pages free plan:** 20,000 files per site, and ~5,200 item files fit. The canonical/sitemap base URL comes from `--site=` or `SITE_URL`.
+
+---
+
+## 10. Recipe pages, crafting planner, talent calculator (2026-11-19)
+
+- **Recipe pages:** `build-items.js` also writes ~2,500 `recipe/<id>-<slug>.html` pages and an index (git-ignored, rebuilt daily). Each page has:
+  - materials with today's prices
+  - profit on every auction house
+  - "+ Add to my crafting plan"
+- **Crafting planner** (`planner.html`):
+  - Add recipes, set how many to craft, and get one combined shopping list with live AH and vendor prices.
+  - A "Have" column subtracts what you own; there are totals and a copy-to-clipboard list.
+  - The plan is saved in the browser. The math is `planShoppingList` (tested).
+- **Talent calculator** (`talents.html`), built from the official API:
+  - `pipeline/talents.js` saves `talents:{region}` every 25 days: 9 classes, 27 trees, 467 talents with rank descriptions, prerequisites and icons.
+  - Blizzard numbers columns per class (1–4, 7–10, 14–17), so they are converted to 1–4 per tree. Three stray duplicate entries in Blizzard's data are skipped.
+  - Rules are in `js/talentmath.js` (6 tests): 51 points at 60, 5 points per row, maxed prerequisites, safe unlearning, and shared links re-checked against the rules.
+- **Not available from the API:** recipe skill levels, recipe sources and cast times. Those exist only in the game client files, which we don't use.
