@@ -10,6 +10,19 @@ node serve.js
 
 Then open http://localhost:8080.
 
+## Live auction prices (Phase 2, in progress)
+
+Needs a Battle.net API client. Copy `.env.example` to `.env` and fill it in; `.env` is never committed.
+
+| Command | What it does |
+|---|---|
+| `node tools/probe.js` | Checks which WoW: Forever API data exists; writes a local report |
+| `node tools/house-compare.js` | Prices of common items per auction-house group (to identify rulesets) |
+| `node pipeline/run.js` | The price job: downloads auctions, computes prices, saves to `out/` |
+| `node --test pipeline/aggregate.test.js` | Tests for the price math |
+
+`out/` holds Blizzard API data and is git-ignored. Blizzard's API terms allow keeping that data for at most **30 days**; the job prunes it automatically each time it runs. Delete `out/` if you stop running it. See [docs/phase2-plan.md](docs/phase2-plan.md) for the full plan.
+
 ## Where things live
 
 | File | What it holds |

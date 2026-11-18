@@ -1,7 +1,13 @@
 # secrets — never publish these
 .env
 .env.*
+!.env.example
 *.key
+
+# Blizzard API data from local tests (kept local; API terms limit retention to 30 days)
+tools/probe-report.md
+tools/probe-output/
+out/
 
 # local tooling
 node_modules/

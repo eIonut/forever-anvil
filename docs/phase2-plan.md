@@ -109,3 +109,71 @@ Why this split: the heavy work (9 MB auction files) runs in GitHub Actions, wher
 2. Free GitHub and Cloudflare accounts. You create these; I'll guide each click.
 3. A Battle.net developer client (for M1). You create it and keep the secret local.
 4. Optional: send the legal@blizzard.com email asking about ads beside API data.
+
+---
+
+## 6. M1 probe results (EU, 2026-11-18)
+
+Run with `node tools/probe.js`. This section records only the API's structure; game data from the run is not stored in the repo.
+
+**Works**
+- Token: `POST https://oauth.battle.net/token` (client credentials).
+- Namespaces: `static-forever-eu`, `dynamic-forever-eu`, `profile-forever-eu`.
+- Rulesets: `/data/wow/ruleset/index` (dynamic). EU has 1 PvP, 2 Normal, 3 Roleplay, 15 Roleplay PvP. All are up.
+- Auction index: `/data/wow/ruleset/{id}/auctions/` (trailing slash required) lists 15 houses, each with a name:
+  - Alliance Auction House: 110, 111, 112, 119, 123
+  - Horde Auction House: 113, 114, 115, 120, 124
+  - Blackwater Auction House (neutral): 116, 117, 118, 121, 125
+- Houses form five sets of three (Alliance/Horde/neutral). Two sets are large, two small and one empty (112/115/118):
+  - `110/113/116` large (~170k listings per faction house)
+  - `111/114/117` large
+  - `112/115/118` empty (probably Hardcore, not launched yet)
+  - `119/120/121` small
+  - `123/124/125` small
+- **The ruleset ID in the URL does not filter.** House 110 returns the same data under any ruleset. So we must work out which house set belongs to which ruleset.
+- Listing fields: `id`, `item.id`, `buyout` (copper), `quantity`, `time_left`.
+- Per-house commodities: `/auctions/{houseId}/commodities` works and is a separate, large list (stackable goods).
+- Size: the big houses are ~15–17 MB each, plus commodities. Roughly 100–150 MB per region per hour, which is fine for GitHub Actions.
+- Items: `/data/wow/item/{id}` (static) returns 404 for **~45%** of auctioned item IDs. Found items include `name` and `sell_price` (vendor price).
+- Icons: `/data/wow/media/item/{id}` returns an icon URL on `render.worldofwarcraft.com/forever-eu/…`.
+- Item search: `/data/wow/search/item?name.en_US=…` works.
+- **Professions and recipes work**, including reagents and the crafted item: `/data/wow/profession/index` → `/profession/{id}` → `/skill-tier/{id}` → `/recipe/{id}`. **M5 (craft profit calculator) is feasible.**
+
+**Still to test**
+- Character profiles: needs `CHARACTER=` in `.env`.
+- The US region.
+
+**Plan changes**
+1. **Map house sets to rulesets** before showing prices. Compare a few item prices in-game on a known ruleset with each house set, then hard-code the map and re-check it weekly.
+2. **Item names:** use the Blizzard item endpoint where it works. Otherwise use Wowhead tooltip links (`wowhead.com/forever/item=ID`), which fill in the name and icon in the browser.
+3. **M2 aggregates per house set:** lowest buyout, median of the cheapest 10%, total quantity and number of listings, for regular and commodity listings combined.
+4. **M5 moves up** from "maybe" to "planned", since recipe data exists.
+
+---
+
+## 7. M2 status: the price job runs locally (2026-11-18)
+
+Code is in `pipeline/`:
+- `aggregate.js`: the price math, with 6 tests in `aggregate.test.js`.
+- `blizzard.js`: the API client, with retries.
+- `houses.js`: the auction-house groups.
+- `store.js`: saves results (local files for now).
+- `run.js`: the job itself.
+
+Measured on EU:
+
+| | Result |
+|---|---|
+| Download + price math, all houses | ~7 s, 1.6 million listings |
+| Latest prices per group (A, B, C, D) | 200–440 KB each; group E (empty) skipped |
+| History per shard, 1 day | ~50 KB → ~1.5 MB at 30 days (see note) |
+| Item names | 3,000 per run; ~53% known to Blizzard, the rest fall back to Wowhead |
+| API calls | ~35 per run, plus up to 3,000 item lookups while names fill in |
+| Store writes | Hourly 5–6; first run of the day +32 history shards. ~170/day per region, under the 1,000/day free limit for one region. **For EU + US together, make the item-name cache weekly or split history by group.** |
+
+Spot check: Copper Ore, Peacebloom and Light Leather in Alliance group A matched the separate comparison script exactly.
+
+**Still to do for M2:**
+- `store.kv` (Cloudflare Workers KV) and the GitHub Actions workflow. Both need the Cloudflare account.
+- **Before the 48-hour test,** shrink the history shards (more shards, or per group) so a single item chart doesn't download 1.5 MB.
+- Map the house groups to rulesets (in-game price check pending; see `tools/house-compare.js`).
