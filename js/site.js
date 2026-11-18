@@ -775,6 +775,11 @@
     if (base) return base.replace(/\/$/, "") + "/" + kind + "/" + region + (part != null ? "/" + part : "");
     return "out/" + kind + "_" + region + (part != null ? "_" + part : "") + ".json";
   }
+  // "PvP" once confirmed by an in-game check, otherwise "Group B — not confirmed yet"
+  function groupLabel(meta, g) {
+    var r = meta && meta.rulesets && meta.rulesets[g];
+    return r ? r : "Group " + g + " — ruleset not confirmed yet";
+  }
   function getJSON(url) { return fetch(url, { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
 
   // Is it better to sell on the auction house or to a vendor? (AH keeps 5% of the sale price.)
@@ -814,7 +819,7 @@
           return;
         }
         $("#pr-app").hidden = false; $("#pr-empty").hidden = true;
-        groupSel.innerHTML = meta.groups.map(function (g) { return '<option value="' + esc(g) + '">Group ' + esc(g) + "</option>"; }).join("");
+        groupSel.innerHTML = meta.groups.map(function (g) { return '<option value="' + esc(g) + '">' + esc(groupLabel(meta, g)) + "</option>"; }).join("");
         if (meta.groups.indexOf(state.group) < 0) state.group = meta.groups[0];
         groupSel.value = state.group;
         loadGroup();
@@ -828,7 +833,7 @@
         if (!g) { status.textContent = "Couldn't load this group's prices."; body.innerHTML = ""; return; }
         // label options with the confirmed ruleset name when we know it
         $all("option", groupSel).forEach(function (o) {
-          if (o.value === g.group) o.textContent = g.ruleset ? g.ruleset + " (group " + g.group + ")" : "Group " + g.group + " — ruleset not confirmed yet";
+          if (o.value === g.group) o.textContent = groupLabel({ rulesets: g.ruleset ? { [g.group]: g.ruleset } : {} }, g.group);
         });
         build();
       });
@@ -1011,7 +1016,7 @@
           return;
         }
         $("#cr-app").hidden = false; $("#cr-empty").hidden = true;
-        groupSel.innerHTML = meta.groups.map(function (g) { return '<option value="' + esc(g) + '">Group ' + esc(g) + "</option>"; }).join("");
+        groupSel.innerHTML = meta.groups.map(function (g) { return '<option value="' + esc(g) + '">' + esc(groupLabel(meta, g)) + "</option>"; }).join("");
         if (meta.groups.indexOf(state.group) < 0) state.group = meta.groups[0];
         groupSel.value = state.group;
         var profs = recipes.professions.filter(function (p) { return p.recipes.some(function (r) { return r[6].length; }); });
@@ -1025,7 +1030,7 @@
       getJSON(priceUrl("prices", state.region, state.group)).then(function (g) {
         group = g;
         $all("option", groupSel).forEach(function (o) {
-          if (g && o.value === g.group) o.textContent = g.ruleset ? g.ruleset + " (group " + g.group + ")" : "Group " + g.group + " — ruleset not confirmed yet";
+          if (g && o.value === g.group) o.textContent = groupLabel({ rulesets: g.ruleset ? { [g.group]: g.ruleset } : {} }, g.group);
         });
         compute();
       });

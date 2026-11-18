@@ -50,7 +50,7 @@ async function main() {
   const seenItems = new Set();
   const latestByGroup = {};
   for (const g of GROUPS) {
-    const groupOut = { v: 1, region, group: g.id, ruleset: g.ruleset, updated: new Date(now).toISOString(), houses: {} };
+    const groupOut = { v: 1, region, group: g.id, ruleset: (g.ruleset && g.ruleset[region]) || null, updated: new Date(now).toISOString(), houses: {} };
     let groupListings = 0;
     for (const [faction, houseId] of Object.entries(g.houses)) {
       const listings = [];
@@ -130,6 +130,9 @@ async function main() {
 
   meta.lastRun = new Date(now).toISOString();
   meta.groups = Object.keys(latestByGroup);
+  // confirmed ruleset names per group, so the site can label its group picker up front
+  meta.rulesets = {};
+  for (const g of GROUPS) if (latestByGroup[g.id] && g.ruleset && g.ruleset[region]) meta.rulesets[g.id] = g.ruleset[region];
   meta.recipesDay = recipes.day;
   await store.putJSON(`meta:${region}`, meta);
 

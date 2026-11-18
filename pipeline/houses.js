@@ -1,16 +1,20 @@
 // Auction house groups for WoW: Forever, found with tools/probe.js (EU, 2026-11-18).
 // Each group = one ruleset's three auction houses: Alliance, Horde, Blackwater (neutral).
-// The API does NOT say which ruleset a group belongs to; `ruleset` stays null until we confirm
-// it with an in-game price check (tools/house-compare.js). Only groups with a confirmed
-// ruleset will be shown publicly with a ruleset name.
+// The API does NOT say which ruleset a group belongs to. `ruleset` maps region → name and is
+// filled in only after an in-game price check (tools/house-compare.js); unconfirmed regions
+// show the group letter instead. Mappings may differ between regions, so confirm each one.
+//
+// Confirmed:
+//   EU  A = PvP   (2026-11-19, Horde AH: Peacebloom, Silverleaf, Copper Ore, Light Leather
+//                  all matched group A within a few copper; every other group was 2–4× off)
 "use strict";
 
 const GROUPS = [
-  { id: "A", houses: { alliance: 110, horde: 113, neutral: 116 }, ruleset: null, note: "large" },
-  { id: "B", houses: { alliance: 111, horde: 114, neutral: 117 }, ruleset: null, note: "large" },
-  { id: "E", houses: { alliance: 112, horde: 115, neutral: 118 }, ruleset: null, note: "empty — probably Hardcore (not launched)" },
-  { id: "C", houses: { alliance: 119, horde: 120, neutral: 121 }, ruleset: null, note: "small" },
-  { id: "D", houses: { alliance: 123, horde: 124, neutral: 125 }, ruleset: null, note: "small" }
+  { id: "A", houses: { alliance: 110, horde: 113, neutral: 116 }, ruleset: { eu: "PvP" }, note: "large" },
+  { id: "B", houses: { alliance: 111, horde: 114, neutral: 117 }, ruleset: {}, note: "large — probably Normal (unconfirmed)" },
+  { id: "E", houses: { alliance: 112, horde: 115, neutral: 118 }, ruleset: {}, note: "empty — probably Hardcore (not launched)" },
+  { id: "C", houses: { alliance: 119, horde: 120, neutral: 121 }, ruleset: {}, note: "small — Roleplay or RP-PvP (unconfirmed)" },
+  { id: "D", houses: { alliance: 123, horde: 124, neutral: 125 }, ruleset: {}, note: "small — Roleplay or RP-PvP (unconfirmed)" }
 ];
 
 // Any ruleset ID works in the auction URL (it doesn't filter); 1 exists in every region.

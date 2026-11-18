@@ -176,7 +176,12 @@ Spot check: Copper Ore, Peacebloom and Light Leather in Alliance group A matched
 **Still to do for M2:**
 - `store.kv` (Cloudflare Workers KV) and the GitHub Actions workflow. Both need the Cloudflare account.
 - ~~Shrink the history shards~~ Done 2026-11-19: history is now split per group (`history:{region}:{group}:{shard}`).
-- Map the house groups to rulesets (in-game price check pending; see `tools/house-compare.js`).
+- Map the house groups to rulesets. **EU group A = PvP, confirmed 2026-11-19:** Horde AH prices for Peacebloom, Silverleaf, Copper Ore and Light Leather all matched group A within a few copper, and every other group was 2–4× off. Still open:
+  - EU group B (probably Normal)
+  - EU groups C and D (Roleplay / RP-PvP)
+  - all US groups
+
+  Record each result in `pipeline/houses.js`.
 
 ---
 
