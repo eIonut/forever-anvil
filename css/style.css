@@ -544,6 +544,37 @@ table.lockouts td.lock-cell { padding: 6px 4px; }
 .lock:has(input:focus-visible) { outline: 3px solid var(--focus); outline-offset: 2px; }
 .remove-char { min-width: 32px; height: 32px; font-size: 1.1rem; }
 
+/* ---------- Prices ---------- */
+.pr-controls { display: grid; grid-template-columns: repeat(4, minmax(140px, 1fr)) minmax(220px, 2fr); gap: 12px; align-items: end; }
+.pr-controls .input { width: 100%; }
+.pr-controls .field-label { margin-top: 0; }
+@media (max-width: 900px) { .pr-controls { grid-template-columns: 1fr 1fr; } .pr-search { grid-column: span 2; } }
+.money { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.coin { font-weight: 700; }
+.coin.g { color: #ffd257; }
+.coin.s { color: #d6d6d6; }
+.coin.c { color: #e09a5c; }
+table.prices td, table.prices th { vertical-align: middle; }
+table.prices tbody th { font-weight: 700; }
+table.prices a.item-link { color: var(--ink); text-decoration: none; }
+table.prices a.item-link:hover { color: var(--gold-2); text-decoration: underline; }
+.verdict { display: inline-block; font-size: .8rem; font-weight: 700; padding: 2px 9px; border-radius: 999px; border: 1px solid currentColor; white-space: nowrap; }
+.verdict.v-ah { color: #7fdc6a; }
+.verdict.v-vendor { color: #ffb36b; }
+.verdict.v-even { color: var(--ink-dim); }
+.pr-detail { margin-top: 18px; border-color: var(--gold-dim); }
+.pr-detail h2 a { color: var(--gold); text-decoration: none; }
+.pr-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.pr-stats .stat b { font-size: 1.15rem; }
+.verdict-line { margin: 14px 0 4px; }
+.pr-chart svg { width: 100%; max-width: 680px; height: auto; display: block; }
+.pr-chart .axis { stroke: var(--border); stroke-width: 1; }
+.pr-chart .pline { fill: none; stroke: var(--gold); stroke-width: 2.5; }
+.pr-chart .pdot { fill: var(--gold-2); }
+.pr-chart .plabel { fill: var(--ink-faint); font-size: 12px; font-family: "Alegreya Sans", sans-serif; }
+.pr-help { margin-top: 24px; }
+@media (max-width: 700px) { .col-hide-sm { display: none; } }
+
 /* Long-form legal text */
 .legal-text { max-width: 820px; }
 .legal-text h2 { font-size: 1.25rem; margin-top: 1.4em; }

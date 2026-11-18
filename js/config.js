@@ -21,6 +21,10 @@ window.SITE_CONFIG = {
   // Contact email shown on the About page (optional).
   contactEmail: "",
 
+  // Where the Prices page loads data from. Empty = local ./out folder written by
+  // `node pipeline/run.js` (for testing). In production: the Cloudflare Worker URL, e.g. "/api".
+  pricesApi: "",
+
   // Date of the last content update (shown in the footer).
   lastUpdated: "2026-11-18"
 };

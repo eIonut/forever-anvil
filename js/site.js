@@ -45,7 +45,7 @@
     ["index.html", "Home", "home"], ["news.html", "News", "news"], ["guides.html", "Guides", "guides"],
     ["classes.html", "Classes", "classes"], ["dungeons.html", "Dungeons", "dungeons"],
     ["raids.html", "Raids", "raids"], ["systems.html", "Systems", "systems"],
-    ["resets.html", "Resets", "resets"], ["checklist.html", "Checklist", "checklist"], ["faq.html", "FAQ", "faq"]
+    ["prices.html", "Prices", "prices"], ["resets.html", "Resets", "resets"], ["checklist.html", "Checklist", "checklist"], ["faq.html", "FAQ", "faq"]
   ];
   // footer-only links
   var NAV_MORE = [["roadmap.html", "Roadmap"], ["about.html", "About & credits"], ["privacy.html", "Privacy policy"]];
@@ -342,15 +342,26 @@
       var name = m.replace(/&#39;/g, "'").replace(/&amp;/g, "&");
       var id = map[name];
       var url = id ? "https://www.wowhead.com/forever/spell=" + id : "https://www.wowhead.com/forever/search?q=" + encodeURIComponent(name);
-      return '<a class="wh' + (id ? "" : " wh-search") + '" href="' + url + '" target="_blank" rel="noopener nofollow"' + (id ? "" : ' data-wh-icon-added="true"') + ">" + m +
+      return '<a class="wh' + (id ? "" : " wh-search") + '" href="' + url + '" target="_blank" rel="noopener nofollow" data-wh-rename-link="false"' + (id ? "" : ' data-wh-icon-added="true"') + ">" + m +
         '<span class="sr-only"> (Wowhead, opens in a new tab)</span></a>';
     });
   }
 
   // Load Wowhead's tooltip script only on pages that have Wowhead database links
+  // Wowhead renames links only when asked per link (data-wh-rename-link="true"), so our own text stays.
+  var whLoaded = false;
   function setupWowhead() {
     if (!document.querySelector('a.wh:not(.wh-search)')) return;
-    window.whTooltips = { colorLinks: false, iconizeLinks: true, renameLinks: false };
+    if (whLoaded) {
+      // links added after page load: ask the script to scan again
+      try {
+        if (window.$WowheadPower && $WowheadPower.refreshLinks) $WowheadPower.refreshLinks();
+        else if (window.WH && WH.Tooltips && WH.Tooltips.refreshLinks) WH.Tooltips.refreshLinks();
+      } catch (e) { /* ignore */ }
+      return;
+    }
+    whLoaded = true;
+    window.whTooltips = { colorLinks: false, iconizeLinks: true, renameLinks: true };
     var s = document.createElement("script");
     s.src = "https://wow.zamimg.com/js/tooltips.js";
     s.async = true;
@@ -713,6 +724,195 @@
     clearIfNewWeek();
     drawClock();
     drawBoard();
+  };
+
+  /* ---------- auction prices ---------- */
+  // Money in copper → "1g 40s 5c" with coloured coins (text stays readable without colour).
+  function money(c) {
+    if (c == null || isNaN(c)) return '<span class="faint">—</span>';
+    c = Math.round(c);
+    var g = Math.floor(c / 10000), s = Math.floor((c % 10000) / 100), cu = c % 100, out = [];
+    if (g) out.push('<span class="coin g">' + g.toLocaleString() + "g</span>");
+    if (g || s) out.push('<span class="coin s">' + s + "s</span>");
+    out.push('<span class="coin c">' + cu + "c</span>");
+    return '<span class="money">' + out.join(" ") + "</span>";
+  }
+
+  // Where price files come from: SITE_CONFIG.pricesApi in production (Cloudflare Worker),
+  // or the local ./out folder written by `node pipeline/run.js` while developing.
+  function priceUrl(kind, region, part) {
+    var base = C.pricesApi;
+    if (base) return base.replace(/\/$/, "") + "/" + kind + "/" + region + (part != null ? "/" + part : "");
+    return "out/" + kind + "_" + region + (part != null ? "_" + part : "") + ".json";
+  }
+  function getJSON(url) { return fetch(url, { cache: "no-cache" }).then(function (r) { return r.ok ? r.json() : null; }).catch(function () { return null; }); }
+
+  // Is it better to sell on the auction house or to a vendor? (AH keeps 5% of the sale price.)
+  function verdict(market, vendor) {
+    if (vendor == null || vendor === 0) return ["AH only", "v-ah", "Vendors won't buy it"];
+    var net = market * 0.95;
+    if (net > vendor * 1.15) return ["Sell on AH", "v-ah", "After the 5% AH cut you get about " + Math.round(net / vendor * 10) / 10 + "× the vendor price"];
+    if (net < vendor) return ["Vendor it", "v-vendor", "Vendors pay more than the AH after its 5% cut"];
+    return ["About even", "v-even", "AH and vendor pay about the same"];
+  }
+
+  PAGES.prices = function () {
+    var regionSel = $("#pr-region"), groupSel = $("#pr-group"), facSel = $("#pr-faction"), q = $("#pr-search"), sortSel = $("#pr-sort");
+    var body = $("#pr-rows"), status = $("#pr-status"), more = $("#pr-more"), detail = $("#pr-detail");
+    var prefs = store("codex-prices") || {};
+    var state = { region: prefs.region || "eu", group: prefs.group || "", faction: prefs.faction || "alliance", sort: prefs.sort || "value", shown: 100 };
+    var meta = null, groupData = null, names = {}, rows = [], histCache = {};
+    var FACTIONS = { alliance: "Alliance", horde: "Horde", neutral: "Blackwater (neutral)" };
+
+    regionSel.value = state.region; facSel.value = state.faction; sortSel.value = state.sort;
+
+    function save() { store("codex-prices", { region: state.region, group: state.group, faction: state.faction, sort: state.sort }); }
+
+    function showUnavailable(msg) {
+      $("#pr-app").hidden = true;
+      $("#pr-empty").hidden = false;
+      $("#pr-empty-msg").textContent = msg;
+    }
+
+    function loadRegion() {
+      status.textContent = "Loading prices…";
+      Promise.all([getJSON(priceUrl("meta", state.region)), getJSON(priceUrl("items", state.region))]).then(function (res) {
+        meta = res[0]; names = res[1] || {};
+        if (!meta || !meta.groups || !meta.groups.length) {
+          showUnavailable(C.pricesApi ? "Live prices are temporarily unavailable. Please try again later." :
+            "No price data on this computer yet. Run `node pipeline/run.js` in the project folder, then reload this page.");
+          return;
+        }
+        $("#pr-app").hidden = false; $("#pr-empty").hidden = true;
+        groupSel.innerHTML = meta.groups.map(function (g) { return '<option value="' + esc(g) + '">Group ' + esc(g) + "</option>"; }).join("");
+        if (meta.groups.indexOf(state.group) < 0) state.group = meta.groups[0];
+        groupSel.value = state.group;
+        loadGroup();
+      });
+    }
+
+    function loadGroup() {
+      status.textContent = "Loading prices…";
+      getJSON(priceUrl("prices", state.region, state.group)).then(function (g) {
+        groupData = g;
+        if (!g) { status.textContent = "Couldn't load this group's prices."; body.innerHTML = ""; return; }
+        // label options with the confirmed ruleset name when we know it
+        $all("option", groupSel).forEach(function (o) {
+          if (o.value === g.group) o.textContent = g.ruleset ? g.ruleset + " (group " + g.group + ")" : "Group " + g.group + " — ruleset not confirmed yet";
+        });
+        build();
+      });
+    }
+
+    function build() {
+      var house = null, houseId = null;
+      Object.keys(groupData.houses).forEach(function (id) { if (groupData.houses[id].faction === state.faction) { house = groupData.houses[id]; houseId = id; } });
+      if (!house) { rows = []; draw(); return; }
+      rows = Object.keys(house.items).map(function (id) {
+        var a = house.items[id], n = names[id] || [];
+        // vendor price 0 means vendors won't buy it — treat like "no vendor price"
+        return { id: +id, min: a[0], market: a[1], qty: a[2], n: a[3], name: n[0] || null, vendor: n[1] ? n[1] : null };
+      });
+      state.houseId = houseId;
+      var upd = new Date(groupData.updated);
+      $("#pr-updated").innerHTML = 'Updated <time datetime="' + esc(groupData.updated) + '">' + upd.toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) + "</time> · " +
+        house.listings.toLocaleString() + " listings · " + rows.length.toLocaleString() + " different items";
+      draw();
+    }
+
+    function sorted(list) {
+      var s = state.sort;
+      return list.sort(function (a, b) {
+        if (s === "name") return (a.name || "~").localeCompare(b.name || "~");
+        if (s === "market") return b.market - a.market;
+        if (s === "listings") return b.n - a.n;
+        if (s === "ahgain") return ((b.vendor ? b.market * 0.95 / b.vendor : 0) - (a.vendor ? a.market * 0.95 / a.vendor : 0));
+        if (s === "qty") return b.qty - a.qty;
+        return b.market * b.qty - a.market * a.qty; // "value": total gold worth listed
+      });
+    }
+
+    function itemLink(r) {
+      var label = r.name ? esc(r.name) : "Item #" + r.id;
+      return '<a class="wh item-link" href="https://www.wowhead.com/forever/item=' + r.id + '" target="_blank" rel="noopener nofollow" data-wh-rename-link="' + (r.name ? "false" : "true") + '">' + label + "</a>";
+    }
+
+    var searchTimer;
+    function draw() {
+      var term = (q.value || "").toLowerCase().trim();
+      var list = rows.filter(function (r) { return !term || (r.name && r.name.toLowerCase().indexOf(term) >= 0) || String(r.id) === term; });
+      list = sorted(list);
+      var page = list.slice(0, state.shown);
+      body.innerHTML = page.map(function (r) {
+        var v = verdict(r.market, r.vendor);
+        return '<tr data-id="' + r.id + '"><th scope="row">' + itemLink(r) + '</th><td>' + money(r.market) + "</td><td>" + money(r.min) + "</td><td>" + r.qty.toLocaleString() +
+          "</td><td class=\"col-hide-sm\">" + r.n.toLocaleString() + "</td><td class=\"col-hide-sm\">" + money(r.vendor) + '</td><td><span class="verdict ' + v[1] + '" title="' + esc(v[2]) + '">' + v[0] + "</span></td>" +
+          '<td><button type="button" class="btn btn-ghost btn-sm pr-open" data-id="' + r.id + '">Details<span class="sr-only"> for ' + esc(r.name || "item " + r.id) + "</span></button></td></tr>";
+      }).join("") || '<tr><td colspan="8" class="empty">No items match.</td></tr>';
+      more.hidden = list.length <= state.shown;
+      status.textContent = (term ? list.length.toLocaleString() + " matching items" : "Showing " + Math.min(state.shown, list.length) + " of " + list.length.toLocaleString() + " items");
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(function () { announce(status.textContent); }, 600);
+      setupWowhead();
+    }
+
+    function shardOf(id) { return id % 32; }
+    function openDetail(id) {
+      var r = rows.filter(function (x) { return x.id === id; })[0];
+      if (!r) return;
+      var v = verdict(r.market, r.vendor);
+      detail.hidden = false;
+      detail.innerHTML = '<div class="section-head"><h2 id="pr-detail-title">' + itemLink(r) + '</h2><button type="button" class="icon-btn" id="pr-close" aria-label="Close details">×</button></div>' +
+        '<div class="pr-stats">' +
+        '<div class="stat"><b>' + money(r.market) + "</b><span>Market price (cheapest 10% of units)</span></div>" +
+        '<div class="stat"><b>' + money(r.min) + "</b><span>Lowest price</span></div>" +
+        '<div class="stat"><b>' + r.qty.toLocaleString() + "</b><span>Units listed (" + r.n.toLocaleString() + " listings)</span></div>" +
+        '<div class="stat"><b>' + money(r.vendor) + "</b><span>Vendor buys for</span></div></div>" +
+        '<p class="verdict-line"><span class="verdict ' + v[1] + '">' + v[0] + "</span> " + esc(v[2]) + ".</p>" +
+        '<h3 class="mini-head">Market price, last 30 days</h3><div id="pr-chart" class="pr-chart">Loading history…</div>';
+      $("#pr-close").addEventListener("click", function () { detail.hidden = true; var b = $('.pr-open[data-id="' + id + '"]'); if (b) b.focus(); });
+      detail.scrollIntoView({ block: "nearest" });
+      $("#pr-close").focus();
+      setupWowhead();
+      var shard = shardOf(id), key = state.region + ":" + shard;
+      (histCache[key] ? Promise.resolve(histCache[key]) : getJSON(priceUrl("history", state.region, shard))).then(function (h) {
+        histCache[key] = h;
+        var pts = h && h[state.houseId] && h[state.houseId][id];
+        $("#pr-chart").innerHTML = chartSVG(pts);
+      });
+    }
+
+    // Simple line chart of daily market price. points: [[day, market, min, qty], ...]
+    function chartSVG(pts) {
+      if (!pts || !pts.length) return '<p class="faint">No history yet.</p>';
+      if (pts.length < 2) return '<p class="faint">History starts building today — the chart appears after the second day of data (' + money(pts[0][1]) + " today).</p>";
+      var W = 640, H = 180, P = 34;
+      var days = pts.map(function (p) { return p[0]; }), vals = pts.map(function (p) { return p[1]; });
+      var x0 = Math.min.apply(null, days), x1 = Math.max.apply(null, days);
+      var y0 = Math.min.apply(null, vals), y1 = Math.max.apply(null, vals);
+      if (y0 === y1) { y0 = y0 * 0.9; y1 = y1 * 1.1 + 1; }
+      function X(d) { return P + (d - x0) / Math.max(1, x1 - x0) * (W - P * 2); }
+      function Y(v) { return H - P + 6 - (v - y0) / (y1 - y0) * (H - P * 2); }
+      var line = pts.map(function (p, i) { return (i ? "L" : "M") + X(p[0]).toFixed(1) + " " + Y(p[1]).toFixed(1); }).join(" ");
+      var label = function (d) { var dt = new Date(d * 86400000); return dt.toLocaleDateString(undefined, { month: "short", day: "numeric" }); };
+      var first = pts[0][1], last = pts[pts.length - 1][1], change = Math.round((last - first) / first * 100);
+      return '<svg viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Market price from ' + label(x0) + " to " + label(x1) + ": " + (change >= 0 ? "up " : "down ") + Math.abs(change) + '%">' +
+        '<line x1="' + P + '" y1="' + (H - P + 6) + '" x2="' + (W - P) + '" y2="' + (H - P + 6) + '" class="axis"/>' +
+        '<path d="' + line + '" class="pline"/>' +
+        pts.map(function (p) { return '<circle cx="' + X(p[0]).toFixed(1) + '" cy="' + Y(p[1]).toFixed(1) + '" r="3" class="pdot"/>'; }).join("") +
+        '<text x="' + P + '" y="' + (H - 6) + '" class="plabel">' + label(x0) + '</text><text x="' + (W - P) + '" y="' + (H - 6) + '" class="plabel" text-anchor="end">' + label(x1) + "</text></svg>" +
+        '<p class="faint">' + (change >= 0 ? "Up " : "Down ") + Math.abs(change) + "% over " + (x1 - x0) + " days.</p>";
+    }
+
+    regionSel.addEventListener("change", function () { state.region = regionSel.value; state.shown = 100; save(); detail.hidden = true; loadRegion(); });
+    groupSel.addEventListener("change", function () { state.group = groupSel.value; state.shown = 100; save(); detail.hidden = true; loadGroup(); });
+    facSel.addEventListener("change", function () { state.faction = facSel.value; state.shown = 100; save(); detail.hidden = true; if (groupData) build(); });
+    sortSel.addEventListener("change", function () { state.sort = sortSel.value; save(); draw(); });
+    q.addEventListener("input", function () { state.shown = 100; draw(); });
+    more.addEventListener("click", function () { state.shown += 100; draw(); });
+    body.addEventListener("click", function (e) { var b = e.target.closest(".pr-open"); if (b) openDetail(+b.getAttribute("data-id")); });
+
+    loadRegion();
   };
 
   PAGES.about = function () {
