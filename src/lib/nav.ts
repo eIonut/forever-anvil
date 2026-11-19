@@ -10,6 +10,7 @@ export interface NavLink {
 /** Header menu */
 export const NAV: NavLink[] = [
   { href: "/prices", label: "Prices", pages: ["prices", "items"] },
+  { href: "/economy", label: "Economy", pages: ["economy"] },
   { href: "/flips", label: "Vendor flips", pages: ["flips"] },
   { href: "/crafting", label: "Craft profits", pages: ["crafting", "recipe", "recipes"] },
   { href: "/planner", label: "Planner", pages: ["planner"] },
@@ -20,6 +21,7 @@ export const NAV: NavLink[] = [
 /** Footer: every tool, plus the browsable item and recipe pages */
 export const FOOTER_TOOLS: NavLink[] = [
   { href: "/prices", label: "Auction prices" },
+  { href: "/economy", label: "Economy" },
   { href: "/flips", label: "Vendor flips" },
   { href: "/item", label: "Item price pages" },
   { href: "/crafting", label: "Craft profits" },

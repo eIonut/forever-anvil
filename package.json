@@ -7,7 +7,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check && svelte-check --threshold warning",
-    "test": "node --test pipeline/aggregate.test.js pipeline/talentmath.test.js",
+    "test": "node --test pipeline/aggregate.test.js pipeline/talentmath.test.js pipeline/econmath.test.js",
     "prices": "node pipeline/run.js"
   },
   "dependencies": {

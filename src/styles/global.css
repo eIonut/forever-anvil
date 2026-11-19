@@ -641,3 +641,148 @@ html[data-contrast] .btn { background: #000; color: #ffe08a; border: 2px solid #
 html[data-contrast] .seg input:checked + span { background: #ffd257; color: #000; }
 html[data-contrast] h1 { text-shadow: none; }
 
+
+/* ---------- Economy page ---------- */
+.ec > .panel, .ec > section, .ec > .ec-tiles { margin-top: 18px; }
+.ec li { max-width: none; } /* lists here are layout rows, not prose */
+.ec-controls { grid-template-columns: repeat(3, 1fr); }
+.ec-scope { margin: 10px 2px 0; }
+.ec-lead { margin: -6px 0 14px; max-width: 760px; }
+.ec-num { font-variant-numeric: tabular-nums; }
+.ec-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.ec-tiles .stat b { font-size: 1.75rem; margin: 4px 0 2px; }
+.ec-tiles .stat span { display: block; font-size: .85rem; }
+.ec-tiles .stat span:first-child { font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gold-dim); }
+@media (max-width: 860px) { .ec-tiles { grid-template-columns: 1fr 1fr; } }
+
+/* the three houses */
+.ec-houses { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.ec-house { display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center; font: inherit; color: var(--ink); cursor: pointer; padding: 18px 14px; border-top: 3px solid var(--stone-edge); }
+.ec-house-alliance { border-top-color: #3987e5; } .ec-house-horde { border-top-color: #d95926; } .ec-house-neutral { border-top-color: var(--gold-dim); }
+.ec-house:hover { border-color: var(--gold-dim); }
+.ec-house.mine { box-shadow: var(--shadow), 0 0 0 2px var(--gold); }
+.ec-house-name { font-family: "Cinzel", serif; font-size: 1.1rem; color: var(--gold-2); display: flex; gap: 8px; align-items: center; }
+.ec-house b { font-family: "Cinzel", serif; font-size: 1.7rem; color: var(--ink); line-height: 1.1; }
+.ec-house-sub { color: var(--ink-dim); font-size: .88rem; }
+.ec-mine-tag { font-family: "Alegreya Sans", sans-serif; font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; background: var(--gold); color: #1d1306; padding: 1px 7px; border-radius: 999px; font-weight: 700; }
+.ec-share { display: block; width: 80%; height: 6px; background: rgba(0,0,0,.45); border-radius: 3px; overflow: hidden; margin: 4px 0; }
+.ec-share i { display: block; height: 100%; background: var(--gold-dim); border-radius: 3px; }
+@media (max-width: 700px) { .ec-houses { grid-template-columns: 1fr; } .ec-controls { grid-template-columns: 1fr; } }
+
+/* market indexes */
+.ec-idx-grid { display: grid; grid-template-columns: 330px 1fr; gap: 22px; align-items: start; }
+@media (max-width: 960px) { .ec-idx-grid { grid-template-columns: 1fr; } }
+.ec-idx-list ul { list-style: none; margin: 0; padding: 0; }
+.ec-idx-list .mini-head { margin: 12px 0 4px; }
+.ec-idx-head, .ec-idx-row { display: grid; grid-template-columns: 1fr 64px 52px 74px; gap: 8px; align-items: center; }
+.ec-idx-head { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); padding: 0 8px; }
+.ec-idx-head span:nth-child(n+3) { text-align: right; }
+.ec-idx-row { width: 100%; font: inherit; color: var(--ink); background: none; border: 1px solid transparent; border-radius: 5px; padding: 6px 8px; cursor: pointer; text-align: left; min-height: 36px; }
+.ec-idx-row:hover { background: rgba(230,184,74,.07); }
+.ec-idx-row.on { background: rgba(230,184,74,.1); border-color: rgba(230,184,74,.35); }
+.ec-idx-row .ec-num, .ec-idx-row .pct { text-align: right; font-size: .9rem; }
+.ec-idx-name { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: .95rem; }
+.ec-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; border: 1px solid var(--stone-edge); flex-shrink: 0; }
+.ec-spark path { fill: none; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+@media (max-width: 480px) { .ec-idx-head, .ec-idx-row { grid-template-columns: 1fr 52px 74px; } .ec-idx-head span:nth-child(2), .ec-idx-row .ec-spark { display: none; } }
+.ec-add { position: relative; max-width: 420px; }
+.ec-add .field-label { margin-top: 0; }
+.ec-add .input { width: 100%; }
+.ec-matches { position: absolute; z-index: 5; left: 0; right: 0; list-style: none; margin: 4px 0 0; padding: 4px; background: var(--stone); border: 1px solid var(--gold-dim); border-radius: 6px; box-shadow: var(--shadow); }
+.ec-matches button { display: flex; align-items: center; width: 100%; font: inherit; color: var(--ink); background: none; border: 0; padding: 7px 8px; border-radius: 4px; cursor: pointer; text-align: left; }
+.ec-matches button:hover, .ec-matches button:focus-visible { background: rgba(230,184,74,.12); }
+.ec-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; margin: 14px 0 6px; padding: 0; font-size: .92rem; }
+.ec-legend li { display: flex; align-items: center; gap: 6px; }
+.ec-x { font: inherit; line-height: 1; color: var(--ink-faint); background: none; border: 1px solid var(--stone-edge); border-radius: 4px; width: 22px; height: 22px; cursor: pointer; }
+.ec-x:hover { color: var(--ink); border-color: var(--gold-dim); }
+.ec-plot { position: relative; }
+.ec-plot svg { display: block; width: 100%; height: auto; touch-action: pan-y; }
+.ec-grid { stroke: rgba(255,255,255,.07); stroke-width: 1; }
+.ec-base { stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 3 4; opacity: .7; }
+.ec-tick { fill: var(--ink-faint); font-size: 12px; font-variant-numeric: tabular-nums; }
+.ec-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.ec-end { stroke: var(--stone); stroke-width: 2; }
+.ec-cross { stroke: var(--ink-dim); stroke-width: 1; }
+.ec-tip { position: absolute; top: 6px; transform: translateX(-50%); pointer-events: none; background: #0c0a07; border: 1px solid var(--gold-dim); border-radius: 6px; padding: 8px 10px; font-size: .85rem; min-width: 170px; box-shadow: var(--shadow); }
+.ec-tip b { display: block; color: var(--gold-2); margin-bottom: 4px; font-weight: 700; }
+.ec-tip div { display: flex; align-items: center; gap: 6px; }
+.ec-tip .ec-num { margin-left: auto; padding-left: 12px; font-weight: 700; }
+.ec-axis-note, .ec-empty { margin-top: 6px; }
+.ec-table { margin-top: 10px; }
+.ec-table summary { cursor: pointer; color: var(--gold-2); font-weight: 700; font-size: .92rem; }
+.ec-table .table-wrap { margin-top: 8px; }
+
+/* trade board */
+.ec-boards { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 10px 22px; align-items: start; }
+.ec-board-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+.ec-board-table th, .ec-board-table td { padding: 4px 4px; border-bottom: 1px solid rgba(59,48,36,.6); text-align: right; white-space: nowrap; }
+.ec-board-table th { text-align: left; font-weight: 400; white-space: normal; }
+.ec-board-table a.item-link { color: var(--ink); text-decoration: none; }
+.ec-board-table a.item-link:hover { color: var(--gold-2); text-decoration: underline; }
+.ec-board-table .ec-dim { opacity: .75; }
+.ec-more { font: inherit; font-size: .85rem; font-weight: 700; color: var(--gold-2); background: none; border: 0; padding: 6px 4px; cursor: pointer; }
+.ec-more:hover { text-decoration: underline; }
+
+/* where the gold is */
+.ec-tree { position: relative; width: 100%; aspect-ratio: 1000 / 420; }
+.ec-cell { position: absolute; box-sizing: border-box; border: 2px solid var(--stone); border-radius: 6px; background: rgba(230,184,74,var(--a)); overflow: hidden; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
+.ec-cell-name { font-family: "Cinzel", serif; font-size: .85rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ec-cell b { font-size: 1.05rem; color: #fff; }
+.ec-cell.big b { font-size: 1.5rem; margin-top: auto; }
+.ec-cell-gold { font-size: .8rem; color: var(--ink-dim); }
+@media (max-width: 700px) { .ec-tree { aspect-ratio: 1000 / 760; } }
+
+/* alliance vs horde */
+.ec-wrap-tabs { flex-wrap: wrap; }
+.ec-gaps ul { list-style: none; margin: 0; padding: 0; }
+.ec-gap-row, .ec-gap-axis { display: grid; grid-template-columns: minmax(150px, 230px) 1fr 140px; gap: 14px; align-items: center; }
+.ec-gap-row { padding: 7px 0; border-bottom: 1px solid rgba(59,48,36,.6); }
+.ec-gap-item { min-width: 0; font-size: .92rem; }
+.ec-gap-item a.item-link { color: var(--ink); text-decoration: none; }
+.ec-gap-scale { position: relative; height: 18px; }
+.ec-gap-scale span { position: absolute; transform: translateX(-50%); font-size: .75rem; color: var(--ink-faint); white-space: nowrap; }
+.ec-gap-track { position: relative; height: 22px; margin: 0 10px; }
+.ec-gap-axis .ec-gap-scale { margin: 0 10px; }
+.ec-gap-grid { position: absolute; top: 0; bottom: 0; width: 1px; background: rgba(255,255,255,.06); }
+.ec-gap-bar { position: absolute; top: 10px; height: 2px; background: var(--ink-faint); }
+.ec-dot, .ec-key { display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; color: #fff; font-style: normal; font-size: .62rem; font-weight: 700; border: 2px solid var(--stone); box-sizing: border-box; }
+.ec-dot { position: absolute; top: 2px; transform: translateX(-50%); }
+.ec-key { vertical-align: -4px; margin-right: 5px; }
+.ec-gap-val { text-align: right; font-size: .85rem; line-height: 1.25; }
+.ec-gap-val b { display: block; font-size: 1.1rem; color: var(--gold-2); }
+.ec-gap-prices { display: none; }
+.ec-legend-line { margin-top: 10px; }
+@media (max-width: 760px) {
+  .ec-gap-axis { display: none; }
+  .ec-gap-row { grid-template-columns: 1fr auto; }
+  .ec-gap-track { display: none; }
+  .ec-gap-prices { display: flex; gap: 14px; grid-column: 1 / -1; font-size: .88rem; }
+}
+
+/* crown jewels */
+.ec-podium { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-items: end; }
+.ec-step { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; background: rgba(0,0,0,.3); border: 1px solid var(--stone-edge); border-radius: var(--radius); padding: 18px 12px 14px; }
+.ec-step-1 { padding-top: 30px; border-color: var(--gold-dim); background: linear-gradient(180deg, rgba(230,184,74,.12), rgba(0,0,0,.3)); }
+.ec-rank { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; background: #8a8a8a; color: #111; }
+.ec-step-1 .ec-rank { background: var(--gold); } .ec-step-3 .ec-rank { background: #b87333; }
+.ec-jewel-icon { border-radius: 6px; border: 2px solid #3a3022; }
+.ec-jewel-icon.qb-uncommon { border-color: #1eff00; } .ec-jewel-icon.qb-rare { border-color: #3d9bff; } .ec-jewel-icon.qb-epic { border-color: #c27bff; } .ec-jewel-icon.qb-legendary { border-color: #ff8000; }
+.ec-jewel-name { font-weight: 700; text-decoration: none; }
+.ec-jewel-name:hover { text-decoration: underline; }
+.ec-jewel-price { font-size: 1.2rem; }
+.ec-jewels { columns: 2 300px; column-gap: 24px; margin: 16px 0 0; padding-left: 1.6em; }
+.ec-jewels li { padding: 4px 0; break-inside: avoid; }
+@media (max-width: 560px) { .ec-podium { grid-template-columns: 1fr; } .ec-step-1 { order: -1; } }
+
+/* bazaar */
+.ec-bazaar { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 14px 10px; }
+.ec-bazaar li { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; min-width: 0; }
+.ec-bazaar a { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--ink); text-decoration: none; min-width: 0; max-width: 100%; }
+.ec-bazaar a:hover .ec-baz-name { color: var(--gold-2); text-decoration: underline; }
+.ec-baz-icon { position: relative; width: 48px; height: 48px; border-radius: 6px; border: 2px solid #3a3022; background: #0c0a07; }
+.ec-baz-icon.qb-poor { border-color: #9d9d9d; } .ec-baz-icon.qb-uncommon { border-color: #1eff00; } .ec-baz-icon.qb-rare { border-color: #3d9bff; } .ec-baz-icon.qb-epic { border-color: #c27bff; }
+.ec-baz-icon img { display: block; width: 44px; height: 44px; border-radius: 4px; }
+.ec-baz-icon b { position: absolute; right: -6px; bottom: -6px; background: #0c0a07; border: 1px solid var(--gold-dim); border-radius: 999px; padding: 0 5px; font-size: .72rem; color: var(--gold-2); }
+.ec-baz-name { font-size: .8rem; line-height: 1.2; max-width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }
+.ec-baz-price { font-size: .78rem; }
+html[data-contrast] .ec-cell { background: #141414; border-color: #8a8a8a; }

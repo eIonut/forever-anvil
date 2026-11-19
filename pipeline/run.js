@@ -8,6 +8,8 @@
 // Once per UTC day (first run of the day):
 //   5. add today's point to the 30-day history (per group, 32 shards) and delete older points
 //   6. work out price changes (rising/falling) and deals per auction house
+// Every run, after 4:
+//   market indexes and the trade board's 24-hour changes (pipeline/economy.js)
 // Every 25 days (inside Blizzard's 30-day limit):
 //   7. refresh all profession recipes (materials + crafted item) for the craft calculator
 //
@@ -20,6 +22,7 @@ import { aggregate, updateHistory, pruneHistory, computeMovers, computeFlips, da
 import { GROUPS, AUCTION_RULESET } from "./houses.js";
 import { localStore } from "./store.js";
 import { fetchTalents } from "./talents.js";
+import { updateEconomy } from "./economy.js";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, "").split("=")));
@@ -54,7 +57,7 @@ async function main() {
 
   /* 1–3: latest prices per group (+ vendor flips per house) */
   const seenItems = new Set();
-  const latestByGroup = {};
+  const latestByGroup = {}, prevByGroup = {};
   for (const g of GROUPS) {
     const groupOut = { v: 1, region, group: g.id, ruleset: (g.ruleset && g.ruleset[region]) || null, updated: new Date(now).toISOString(), houses: {} };
     let groupListings = 0;
@@ -71,6 +74,7 @@ async function main() {
       groupListings += listings.length;
     }
     if (!groupListings) { log(`Group ${g.id}: empty, skipped`); continue; }
+    prevByGroup[g.id] = await store.getJSON(`prices:${region}:${g.id}`); // last run's prices, for the market indexes
     const bytes = await store.putJSON(`prices:${region}:${g.id}`, groupOut);
     latestByGroup[g.id] = groupOut;
     log(`Group ${g.id}: ${groupListings} listings → ${(bytes / 1024).toFixed(0)} KB`);
@@ -142,6 +146,9 @@ async function main() {
     log(`Item icons: looked up ${iconTodo.length}, found ${found}`);
   }
   if (changed) await store.putJSON(`items:${region}`, items);
+
+  /* market indexes + trade board changes, every run (needs the item cache for item classes) */
+  await updateEconomy(store, region, prevByGroup, latestByGroup, items, now, log);
 
   /* 5–6: history + movers, once per day */
   const meta = (await store.getJSON(`meta:${region}`)) || {};

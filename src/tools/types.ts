@@ -39,3 +39,22 @@ export function houseOf(g: GroupPrices | null, faction: string): { id: string; h
   for (const [id, house] of Object.entries(g.houses)) if (house.faction === faction) found = { id, house };
   return found;
 }
+
+/** One server group's market history (econ_<region>.json, written by pipeline/economy.js) */
+export interface EconGroup {
+  /** unix seconds of each point (daily points from history first, then one per price update) */
+  t: number[];
+  /** index key → value at each point (100 = when tracking began; null before an index started) */
+  idx: Record<string, (number | null)[]>;
+  /** listings in the group at each point (null for points from daily history) */
+  auctions: (number | null)[];
+  /** gold listed in the group at each point, whole gold */
+  gold: number[];
+  /** houseId → itemId → % change in typical price since about a day ago (trade board items only) */
+  board?: Record<string, Record<string, number>>;
+}
+
+export interface Econ {
+  updated?: string;
+  groups: Record<string, EconGroup>;
+}
