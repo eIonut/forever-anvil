@@ -1,0 +1,13 @@
+---
+// The donate link. Shows nothing until donateUrl is set in src/config.js.
+import config from "../config.js";
+
+interface Props {
+  class?: string;
+}
+
+const { class: extra } = Astro.props;
+---
+{config.donateUrl && (
+  <a class:list={["btn btn-donate", extra]} href={config.donateUrl} target="_blank" rel="noopener">&#9829; {config.donateLabel || "Donate"}</a>
+)}

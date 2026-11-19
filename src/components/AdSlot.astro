@@ -1,0 +1,37 @@
+---
+// An ad space. Shows nothing until adsenseClient is set in src/config.js
+// (or a dashed placeholder when showAdPlaceholders is on).
+import config from "../config.js";
+
+interface Props {
+  /** which ad unit: matches the keys of adSlots in src/config.js */
+  name: "top" | "sidebar" | "bottom";
+}
+
+const { name } = Astro.props;
+const unitId = (config.adSlots as Record<string, string>)[name] || undefined;
+---
+{config.adsenseClient ? (
+  <div class="ad-slot on" role="complementary" aria-label="Advertisement" data-slot={name}>
+    <div class="ad-label">Advertisement</div>
+    <ins class="adsbygoogle" style="display:block" data-ad-client={config.adsenseClient} data-ad-slot={unitId} data-ad-format="auto" data-full-width-responsive="true"></ins>
+  </div>
+) : config.showAdPlaceholders ? (
+  <div class="ad-slot on placeholder" data-slot={name}>Ad space ({name})</div>
+) : null}
+
+<script>
+  // Load AdSense once, only on pages that show an ad, then fill each ad space.
+  const ads = document.querySelectorAll<HTMLElement>("ins.adsbygoogle");
+  if (ads.length) {
+    const s = document.createElement("script");
+    s.async = true;
+    s.crossOrigin = "anonymous";
+    s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + encodeURIComponent(ads[0].dataset.adClient || "");
+    document.head.appendChild(s);
+    const w = window as unknown as { adsbygoogle?: object[] };
+    ads.forEach(() => {
+      try { (w.adsbygoogle = w.adsbygoogle || []).push({}); } catch { /* ad blocked */ }
+    });
+  }
+</script>

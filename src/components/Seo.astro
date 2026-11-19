@@ -1,0 +1,33 @@
+---
+// Search and social tags for the page <head>: title, description, canonical link, Open Graph,
+// and optional structured data (JSON-LD). Used by BaseLayout; pages pass their values through it.
+import config from "../config.js";
+
+interface Props {
+  title: string;
+  description: string;
+  /** structured data, e.g. a BreadcrumbList */
+  jsonld?: object | object[];
+  /** keep this page out of search results */
+  noindex?: boolean;
+}
+
+const { title, description, jsonld, noindex = false } = Astro.props;
+
+// The page's clean address on the live site: /about.html → /about, /index → /
+const path = Astro.url.pathname.replace(/\.html$/, "").replace(/\/index$/, "/") || "/";
+const canonical = new URL(path, Astro.site).href;
+// "<" escaped so text inside the data can never close the <script> tag
+const ld = jsonld && JSON.stringify(jsonld).replace(/</g, "\\u003c");
+---
+<title>{title}</title>
+<meta name="description" content={description} />
+<link rel="canonical" href={canonical} />
+{noindex && <meta name="robots" content="noindex" />}
+<meta property="og:site_name" content={config.siteName} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
+<meta property="og:type" content="website" />
+<meta property="og:url" content={canonical} />
+<meta name="twitter:card" content="summary" />
+{ld && <script type="application/ld+json" set:html={ld} />}

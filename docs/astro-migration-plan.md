@@ -26,6 +26,7 @@ What stays the same: the look (same CSS), the pipeline and its data files, the p
 | Interactive tools | **Svelte** components, loaded only on the page that needs them | Each component keeps markup, logic and styles together and reads close to HTML. Small download. Pages without a tool ship no framework code |
 | Language | TypeScript in new site code. Shared math stays plain JavaScript (ES modules) with JSDoc type comments | The price job keeps running on plain Node with no extra tools |
 | URLs | Clean URLs: `/prices`, `/item/2770-copper-ore`. Cloudflare Pages redirects old `.html` links automatically | The site isn't public yet, so changing them now costs nothing |
+| Settings file | `src/config.js`, plain JavaScript | Old and new pages both read it during the move, so there's one copy |
 | Styles | Keep `css/style.css` as the global theme. Move tool-specific rules into their component over time | Same look on day one. No big CSS rewrite |
 | Fonts | Self-host the Google Fonts (Cinzel, Alegreya Sans) | Faster first paint and no request to Google, which also helps the privacy page |
 | Local storage keys | Keep `codex-plan` and the display-settings keys unchanged | Visitors keep their crafting plan and settings |
@@ -37,7 +38,7 @@ astro.config.mjs          site URL, sitemap, Svelte
 package.json              scripts: dev, build, preview, test, pipeline
 public/                   copied as-is: favicon.svg, robots.txt, ads.txt (later)
 src/
-  config.ts               site settings (was js/config.js)
+  config.js               site settings (was js/config.js)
   layouts/
     BaseLayout.astro      <head> + SEO tags, skip link, header, footer, ad slots
   components/
@@ -68,7 +69,7 @@ pipeline/                 the price job, unchanged apart from imports
 tools/                    probe, house-compare, optout (unchanged)
 ```
 
-Removed at the end: `js/site.js`, `js/config.js`, the nine root `*.html` files, `serve.js`, and most of `pipeline/build-items.js`.
+Removed at the end: `js/site.js`, `js/legacy*.js`, the nine root `*.html` files, `serve.js`, and most of `pipeline/build-items.js`.
 
 ## 4. Steps
 
@@ -94,7 +95,28 @@ Original plan:
 - Convert the pipeline from `require` to `import`, and move `js/pricemath.js` and `js/talentmath.js` to `src/lib/` as ES modules. The browser globals `window.PriceMath` and `window.TalentMath` go away.
 - **Done when:** `npm test` passes all existing tests (price math, talent math), and `node pipeline/run.js` still writes the same `out/` files.
 
-### Step 2: Layout and the plain pages
+### Step 2: Layout and the plain pages (done 2026-11-19)
+
+What was done:
+- `src/layouts/BaseLayout.astro` with `Seo`, `Header`, `Footer`, `SettingsPanel`, `DonateButton`, `DonateBox`, `AdSlot` and `BackToTop` in `src/components/`.
+- Menus are in `src/lib/nav.ts`. Small helpers: `store.ts` (safe localStorage), `prefs.ts` (display settings), `announce.ts` (screen-reader messages).
+- Home, About and Privacy are in `src/pages/` and link to clean URLs. Links to tools 404 on the Astro site until steps 3–4.
+- Every page now gets a canonical link and Open Graph tags. Saved display settings apply in `<head>`, so pages no longer flash before the settings load.
+- Fonts are self-hosted with Fontsource (`@fontsource/cinzel`, `cinzel-decorative`, `alegreya-sans`). The new Privacy page no longer lists Google Fonts, and its date is November 19, 2026.
+- Shared with the old site so there's one copy of each:
+  - Settings moved to `src/config.js`. The old pages get it through `js/legacy-globals.js`, and the `js/config.js` script tag is gone.
+  - Favicon, `img/` and `robots.txt` moved to `public/`. `serve.js` falls back to `public/`, and the CSS uses `/img/…`.
+  - The Astro layout imports `css/style.css` directly. It moves in step 5.
+
+Checks:
+- At 1024px and 375px, every header, heading and card has the same position and size as the old pages.
+- The one layout difference: the home footer sits 48px higher, because the empty donate wrapper (shown when no donate link is set) is no longer output.
+- Page text is the same as the old pages, apart from the two Privacy edits above.
+- Settings panel: opening, text size, contrast, Escape to close with focus returned, saving across a reload, and reset all work. The settings storage key is unchanged.
+- Mobile menu: opening, focus on the first link, and closing on an outside click work. Back-to-top works. No horizontal scroll at 375px.
+- No console errors. Tests, `astro check` and `astro build` pass. The old site still works, including item pages.
+
+Original plan:
 - `BaseLayout`, `Seo`, `Header`, `Footer`, `SettingsPanel`, `AdSlot`, `DonateBox`, `BackToTop`, built from today's header/footer/settings code in `site.js`.
 - Move Home, About and Privacy into `src/pages/`.
 - Keep the accessibility features: skip link, visible focus, the screen-reader announcer, `aria-current` on the menu, reduced-motion support, and the fit-the-header logic for narrow screens.

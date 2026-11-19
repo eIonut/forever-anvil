@@ -160,7 +160,7 @@ html[data-contrast] .nav { background: #000; }
 }
 .hero::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: url("../img/hero-ornament.svg") no-repeat right -60px center / 520px auto;
+  background: url("/img/hero-ornament.svg") no-repeat right -60px center / 520px auto;
   opacity: .22;
 }
 .hero .wrap { position: relative; z-index: 1; }

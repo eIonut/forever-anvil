@@ -80,10 +80,16 @@ http.createServer((req, res) => {
   if (p.endsWith("/")) p += "index.html";
   const file = path.normalize(path.join(ROOT, p));
   if (!file.startsWith(ROOT) || BLOCKED.test(path.relative(ROOT, file))) { res.writeHead(404); return res.end("Not found"); }
+  // files that moved to public/ for the Astro site (favicon, images, robots.txt) are served from there
+  const fallback = path.join(ROOT, "public", path.relative(ROOT, file));
   fs.readFile(file, (err, data) => {
+    if (err && file !== fallback) return fs.readFile(fallback, (err2, data2) => send(err2, data2, fallback));
+    send(err, data, file);
+  });
+  function send(err, data, file) {
     if (err) { res.writeHead(404); return res.end("Not found"); }
     // no-cache: the browser may keep a copy but must check for a newer one each time (avoids stale scripts while developing)
     res.writeHead(200, { "Content-Type": TYPES[path.extname(file)] || "application/octet-stream", "Cache-Control": "no-cache" });
     res.end(data);
-  });
+  }
 }).listen(PORT, () => console.log("Forever Tome running at http://localhost:" + PORT));

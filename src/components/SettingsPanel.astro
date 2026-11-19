@@ -1,0 +1,79 @@
+---
+// Display settings dialog (text size, high contrast, underlined links, reduced motion),
+// opened by the sliders button in the header. Choices are saved in the browser (src/lib/prefs.ts).
+const sizes = [
+  ["md", "Default"],
+  ["lg", "Large"],
+  ["xl", "Larger"],
+];
+---
+<div id="settings-panel" class="settings-panel" role="dialog" aria-labelledby="settings-title" hidden>
+  <h2 id="settings-title">Display settings</h2>
+  <fieldset>
+    <legend>Text size</legend>
+    <div class="seg">
+      {sizes.map(([value, label]) => (
+        <label><input type="radio" name="textsize" value={value} checked={value === "md"} /><span>{label}</span></label>
+      ))}
+    </div>
+  </fieldset>
+  <label class="switch"><input type="checkbox" data-pref="contrast" /><span class="track" aria-hidden="true"></span><span>High contrast</span></label>
+  <label class="switch"><input type="checkbox" data-pref="underline" /><span class="track" aria-hidden="true"></span><span>Underline all links</span></label>
+  <label class="switch"><input type="checkbox" data-pref="calm" /><span class="track" aria-hidden="true"></span><span>Reduce motion &amp; textures</span></label>
+  <div class="settings-foot">
+    <button type="button" class="btn btn-ghost btn-sm" id="reset-settings">Reset</button>
+    <button type="button" class="btn btn-sm" id="close-settings">Done</button>
+  </div>
+</div>
+
+<script>
+  import { getPrefs, setPrefs, type Prefs } from "../lib/prefs";
+  import { announce } from "../lib/announce";
+
+  const panel = document.getElementById("settings-panel")!;
+  const btn = document.getElementById("open-settings")!;
+  const inputs = [...panel.querySelectorAll<HTMLInputElement>("input")];
+  let prefs: Prefs = getPrefs();
+
+  // show the saved choices
+  function showPrefs() {
+    for (const i of inputs) {
+      const key = i.dataset.pref as keyof Prefs | undefined;
+      i.checked = i.type === "radio" ? i.value === (prefs.text || "md") : !!(key && prefs[key]);
+    }
+  }
+  showPrefs();
+
+  function open(state: boolean) {
+    panel.hidden = !state;
+    btn.setAttribute("aria-expanded", state ? "true" : "false");
+    if (state) (panel.querySelector<HTMLInputElement>("input:checked") || inputs[0])?.focus();
+    else btn.focus();
+  }
+
+  btn.addEventListener("click", () => open(panel.hidden !== false));
+  document.getElementById("close-settings")!.addEventListener("click", () => open(false));
+  document.getElementById("reset-settings")!.addEventListener("click", () => {
+    prefs = {};
+    setPrefs(prefs);
+    showPrefs();
+    announce("Display settings reset");
+  });
+  panel.addEventListener("change", (e) => {
+    const i = e.target as HTMLInputElement;
+    if (i.name === "textsize") prefs.text = i.value as Prefs["text"];
+    else if (i.dataset.pref) prefs[i.dataset.pref as "contrast" | "underline" | "calm"] = i.checked;
+    setPrefs(prefs);
+  });
+  panel.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") { e.stopPropagation(); open(false); }
+  });
+  // clicking anywhere else closes it (without moving focus)
+  document.addEventListener("click", (e) => {
+    const t = e.target as Element | null;
+    if (!panel.hidden && !t?.closest?.("#settings-panel") && !t?.closest?.("#open-settings")) {
+      panel.hidden = true;
+      btn.setAttribute("aria-expanded", "false");
+    }
+  });
+</script>

@@ -1,0 +1,58 @@
+---
+// The frame of every page: <head>, skip link, header, footer and back-to-top button.
+// Pages fill in the middle:
+//   <BaseLayout title="…" description="…" page="prices"> …page content… </BaseLayout>
+import "@fontsource/alegreya-sans/400.css";
+import "@fontsource/alegreya-sans/500.css";
+import "@fontsource/alegreya-sans/700.css";
+import "@fontsource/cinzel/500.css";
+import "@fontsource/cinzel/700.css";
+import "@fontsource/cinzel-decorative/700.css";
+import "../../css/style.css";
+import Seo from "../components/Seo.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import BackToTop from "../components/BackToTop.astro";
+
+interface Props {
+  title: string;
+  description: string;
+  /** which menu item to highlight, e.g. "prices" (see src/lib/nav.ts) */
+  page?: string;
+  jsonld?: object | object[];
+  noindex?: boolean;
+}
+
+const { title, description, page, jsonld, noindex } = Astro.props;
+---
+<!doctype html>
+<html lang="en" data-text="md">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <Seo title={title} description={description} jsonld={jsonld} noindex={noindex} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <script is:inline>
+      // Apply saved display settings before the page paints, so it doesn't flash.
+      // Same as applyPrefs() in src/lib/prefs.ts, which can't be bundled into an inline script.
+      try {
+        var p = JSON.parse(localStorage.getItem("codex-prefs") || "null") || {};
+        var h = document.documentElement;
+        h.setAttribute("data-text", p.text || "md");
+        if (p.contrast) h.setAttribute("data-contrast", "");
+        if (p.calm) h.setAttribute("data-calm", "");
+        if (p.underline) h.setAttribute("data-underline", "");
+      } catch (e) { /* storage blocked: defaults */ }
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+    <Header page={page} />
+    <div id="sr-status" class="sr-only" role="status" aria-live="polite"></div>
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+    <BackToTop />
+  </body>
+</html>

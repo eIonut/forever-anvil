@@ -68,7 +68,6 @@ ${jsonld ? `<script type="application/ld+json">${JSON.stringify(jsonld)}</script
 ${body}
 </main>
 <div id="site-footer"></div>
-<script src="js/config.js"></script>
 <script type="module" src="js/legacy.js"></script>
 </body>
 </html>

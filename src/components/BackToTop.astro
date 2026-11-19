@@ -1,0 +1,17 @@
+---
+// Round "back to top" button, shown after scrolling down a long page.
+---
+<button type="button" class="to-top" hidden>
+  <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M6 14l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" /></svg>
+  <span class="sr-only">Back to top</span>
+</button>
+
+<script>
+  const b = document.querySelector<HTMLButtonElement>(".to-top")!;
+  window.addEventListener("scroll", () => { b.hidden = window.scrollY < 700; }, { passive: true });
+  b.addEventListener("click", () => {
+    const calm = document.documentElement.hasAttribute("data-calm");
+    window.scrollTo({ top: 0, behavior: calm ? "auto" : "smooth" });
+    document.getElementById("main")?.focus({ preventScroll: true });
+  });
+</script>

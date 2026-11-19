@@ -1,7 +1,8 @@
 /* ------------------------------------------------------------------
    SITE SETTINGS — edit these, nothing else needs to change.
+   Used by the new Astro pages and (until the move is done) the old ones.
    ------------------------------------------------------------------ */
-window.SITE_CONFIG = {
+const config = {
   siteName: "Forever Tome",
   tagline: "Unofficial WoW: Forever tools",
 
@@ -28,3 +29,5 @@ window.SITE_CONFIG = {
   // Date of the last content update (shown in the footer).
   lastUpdated: "2026-11-19"
 };
+
+export default config;

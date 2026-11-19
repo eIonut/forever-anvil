@@ -1,0 +1,29 @@
+---
+import config from "../config.js";
+import { FOOTER_TOOLS, FOOTER_SITE } from "../lib/nav";
+import DonateButton from "./DonateButton.astro";
+---
+<footer class="site">
+  <div class="wrap">
+    <div class="cols">
+      <div>
+        <h4>{config.siteName}</h4>
+        <p>Free, unofficial tools for WoW: Forever: live auction prices, crafting profits, talents and character lookups.</p>
+        <DonateButton class="btn-sm" />
+      </div>
+      <div>
+        <h4>Tools</h4>
+        <ul>{FOOTER_TOOLS.map((n) => <li><a href={n.href}>{n.label}</a></li>)}</ul>
+      </div>
+      <div>
+        <h4>Site</h4>
+        <ul>{FOOTER_SITE.map((n) => <li><a href={n.href}>{n.label}</a></li>)}</ul>
+      </div>
+    </div>
+    <div class="legal">
+      World of Warcraft, Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc.{" "}
+      {config.siteName} is a fan site and is not affiliated with, endorsed or sponsored by Blizzard Entertainment. Game data provided by Blizzard Entertainment.{" "}
+      <a href="/about#legal">Credits &amp; legal</a> · Last updated {config.lastUpdated}
+    </div>
+  </div>
+</footer>
