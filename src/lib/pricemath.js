@@ -172,16 +172,12 @@ function computeFlips(listings, vendorPrice, opts) {
     .slice(0, opts.top);
 }
 
-// Web addresses of generated pages, same rule for the generator and the site:
-//   itemPath(2770, "Copper Ore")         → "item/2770-copper-ore.html"
-//   recipePath(2359, "Bolt of Linen Cloth") → "recipe/2359-bolt-of-linen-cloth.html"
+// Readable part of a page address: "Zoë's Crêpe" → "zoes-crepe" (see src/lib/urls.ts)
 function slugify(name) {
   return String(name || "")
     .normalize("NFKD").replace(/[̀-ͯ]/g, "")   // é → e
     .toLowerCase().replace(/'/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 60);
 }
-function itemPath(id, name) { const s = slugify(name); return "item/" + id + (s ? "-" + s : "") + ".html"; }
-function recipePath(id, name) { const s = slugify(name); return "recipe/" + id + (s ? "-" + s : "") + ".html"; }
 
 // Item icon on Blizzard's image server, from the icon file id in the item cache (entry [6]).
 // The same id works in every region; sizes 18, 36 and 56 exist.
@@ -220,4 +216,4 @@ function planShoppingList(plan, have, price) {
   return { mats, cost: Math.round(cost), complete, sales: net, salesComplete, profit: complete && salesComplete ? net - Math.round(cost) : null };
 }
 
-export { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, planShoppingList, slugify, itemPath, recipePath, iconUrl, dayNumber, HISTORY_DAYS, SHARDS, DAY_MS };
+export { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, planShoppingList, slugify, iconUrl, dayNumber, HISTORY_DAYS, SHARDS, DAY_MS };

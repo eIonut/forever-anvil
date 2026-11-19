@@ -211,8 +211,30 @@ Shared pieces (money formatting, item icons, Wowhead tooltips, the price file UR
 
 - **Done when:** each tool matches the old page on the same data: same numbers, same sorting, same empty and error messages, keyboard use and screen-reader labels.
 
-### Step 5: Local API and cleanup
-Left for this step, now that the dev routes exist:
+### Step 5: Local API and cleanup (done 2026-11-19)
+
+What was done:
+- Deleted the old site:
+  - `serve.js`
+  - `js/site.js`, `js/legacy.js` and `js/legacy-globals.js`
+  - the nine root `*.html` pages
+  - `pipeline/build-items.js`, along with its local output (`item/`, `recipe/`, `sitemap.xml`; git-ignored, about 85 MB) and its `.gitignore` rules
+- `css/style.css` moved to `src/styles/global.css`.
+- `itemPath` and `recipePath` were removed from `pricemath.js`; only the old builder used them. The page-address tests now check `src/lib/urls.ts`, which the site uses. Node runs the `.ts` file directly.
+- npm scripts are now `dev`, `build`, `preview`, `check`, `test` and `prices`:
+  - `check` runs `astro check` and `svelte-check`; `svelte-check` 4.7.8 is pinned. It found one type error in `Talents.svelte`, now fixed.
+  - `legacy` and `pages` are gone.
+- The README is rewritten for the new layout, with a "How to change things" section. `phase2-plan.md` has a note mapping old file names to new ones.
+
+Checks:
+- **Fresh copy:** I copied only the files git tracks into an empty folder, then ran `npm ci`, `npm test`, `npm run check` and `npm run build`.
+  - Tests: 22 pass. Both type checkers report 0 errors and 0 warnings.
+  - The build makes 11 pages. There's no data in a fresh copy, so item and recipe pages are skipped with a message.
+  - With `npm run dev`, all 11 pages answer. The Prices tool shows "No prices yet" with the `npm run prices` hint. `/api/character` answers `not-configured` without `.env`.
+- **With real data:** the build makes 10,738 pages. The stylesheet's content hash is the same as before the move, so styles are unchanged.
+- Nothing in the code references the deleted files. The only mentions are in the docs' history notes.
+
+Plan for this step, as written before the work:
 - Delete `serve.js`, `js/`, the nine root `*.html` files and the old-page part of `build-items.js`.
 - Move `css/style.css` to `src/styles/`.
 - Drop the `legacy` and `pages` npm scripts.

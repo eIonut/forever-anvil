@@ -22,8 +22,8 @@ const config = {
   // Contact email shown on the About page (optional).
   contactEmail: "",
 
-  // Where the Prices page loads data from. Empty = local ./out folder written by
-  // `node pipeline/run.js` (for testing). In production: the Cloudflare Worker URL, e.g. "/api".
+  // Where the price tools load data from. Empty = the local ./out folder written by
+  // `npm run prices` (served by `npm run dev`). In production: the Cloudflare Worker URL, e.g. "/api".
   pricesApi: "",
 
   // Date of the last content update (shown in the footer).

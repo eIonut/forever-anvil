@@ -6,11 +6,9 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "check": "astro check",
+    "check": "astro check && svelte-check --threshold warning",
     "test": "node --test pipeline/aggregate.test.js pipeline/talentmath.test.js",
-    "prices": "node pipeline/run.js",
-    "pages": "node pipeline/build-items.js",
-    "legacy": "node serve.js"
+    "prices": "node pipeline/run.js"
   },
   "dependencies": {
     "@astrojs/sitemap": "3.7.6",
@@ -23,6 +21,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.12",
+    "svelte-check": "4.7.8",
     "typescript": "6.0.3"
   },
   "engines": {

@@ -1,10 +1,11 @@
 // Run: npm test
 import test from "node:test";
 import assert from "node:assert/strict";
-import { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, planShoppingList, itemPath, recipePath, DAY_MS, SHARDS } from "../src/lib/pricemath.js";
+import { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, planShoppingList, DAY_MS, SHARDS } from "../src/lib/pricemath.js";
+import { itemUrl, recipeUrl, itemSlug } from "../src/lib/urls.ts";
 
 test("recipe page address", () => {
-  assert.equal(recipePath(2359, "Bolt of Linen Cloth"), "recipe/2359-bolt-of-linen-cloth.html");
+  assert.equal(recipeUrl(2359, "Bolt of Linen Cloth"), "/recipe/2359-bolt-of-linen-cloth");
 });
 
 test("shopping list: combines materials, subtracts what you have, totals cost and sales", () => {
@@ -35,11 +36,11 @@ test("shopping list: unknown material price → no profit", () => {
 });
 
 test("item page address: id + readable slug", () => {
-  assert.equal(itemPath(2770, "Copper Ore"), "item/2770-copper-ore.html");
-  assert.equal(itemPath(1, "Hillman's Leather Gloves"), "item/1-hillmans-leather-gloves.html");
-  assert.equal(itemPath(5, "Green Hills of Stranglethorn - Page 1"), "item/5-green-hills-of-stranglethorn-page-1.html");
-  assert.equal(itemPath(9, "Zoë's Crêpe"), "item/9-zoes-crepe.html");
-  assert.equal(itemPath(7, null), "item/7.html");
+  assert.equal(itemUrl(2770, "Copper Ore"), "/item/2770-copper-ore");
+  assert.equal(itemSlug(1, "Hillman's Leather Gloves"), "1-hillmans-leather-gloves");
+  assert.equal(itemSlug(5, "Green Hills of Stranglethorn - Page 1"), "5-green-hills-of-stranglethorn-page-1");
+  assert.equal(itemSlug(9, "Zoë's Crêpe"), "9-zoes-crepe");
+  assert.equal(itemUrl(7, null), "/item/7");
 });
 
 test("flips: only listings below vendor price (minus a small margin) count", () => {

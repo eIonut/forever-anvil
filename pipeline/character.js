@@ -1,5 +1,5 @@
 // Character lookup: fetches a WoW: Forever character from Blizzard and returns only
-// the fields the website shows. Used by the local dev server now (serve.js) and by the
+// the fields the website shows. Used by the local dev server (pipeline/character-api.js) and by the
 // Cloudflare Worker in production. Nothing is stored; callers may cache for ≤ 15 minutes.
 
 // "Thrallina Stormhoof" / "thrallina-stormhoof" → "thrallina-stormhoof"

@@ -1,6 +1,6 @@
 // The /api/character endpoint for local development: checks the request, rate-limits,
 // honours the opt-out list, caches for 15 minutes and asks Blizzard (see character.js).
-// Used by the Astro dev server (integrations/dev-api.ts) and, until it's removed, serve.js.
+// Used by the Astro dev server (integrations/dev-api.ts).
 // In production a Cloudflare Worker provides the same endpoint.
 import fs from "node:fs";
 import path from "node:path";

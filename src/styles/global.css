@@ -114,7 +114,7 @@ main { flex: 1; padding-bottom: 48px; }
 .icon-btn[aria-expanded="true"] { border-color: var(--gold); background: rgba(230,184,74,.15); }
 .nav-toggle { display: none; }
 
-/* collapsed header: used on narrow screens, and by site.js whenever the links don't fit (e.g. large text) */
+/* collapsed header: used on narrow screens, and by Header.astro whenever the links don't fit (e.g. large text) */
 @media (max-width: 1180px) {
   .nav-toggle { display: inline-grid; }
   .tools { margin-left: auto; }

@@ -75,7 +75,7 @@
   function selectClass(name: string, code: string | null) {
     cls = data!.classes.find((c) => c.name.toLowerCase() === name) || data!.classes[0];
     // links can be hand-edited: re-apply the real rules before showing a shared build
-    build = code ? TM.sanitize(cls.specs, TM.decode(cls.specs, code), TM.pointsForLevel(level)) : {};
+    build = code ? (TM.sanitize(cls.specs, TM.decode(cls.specs, code), TM.pointsForLevel(level)) as Build) : {};
     selected = null;
   }
 

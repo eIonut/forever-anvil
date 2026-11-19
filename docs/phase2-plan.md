@@ -1,5 +1,14 @@
 # Phase 2 plan: live auction prices and character lookup
 
+> Written before the site moved to Astro (November 2026). Some file names below are from the old layout:
+> - `serve.js`: now `npm run dev`, with `integrations/dev-api.ts` and `pipeline/character-api.js`
+> - `js/site.js`: now `src/tools/` and `src/components/`
+> - `js/pricemath.js`, `js/talentmath.js`: now in `src/lib/`
+> - `pipeline/build-items.js`: now `src/pages/item/` and `src/pages/recipe/`, built by `npm run build`
+> - `*.html` pages: now `/prices`, `/flips`, and so on
+>
+> See [astro-migration-plan.md](astro-migration-plan.md).
+
 Goal: add the two tools no independent Forever site offers well. Both use Blizzard's official API and follow its terms.
 
 1. **Auction House price tracker:** current prices, 30-day trends, "vendor or sell?", deals.
