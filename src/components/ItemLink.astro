@@ -1,0 +1,21 @@
+---
+// Link to an item: our own item page when it has one, otherwise Wowhead.
+// Both show the icon and a Wowhead tooltip on hover.
+import { loadCatalog } from "../data/catalog";
+import { itemUrl, wowheadItemUrl } from "../lib/urls";
+import { tooltipAttrs } from "../lib/wowhead";
+import ItemIcon from "./ItemIcon.astro";
+
+interface Props {
+  id: number | string;
+  name: string;
+}
+
+const { id, name } = Astro.props;
+const own = loadCatalog().hasPage.has(String(id));
+---
+{own ? (
+  <a href={itemUrl(id, name)} {...tooltipAttrs(id)}><ItemIcon id={id} />{name}</a>
+) : (
+  <a href={wowheadItemUrl(id)} target="_blank" rel="noopener nofollow" {...tooltipAttrs(id)}><ItemIcon id={id} />{name}<span class="sr-only">{" (Wowhead, opens in a new tab)"}</span></a>
+)}

@@ -220,4 +220,4 @@ function planShoppingList(plan, have, price) {
   return { mats, cost: Math.round(cost), complete, sales: net, salesComplete, profit: complete && salesComplete ? net - Math.round(cost) : null };
 }
 
-export { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, planShoppingList, itemPath, recipePath, iconUrl, dayNumber, HISTORY_DAYS, SHARDS, DAY_MS };
+export { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, planShoppingList, slugify, itemPath, recipePath, iconUrl, dayNumber, HISTORY_DAYS, SHARDS, DAY_MS };

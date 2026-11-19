@@ -122,7 +122,35 @@ Original plan:
 - Keep the accessibility features: skip link, visible focus, the screen-reader announcer, `aria-current` on the menu, reduced-motion support, and the fit-the-header logic for narrow screens.
 - **Done when:** these three pages look the same as today side by side (screenshots at desktop and phone width), and the settings panel and mobile menu work.
 
-### Step 3: Item and recipe pages
+### Step 3: Item and recipe pages (done 2026-11-19)
+
+What was done:
+- `src/data/catalog.ts` reads `out/` once per build: prices, 30-day history, item info and recipes. It gives the same results as `build-items.js`. With no data, item and recipe pages are skipped with a message, and the rest of the site still builds.
+- Page templates: `src/pages/item/[slug].astro`, `src/pages/recipe/[slug].astro`, and the A–Z indexes `item/index.astro` and `recipe/index.astro`. Addresses are `/item/2770-copper-ore`, `/recipe/2359-bolt-of-linen-cloth`, `/item` and `/recipe`.
+- New shared components: `Money`, `ItemIcon`, `ItemLink`, `ItemTitleIcon`, `PriceChart`, `Wowhead` (tooltips), `IndexSearch` and `PlanButton`.
+- New helpers in `src/lib/`:
+  - `format.ts`: money, numbers, dates
+  - `urls.ts`: page addresses
+  - `labels.ts`: region and faction names
+  - `wowhead.ts`: tooltip attributes and loader
+  - `plan.ts`: the crafting plan, with the same `codex-plan` storage
+- `pricemath.js` now also exports `slugify`.
+- The sitemap comes from `@astrojs/sitemap` (`sitemap-index.xml`), dated with the build day. `robots.txt` points to it.
+- Small page scripts are shared files rather than copied into each page (`assetsInlineLimit: 0`).
+
+Checks (EU data from 2026-11-19):
+- 8,234 item pages, 2,493 recipe pages, 2 indexes, plus Home, About and Privacy: 10,732 pages in about 20 seconds.
+- 10,803 files in total, under Cloudflare's 20,000-file limit.
+- A comparison script checked all 10,729 generated pages against `build-items.js`. Everything matched: title, description, visible text, link targets (mapped to clean URLs), images and breadcrumb JSON-LD. Every page's canonical link is its clean URL.
+- The comparison ignores whitespace between buttons in the flex button rows, which has no visual effect.
+- At 1024px, the item page layout is identical to the old page.
+- Recipe pages: "Add to plan" saves in the old format, and the plan badge and screen-reader message work.
+- Item index: search filters as you type and announces the count.
+- Tooltips load on item pages. No horizontal scroll at 375px, and no console errors.
+- Page size: 13.7 KB, up from 8.8 KB, because the header, footer and settings panel are now HTML in every page. That's the price of crawlable menus, and compression on the host shrinks most of it. In total, `dist/` is 160 MB, up from about 86 MB.
+- `build-items.js` still writes the old pages for `npm run legacy` until step 5.
+
+Original plan:
 - `src/data/items.ts` and `recipes.ts` read `out/` exactly as `build-items.js` does today.
 - `item/[slug].astro` and `recipe/[slug].astro` build one page per item and recipe with the same content: prices per region, ruleset and faction, the 30-day chart, vendor price, how it's made and what it's used for, breadcrumb JSON-LD and the canonical link.
 - The A–Z indexes and their type-to-filter search. The sitemap comes from the Astro plugin.

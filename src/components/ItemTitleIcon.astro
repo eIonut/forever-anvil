@@ -1,0 +1,16 @@
+---
+// The big icon next to an item or recipe title: hover for the tooltip, click for the full Wowhead page.
+import { wowheadItemUrl } from "../lib/urls";
+import { tooltipAttrs } from "../lib/wowhead";
+import ItemIcon from "./ItemIcon.astro";
+
+interface Props {
+  id: number | string;
+}
+
+const { id } = Astro.props;
+---
+<a class="item-icon-link" href={wowheadItemUrl(id)} target="_blank" rel="noopener nofollow" {...tooltipAttrs(id)}>
+  <ItemIcon id={id} size={56} px={56} class="item-icon-lg" />
+  <span class="sr-only">Item details on Wowhead (opens in a new tab)</span>
+</a>

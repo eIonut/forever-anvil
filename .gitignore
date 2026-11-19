@@ -10,9 +10,9 @@ tools/probe-output/
 out/
 
 # generated from API data by pipeline/build-items.js (rebuilt daily before deploy)
-item/
-recipe/
-sitemap.xml
+/item/
+/recipe/
+/sitemap.xml
 
 # local tooling
 node_modules/

@@ -1,0 +1,49 @@
+---
+// Line chart of an item's daily market price (static SVG, no script).
+import Money from "./Money.astro";
+
+interface Props {
+  /** [[dayNumber, marketPrice], ...] */
+  points: [number, number][] | null | undefined;
+  /** which market this is, e.g. "PvP Alliance (Europe)" */
+  label: string;
+}
+
+const { points, label } = Astro.props;
+const W = 640, H = 180, P = 34;
+const day = (d: number) => new Date(d * 86400000).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+
+let chart = null;
+if (points && points.length >= 2) {
+  const days = points.map((p) => p[0]);
+  const vals = points.map((p) => p[1]);
+  const x0 = Math.min(...days), x1 = Math.max(...days);
+  let y0 = Math.min(...vals), y1 = Math.max(...vals);
+  if (y0 === y1) { y0 *= 0.9; y1 = y1 * 1.1 + 1; }
+  const X = (d: number) => P + (d - x0) / Math.max(1, x1 - x0) * (W - P * 2);
+  const Y = (v: number) => H - P + 6 - (v - y0) / (y1 - y0) * (H - P * 2);
+  const change = Math.round((vals[vals.length - 1] - vals[0]) / vals[0] * 100);
+  const direction = change >= 0 ? "up" : "down";
+  chart = {
+    x0, x1, direction, change: Math.abs(change),
+    line: points.map((p, i) => `${i ? "L" : "M"}${X(p[0]).toFixed(1)} ${Y(p[1]).toFixed(1)}`).join(" "),
+    dots: points.map((p) => [X(p[0]).toFixed(1), Y(p[1]).toFixed(1)]),
+  };
+}
+---
+{chart ? (
+  <div class="pr-chart">
+    <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`${label}: market price ${chart.direction} ${chart.change}% from ${day(chart.x0)} to ${day(chart.x1)}`}>
+      <line x1={P} y1={H - P + 6} x2={W - P} y2={H - P + 6} class="axis" />
+      <path d={chart.line} class="pline" />
+      {chart.dots.map(([cx, cy]) => <circle cx={cx} cy={cy} r="3" class="pdot" />)}
+      <text x={P} y={H - 6} class="plabel">{day(chart.x0)}</text>
+      <text x={W - P} y={H - 6} class="plabel" text-anchor="end">{day(chart.x1)}</text>
+    </svg>
+    <p class="faint">{`${label}: ${chart.direction} ${chart.change}% over ${chart.x1 - chart.x0} days.`}</p>
+  </div>
+) : (
+  <p class="faint">
+    The 30-day price chart appears once there are at least two days of data{points && points.length ? <Fragment> (today's market price: <Money c={points[0][1]} />)</Fragment> : null}.
+  </p>
+)}

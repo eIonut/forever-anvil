@@ -2,7 +2,7 @@
 
 A static website with tools for WoW: Forever: auction prices, vendor flips, crafting profits and planner, a talent calculator and a character lookup.
 
-**The site is moving to Astro** ([plan](docs/astro-migration-plan.md)). Steps 1–2 are done: Astro is set up, the shared math and settings are in `src/`, and Home, About and Privacy run on Astro with the shared layout. Until the tools move over, the old site is still the real one.
+**The site is moving to Astro** ([plan](docs/astro-migration-plan.md)). Steps 1–3 are done: Astro is set up, the shared math and settings are in `src/`, and Home, About, Privacy and every item and recipe page run on Astro. Until the tools move over, the old site is still the real one.
 
 ## Run it locally
 
@@ -17,8 +17,8 @@ Then:
 | Command | What it does |
 |---|---|
 | `npm run legacy` | The current site at http://localhost:8080 (old pages, plus `/api/character`) |
-| `npm run dev` | The new Astro site at http://localhost:4321 (Home, About and Privacy so far; tool links 404 until they move) |
-| `npm run build` | Builds the Astro site into `dist/` |
+| `npm run dev` | The new Astro site at http://localhost:4321 (Home, About, Privacy, item and recipe pages so far; the tools 404 until they move) |
+| `npm run build` | Builds the Astro site into `dist/`, including one page per item and recipe from the data in `out/` (about 20 seconds) |
 | `npm test` | Tests for the price and talent math |
 
 ## Live data (Blizzard API)
@@ -30,7 +30,7 @@ Needs a Battle.net API client. Copy `.env.example` to `.env` and fill it in; `.e
 | `node tools/probe.js` | Checks which WoW: Forever API data exists; writes a local report |
 | `node tools/house-compare.js` | Prices of common items per auction-house group (to identify rulesets) |
 | `npm run prices` | The price job (`pipeline/run.js`): downloads auctions, computes prices, saves to `out/` |
-| `npm run pages` | Builds one SEO page per item and recipe (`item/…html`, `recipe/…html`), the A–Z indexes and `sitemap.xml` from the job's data |
+| `npm run pages` | Old site only: builds one SEO page per item and recipe (`item/…html`, `recipe/…html`), the A–Z indexes and `sitemap.xml` from the job's data |
 | `node tools/optout.js eu "Firstname Lastname"` | Hide a character from the character lookup (stores a fingerprint, not the name) |
 
 With `npm run legacy` running and `.env` filled in, every tool works on localhost. The local server also answers `/api/character`; once the site is online, a Cloudflare Worker will provide the same endpoint.
@@ -51,6 +51,8 @@ With `npm run legacy` running and `.env` filled in, every tool works on localhos
 | `src/layouts/BaseLayout.astro` | The frame of every new page: `<head>`, header, footer |
 | `src/components/` | Header, footer, settings panel, ad space, donate box and other shared pieces |
 | `src/lib/nav.ts` | The header and footer menus |
+| `src/data/catalog.ts` | Reads `out/` at build time for the item and recipe pages |
+| `src/pages/item/`, `src/pages/recipe/` | The item and recipe page templates and their A–Z indexes |
 | `public/` | Files served as-is: favicon, images, robots.txt |
 | `pipeline/` | The price job, Blizzard API client and item-page builder |
 

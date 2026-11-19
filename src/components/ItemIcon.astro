@@ -1,0 +1,27 @@
+---
+// An item's icon from Blizzard's image server (same file id in every region).
+// Small icons without an image get a blank of the same size, so lists stay aligned.
+import { loadCatalog } from "../data/catalog";
+import { iconUrl } from "../lib/pricemath.js";
+
+interface Props {
+  id: number | string | null | undefined;
+  /** image size on Blizzard's server: 18, 36 or 56 */
+  size?: number;
+  /** shown size in pixels */
+  px?: number;
+  class?: string;
+}
+
+const { id, size = 36, px = 20, class: cls = "item-icon" } = Astro.props;
+const c = loadCatalog();
+const info = (id && c.names[id]) || [];
+const url = iconUrl(info[6], c.regions[0], size);
+const quality = info[4];
+const small = px < 40;
+---
+{url ? (
+  <img class:list={[cls, quality && `qb-${quality}`]} src={url} alt="" width={px} height={px} loading={small ? "lazy" : undefined} decoding={small ? "async" : undefined} />
+) : small ? (
+  <span class="item-icon" aria-hidden="true"></span>
+) : null}

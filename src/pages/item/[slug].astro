@@ -1,0 +1,137 @@
+---
+// One page per item (/item/2770-copper-ore): prices on every auction house, 30-day chart,
+// vendor price, how to make it and what it's used for. Built from ./out (see src/data/catalog.ts).
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import AdSlot from "../../components/AdSlot.astro";
+import ItemLink from "../../components/ItemLink.astro";
+import ItemTitleIcon from "../../components/ItemTitleIcon.astro";
+import Money from "../../components/Money.astro";
+import PriceChart from "../../components/PriceChart.astro";
+import Wowhead from "../../components/Wowhead.astro";
+import { loadCatalog, primaryPrices, primaryRow } from "../../data/catalog";
+import { craftProfit } from "../../lib/pricemath.js";
+import { FACTIONS, REGION_NAMES } from "../../lib/labels";
+import { capitalize, moneyText, num } from "../../lib/format";
+import { itemSlug, recipeUrl } from "../../lib/urls";
+
+export function getStaticPaths() {
+  const c = loadCatalog();
+  return c.pageIds.map((id) => ({ params: { slug: itemSlug(id, c.names[id][0]) }, props: { id } }));
+}
+
+const { id } = Astro.props;
+const c = loadCatalog();
+const [name, sell, , , quality, itemClass] = c.names[id];
+const rows = (c.prices[id] || []).slice().sort((a, b) =>
+  a.region.localeCompare(b.region) || Number(b.confirmed) - Number(a.confirmed) || a.group.localeCompare(b.group) || a.faction.localeCompare(b.faction));
+const main = primaryRow(rows);
+const made = c.made[id] || [];
+const used = c.used[id] || [];
+const priceAt = primaryPrices(c);
+const ph = c.primaryHouse;
+
+// "Sell on the AH or to a vendor?" (the AH keeps 5%)
+const verdict = main && sell
+  ? main.market * 0.95 > sell * 1.15 ? "Selling on the Auction House pays more than a vendor, even after the 5% cut."
+  : main.market * 0.95 < sell ? "A vendor pays more than the Auction House does after its 5% cut — vendor it."
+  : ""
+  : "";
+
+const craftInfo = [made.length ? ", how to craft it" : "", used.length ? " and recipes that use it" : ""].join("");
+const description = main
+  ? `${name} price in WoW: Forever: about ${moneyText(main.market)} on the ${REGION_NAMES[main.region]} ${main.label} ${FACTIONS[main.faction]} AH (${c.asOf}). 30-day price history, vendor price${craftInfo}.`
+  : `${name} in WoW: Forever: vendor price${craftInfo}.`;
+
+const marketLabel = main ? `${main.label} ${FACTIONS[main.faction]} (${REGION_NAMES[main.region]})` : "";
+const chartPoints = main ? (c.history[`${main.region}:${main.houseId}`] || {})[id] : null;
+const site = Astro.site!.href.replace(/\/$/, "");
+const jsonld = {
+  "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: site + "/" },
+    { "@type": "ListItem", position: 2, name: "Item prices", item: site + "/item" },
+    { "@type": "ListItem", position: 3, name, item: site + "/item/" + Astro.params.slug },
+  ],
+};
+---
+<BaseLayout title={`${name} Price — WoW: Forever — Forever Tome`} description={description} page="items" jsonld={jsonld}>
+  <section class="hero page-hero"><div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/item">Item prices</a> › {name}</nav>
+    <div class="item-title"><ItemTitleIcon id={id} /><h1 class={quality ? `q-${quality}` : ""}>{name}</h1></div>
+    <p class="item-sub">{[quality && capitalize(quality), itemClass, "WoW: Forever"].filter(Boolean).join(" · ")}</p>
+    <p class="item-summary">
+      {main
+        ? <Fragment>On the {`${REGION_NAMES[main.region]} ${main.label} ${FACTIONS[main.faction]}`} Auction House, <b>{name}</b> sells for about <b><Money c={main.market} /></b> each (lowest <Money c={main.min} />, {num(main.qty)} listed) as of {c.asOf}.</Fragment>
+        : <Fragment>{name} isn't listed on the Auction House right now.</Fragment>}{sell ? <Fragment>{" "}Vendors buy it for <Money c={sell} />.</Fragment> : null}{verdict ? " " + verdict : null}
+    </p>
+    <div class="item-actions">
+      <a class="btn" href={`/prices?item=${id}`}>Live prices &amp; filters</a>
+      {(made.length > 0 || used.length > 0) && <a class="btn btn-ghost" href={`/crafting?q=${encodeURIComponent(name)}`}>Crafting profits</a>}
+      <a class="btn btn-ghost wh" href={`https://www.wowhead.com/forever/item=${id}`} target="_blank" rel="noopener nofollow" data-wh-rename-link="false" data-wh-icon-added="true">Full details on Wowhead<span class="sr-only">{" (opens in a new tab)"}</span></a>
+    </div>
+  </div></section>
+
+  <div class="wrap section grid">
+    <section class="panel">
+      <h2>Auction House prices</h2>
+      {rows.length ? (
+        <div class="table-wrap">
+          <table class="prices">
+            <caption class="sr-only">{name} prices by auction house</caption>
+            <thead><tr><th scope="col">Region</th><th scope="col">Ruleset</th><th scope="col">Auction House</th><th scope="col">Market price</th><th scope="col">Lowest</th><th scope="col">Listed</th></tr></thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr><td>{REGION_NAMES[r.region]}</td><td class={r.confirmed ? undefined : "dim"}>{r.label}</td><td>{FACTIONS[r.faction]}</td><td><Money c={r.market} /></td><td><Money c={r.min} /></td><td>{num(r.qty)}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p class="faint">Not listed on any auction house in the latest snapshot.</p>
+      )}
+      <p class="faint" style="margin-top:8px">Market price = average of the cheapest 10% of units listed. Snapshot from {c.asOf}; the <a href={`/prices?item=${id}`}>live prices page</a> updates hourly.</p>
+    </section>
+
+    {main && (
+      <section class="panel"><h2>Price history (30 days)</h2><PriceChart points={chartPoints} label={marketLabel} /></section>
+    )}
+
+    {made.length > 0 && (
+      <section class="panel">
+        <h2>How to make it</h2>
+        <ul class="recipe-list">
+          {made.slice(0, 10).map((r) => {
+            const res = craftProfit({ q: r.q, item: r.item, r: r.mats }, priceAt);
+            return (
+              <li>
+                <b>{r.prof}</b> — <a href={recipeUrl(r.id, r.name)}>{r.name}</a>{r.q > 1 ? ` (makes ${r.q})` : null}<br />
+                <span class="mats-inline">{r.mats.map((m, i) => <Fragment>{i > 0 && ", "}{m[1]}× <ItemLink id={m[0]} name={m[2]} /></Fragment>)}</span>
+                {res.costComplete && ph && (
+                  <Fragment><br /><span class="faint">Materials cost about <Money c={res.cost} /> on {ph.label} Alliance{res.profit != null ? <Fragment>{` · profit ${res.profit >= 0 ? "+" : "−"}`}<Money c={Math.abs(res.profit)} /> after the AH cut</Fragment> : null}.</span></Fragment>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    )}
+
+    {used.length > 0 && (
+      <section class="panel">
+        <h2>Used to craft</h2>
+        <ul class="recipe-list">
+          {used.slice(0, 40).map((r) => {
+            const qty = (r.mats.find((m) => String(m[0]) === String(id)) || [])[1];
+            return (
+              <li>{r.item ? <ItemLink id={r.item} name={r.itemName || r.name} /> : r.name}{" "}<span class="faint">({r.prof}{qty ? `, needs ${qty}` : ""} · <a href={recipeUrl(r.id, r.name)}>recipe</a>)</span></li>
+            );
+          })}
+        </ul>
+        {used.length > 40 && <p class="faint">…and {used.length - 40} more recipes.</p>}
+      </section>
+    )}
+
+    <p class="faint">Data provided by Blizzard Entertainment. Forever Tome is not affiliated with or endorsed by Blizzard.</p>
+  </div>
+  <div class="wrap"><AdSlot name="bottom" /></div>
+  <Wowhead />
+</BaseLayout>

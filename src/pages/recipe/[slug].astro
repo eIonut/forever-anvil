@@ -1,0 +1,117 @@
+---
+// One page per recipe (/recipe/2359-bolt-of-linen-cloth): materials with today's prices,
+// and the profit on every auction house. Built from ./out (see src/data/catalog.ts).
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import AdSlot from "../../components/AdSlot.astro";
+import ItemLink from "../../components/ItemLink.astro";
+import ItemTitleIcon from "../../components/ItemTitleIcon.astro";
+import Money from "../../components/Money.astro";
+import PlanButton from "../../components/PlanButton.astro";
+import Wowhead from "../../components/Wowhead.astro";
+import { loadCatalog, priceOn, primaryPrices } from "../../data/catalog";
+import { craftProfit } from "../../lib/pricemath.js";
+import { FACTIONS, REGION_NAMES } from "../../lib/labels";
+import { moneyText } from "../../lib/format";
+import { itemUrl, recipeSlug } from "../../lib/urls";
+
+export function getStaticPaths() {
+  return loadCatalog().recipes.map((r) => ({ params: { slug: recipeSlug(r.id, r.name) }, props: { r } }));
+}
+
+const { r } = Astro.props;
+const c = loadCatalog();
+const ph = c.primaryHouse;
+const recipe = { q: r.q, item: r.item, r: r.mats };
+const res = ph ? craftProfit(recipe, primaryPrices(c)) : null;
+const itemName = r.item ? (r.itemName || (c.names[r.item] || [])[0] || r.name) : null;
+
+// profit on every auction house that has prices for it
+const houseRows = r.item
+  ? c.houses.map((h) => ({ h, x: craftProfit(recipe, priceOn(c, h.region, h.houseId)) })).filter(({ x }) => x.costComplete || x.sellAh != null)
+  : [];
+
+const description = `${r.name} (${r.prof}) in WoW: Forever: materials${res && res.costComplete ? ` cost about ${moneyText(res.cost)}` : ""}${res && res.profit != null ? `, ${res.profit >= 0 ? "profit" : "loss"} ${moneyText(Math.abs(res.profit))} after the AH cut` : ""}. Live material prices and profit on every auction house.`;
+const site = Astro.site!.href.replace(/\/$/, "");
+const jsonld = {
+  "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: site + "/" },
+    { "@type": "ListItem", position: 2, name: "Recipes", item: site + "/recipe" },
+    { "@type": "ListItem", position: 3, name: r.name, item: site + "/recipe/" + Astro.params.slug },
+  ],
+};
+---
+<BaseLayout title={`${r.name} — ${r.prof} Recipe, Cost & Profit — WoW: Forever — Forever Tome`} description={description} page="recipe" jsonld={jsonld}>
+  <section class="hero page-hero"><div class="wrap">
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/recipe">Recipes</a> › {r.prof} › {r.name}</nav>
+    <div class="item-title">{r.item && <ItemTitleIcon id={r.item} />}<h1>{r.name}</h1></div>
+    <p class="item-sub">{[r.prof, r.cat, "WoW: Forever recipe"].filter(Boolean).join(" · ")}</p>
+    <p class="item-summary">
+      {r.name} is a {r.prof} recipe{r.cat ? ` (${r.cat})` : ""}{r.item ? <Fragment> that makes {r.q > 1 ? `${r.q}× ` : ""}<ItemLink id={r.item} name={itemName!} />.</Fragment> : "."}{res && res.costComplete && ph && (
+        <Fragment> On {ph.label} Alliance ({REGION_NAMES[ph.region]}) the materials cost about <b><Money c={res.cost} /></b>{res.profit != null
+          ? <Fragment> and the result sells for <Money c={res.sellAh} /> — {res.profit >= 0 ? <Fragment>a <b>profit</b> of </Fragment> : <Fragment>a <b>loss</b> of </Fragment>}<b><Money c={Math.abs(res.profit)} /></b> after the 5% AH cut.</Fragment>
+          : "."}</Fragment>
+      )} Prices as of {c.asOf}.
+    </p>
+    <div class="item-actions">
+      <PlanButton recipeId={r.id} />
+      <a class="btn btn-ghost" href="/planner">View my plan <span class="plan-count" data-plan-count hidden></span></a>
+      <a class="btn btn-ghost" href={`/crafting?q=${encodeURIComponent(itemName || r.name)}`}>Compare with other recipes</a>
+      {r.item && c.hasPage.has(String(r.item)) && <a class="btn btn-ghost" href={itemUrl(r.item, itemName!)}>{itemName} prices</a>}
+    </div>
+  </div></section>
+
+  <div class="wrap section grid">
+    <section class="panel">
+      <h2>Materials</h2>
+      <div class="table-wrap">
+        <table class="prices">
+          <caption class="sr-only">Materials for {r.name}</caption>
+          <thead><tr><th scope="col">Material</th><th scope="col">Qty</th><th scope="col">Price each</th><th scope="col">From</th><th scope="col">Cost</th></tr></thead>
+          <tbody>
+            {r.mats.map((m, i) => {
+              const p = res?.parts[i];
+              return p ? (
+                <tr>
+                  <th scope="row"><ItemLink id={m[0]} name={m[2]} /></th><td>{m[1]}</td>
+                  <td>{p.unit != null ? <Money c={p.unit} /> : <span class="faint">no price</span>}</td>
+                  <td class="dim">{p.source === "ah" ? "Auction House" : p.source === "vendor" ? "Vendor (estimate)" : "—"}</td>
+                  <td>{p.unit != null ? <Money c={p.unit * m[1]} /> : "—"}</td>
+                </tr>
+              ) : (
+                <tr><th scope="row"><ItemLink id={m[0]} name={m[2]} /></th><td>{m[1]}</td><td colspan="3" class="dim">—</td></tr>
+              );
+            })}
+          </tbody>
+          {res && res.costComplete && <tfoot><tr><th scope="row" colspan="4">Total materials</th><td><b><Money c={res.cost} /></b></td></tr></tfoot>}
+        </table>
+      </div>
+      <p class="faint" style="margin-top:8px">Prices from {ph ? `${ph.label} Alliance, ${REGION_NAMES[ph.region]}` : "the Auction House"}. "Vendor (estimate)" means the material isn't on the AH, so we use Blizzard's vendor price — check a trade vendor sells it.</p>
+    </section>
+
+    {houseRows.length > 0 && (
+      <section class="panel">
+        <h2>Profit on every Auction House</h2>
+        <div class="table-wrap">
+          <table class="prices">
+            <caption class="sr-only">Crafting profit for {r.name} by auction house</caption>
+            <thead><tr><th scope="col">Region</th><th scope="col">Ruleset</th><th scope="col">Auction House</th><th scope="col">Materials</th><th scope="col">Sells for</th><th scope="col">Profit</th></tr></thead>
+            <tbody>
+              {houseRows.map(({ h, x }) => (
+                <tr>
+                  <td>{REGION_NAMES[h.region]}</td><td class={h.confirmed ? undefined : "dim"}>{h.label}</td><td>{FACTIONS[h.faction]}</td>
+                  <td>{x.costComplete ? <Money c={x.cost} /> : "—"}</td><td><Money c={x.sellAh} /></td>
+                  <td>{x.profit != null ? <Fragment><span class={`pct ${x.profit >= 0 ? "up" : "down"}`}>{x.profit >= 0 ? "+" : "−"}</span> <Money c={Math.abs(x.profit)} /></Fragment> : "—"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="faint" style="margin-top:8px">Profit = sale price minus the 5% AH cut minus materials. It ignores deposits and whether the item actually sells.</p>
+      </section>
+    )}
+
+    <p class="faint">Data provided by Blizzard Entertainment. Forever Tome is not affiliated with or endorsed by Blizzard.</p>
+  </div>
+  <div class="wrap"><AdSlot name="bottom" /></div>
+  <Wowhead />
+</BaseLayout>

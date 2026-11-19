@@ -10,5 +10,9 @@ export default defineConfig({
   // (and redirects old /prices.html links to it).
   build: { format: "file" },
   trailingSlash: "never",
-  integrations: [svelte(), sitemap()],
+  // Keep page scripts as shared files instead of copying small ones into all ~10,700 pages,
+  // so browsers cache them once and pages stay small.
+  vite: { build: { assetsInlineLimit: 0 } },
+  // lastmod = build day: generated pages are rebuilt daily with fresh prices
+  integrations: [svelte(), sitemap({ lastmod: new Date() })],
 });
