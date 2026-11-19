@@ -2,7 +2,6 @@
 (function () {
   "use strict";
   var C = window.SITE_CONFIG || {};
-  var D = window.CODEX || {};
   var page = document.body.getAttribute("data-page") || "home";
 
   /* ---------- helpers ---------- */
@@ -13,13 +12,7 @@
       return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
     });
   }
-  // external link: opens in a new tab, says so to screen readers, shows a small arrow
-  function ext(url, text, cls) {
-    return '<a href="' + esc(url) + '" target="_blank" rel="noopener nofollow" class="ext' + (cls ? " " + cls : "") + '">' + text +
-      '<span class="sr-only"> (opens in a new tab)</span></a>';
-  }
   var ICON = {
-    search: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><circle cx="10.5" cy="10.5" r="6.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M15.5 15.5L21 21" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>',
     settings: '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><circle cx="16" cy="7" r="2.3" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="10" cy="17" r="2.3" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
     menu: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
     up: '<svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M6 14l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'
@@ -31,8 +24,6 @@
     r.textContent = "";
     setTimeout(function () { r.textContent = msg; }, 60);
   }
-  var MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  function parseDay(s) { var p = s.split("-"); return new Date(Date.UTC(+p[0], +p[1] - 1, +p[2])); }
   function store(key, val) {
     try {
       if (val === undefined) return JSON.parse(localStorage.getItem(key) || "null");
@@ -41,20 +32,19 @@
   }
 
   /* ---------- header / footer ---------- */
+  // header links: [href, label, data-page values that mark it active]
   var NAV = [
-    ["index.html", "Home", "home"], ["news.html", "News", "news"], ["guides.html", "Guides", "guides"],
-    ["classes.html", "Classes", "classes"], ["dungeons.html", "Dungeons", "dungeons"],
-    ["raids.html", "Raids", "raids"], ["systems.html", "Systems", "systems"], ["faq.html", "FAQ", "faq"]
+    ["prices.html", "Prices", ["prices", "items"]], ["flips.html", "Vendor flips", ["flips"]],
+    ["crafting.html", "Craft profits", ["crafting", "recipe", "recipes"]], ["planner.html", "Planner", ["planner"]],
+    ["talents.html", "Talents", ["talents"]], ["character.html", "Character", ["character"]]
   ];
-  // shown in the "Tools" dropdown
+  // footer: every tool, plus the browsable item/recipe pages
   var TOOLS = [
-    ["prices.html", "Auction prices", "prices"], ["flips.html", "Vendor flips", "flips"], ["item/index.html", "Item price pages", "items"],
-    ["crafting.html", "Craft profits", "crafting"], ["planner.html", "Crafting planner", "planner"], ["recipe/index.html", "Recipe pages", "recipes"],
-    ["talents.html", "Talent calculator", "talents"], ["character.html", "Character lookup", "character"],
-    ["resets.html", "Reset & lockouts", "resets"], ["checklist.html", "Journey checklist", "checklist"], ["dungeons.html", "Dungeon finder", "dungeons-tool"]
+    ["prices.html", "Auction prices"], ["flips.html", "Vendor flips"], ["item/index.html", "Item price pages"],
+    ["crafting.html", "Craft profits"], ["planner.html", "Crafting planner"], ["recipe/index.html", "Recipe pages"],
+    ["talents.html", "Talent calculator"], ["character.html", "Character lookup"]
   ];
-  // footer-only links
-  var NAV_MORE = [["roadmap.html", "Roadmap"], ["about.html", "About & credits"], ["privacy.html", "Privacy policy"]];
+  var NAV_MORE = [["about.html", "About & credits"], ["privacy.html", "Privacy policy"]];
 
   function donateBtn(extraCls) {
     if (!C.donateUrl) return "";
@@ -64,7 +54,7 @@
   // was the click inside an element matching sel? (safe when the target isn't an element)
   function inside(e, sel) { var t = e.target; return !!(t && t.closest && t.closest(sel)); }
 
-  function navLink(n) { return '<a href="' + n[0] + '"' + (n[2] === page ? ' class="active" aria-current="page"' : "") + ">" + n[1] + "</a>"; }
+  function navLink(n) { return '<a href="' + n[0] + '"' + (n[2].indexOf(page) >= 0 ? ' class="active" aria-current="page"' : "") + ">" + n[1] + "</a>"; }
 
   function renderHeader() {
     var el = $("#site-header");
@@ -77,15 +67,9 @@
       '<a class="brand" href="index.html" aria-label="' + esc(C.siteName) + ' home"><img src="img/logo.svg" alt="" width="38" height="38">' +
       '<span><span class="brand-name">' + esc(C.siteName) + '</span><span class="brand-sub">' + esc(C.tagline) + "</span></span></a>" +
       '<nav class="nav" id="main-nav" aria-label="Main">' +
-      NAV.slice(0, -1).map(navLink).join("") +
-      // Tools dropdown (a disclosure button + list; works with keyboard and in the mobile menu)
-      '<div class="nav-tools"><button type="button" class="nav-tools-btn' + (TOOLS.some(function (t) { return t[2] === page; }) ? " active" : "") +
-      '" aria-expanded="false" aria-controls="tools-menu">Tools <span aria-hidden="true">▾</span></button>' +
-      '<ul class="tools-menu" id="tools-menu" hidden>' + TOOLS.map(function (t) { return "<li>" + navLink(t) + "</li>"; }).join("") + "</ul></div>" +
-      navLink(NAV[NAV.length - 1]) +
+      NAV.map(navLink).join("") +
       "</nav>" +
       '<div class="tools">' +
-      '<button class="icon-btn" id="open-search" aria-haspopup="dialog" title="Search (press /)"><span class="sr-only">Search the site</span>' + ICON.search + "</button>" +
       '<button class="icon-btn" id="open-settings" aria-haspopup="dialog" aria-expanded="false" aria-controls="settings-panel" title="Display settings"><span class="sr-only">Display settings</span>' + ICON.settings + "</button>" +
       '<button class="icon-btn nav-toggle" aria-controls="main-nav" aria-expanded="false"><span class="sr-only">Menu</span>' + ICON.menu + "</button>" +
       donateBtn("btn-sm") + "</div>" +
@@ -115,21 +99,6 @@
     document.addEventListener("click", function (e) {
       if (nav.classList.contains("open") && !inside(e, ".nav") && !inside(e, ".nav-toggle")) setMenu(false);
     });
-    // Tools dropdown
-    var tb = $(".nav-tools-btn"), tm = $("#tools-menu");
-    function setTools(openIt, focusBtn) {
-      tm.hidden = !openIt; tb.setAttribute("aria-expanded", openIt ? "true" : "false");
-      if (openIt) { var f = tm.querySelector("a"); if (f) f.focus(); } else if (focusBtn) tb.focus();
-    }
-    tb.addEventListener("click", function () { setTools(tm.hidden); });
-    tm.addEventListener("keydown", function (e) {
-      var links = $all("a", tm), i = links.indexOf(document.activeElement);
-      if (e.key === "Escape") { e.stopPropagation(); setTools(false, true); }
-      else if (e.key === "ArrowDown") { e.preventDefault(); (links[i + 1] || links[0]).focus(); }
-      else if (e.key === "ArrowUp") { e.preventDefault(); (links[i - 1] || links[links.length - 1]).focus(); }
-    });
-    document.addEventListener("click", function (e) { if (!tm.hidden && !inside(e, ".nav-tools")) setTools(false); });
-
     fitHeader();
     window.addEventListener("resize", fitHeader);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitHeader);
@@ -150,16 +119,11 @@
     if (!el) return;
     el.outerHTML =
       '<footer class="site"><div class="wrap"><div class="cols">' +
-      "<div><h4>" + esc(C.siteName) + '</h4><p>An unofficial, fan-made hub that collects the best WoW: Forever news, guides and tools from around the web — and always links back to the original creators.</p>' + donateBtn("btn-sm") + "</div>" +
-      "<div><h4>Explore</h4><ul>" + NAV.slice(1).concat(NAV_MORE).map(function (n) { return '<li><a href="' + n[0] + '">' + n[1] + "</a></li>"; }).join("") + "</ul></div>" +
+      "<div><h4>" + esc(C.siteName) + '</h4><p>Free, unofficial tools for WoW: Forever: live auction prices, crafting profits, talents and character lookups.</p>' + donateBtn("btn-sm") + "</div>" +
       "<div><h4>Tools</h4><ul>" + TOOLS.map(function (n) { return '<li><a href="' + n[0] + '">' + n[1] + "</a></li>"; }).join("") + "</ul></div>" +
-      "<div><h4>Great sources</h4><ul>" +
-      ["https://worldofwarcraft.blizzard.com/en-us/news|Blizzard news", "https://www.wowhead.com/|Wowhead", "https://www.icy-veins.com/wow-forever/class-guides|Icy Veins", "https://warcraft.wiki.gg/wiki/World_of_Warcraft:_Forever|Warcraft Wiki", "https://mobalytics.gg/wow-forever|Mobalytics"]
-        .map(function (s) { var p = s.split("|"); return "<li>" + ext(p[0], p[1]) + "</li>"; }).join("") +
-      "</ul></div></div>" +
+      "<div><h4>Site</h4><ul>" + NAV_MORE.map(function (n) { return '<li><a href="' + n[0] + '">' + n[1] + "</a></li>"; }).join("") + "</ul></div></div>" +
       '<div class="legal">World of Warcraft, Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. ' +
-      esc(C.siteName) + ' is a fan site and is not affiliated with, endorsed or sponsored by Blizzard Entertainment. ' +
-      'Summaries are our own words; every item links to its original source. Some reference text is adapted from <a href="https://warcraft.wiki.gg/wiki/World_of_Warcraft:_Forever" target="_blank" rel="noopener">Warcraft Wiki</a> under CC BY-SA 4.0. ' +
+      esc(C.siteName) + ' is a fan site and is not affiliated with, endorsed or sponsored by Blizzard Entertainment. Game data provided by Blizzard Entertainment. ' +
       '<a href="about.html#legal">Credits &amp; legal</a> · Last updated ' + esc(C.lastUpdated || "") + "</div></div></footer>";
   }
 
@@ -193,197 +157,8 @@
     });
   }
 
-  /* ---------- shared widgets ---------- */
-  function newsItemHTML(n) {
-    var d = parseDay(n.date);
-    return '<article class="panel news-item">' +
-      '<div class="news-date" aria-hidden="true"><b>' + d.getUTCDate() + "</b><span>" + MONTHS[d.getUTCMonth()] + "</span></div>" +
-      "<div><h3>" + '<span class="tag tag-' + esc(n.tag) + '">' + esc(n.tag) + "</span>" +
-      (Date.now() - d.getTime() < 3 * 86400000 ? '<span class="tag tag-fresh">new</span>' : "") + ext(n.url, esc(n.title)) + "</h3>" +
-      "<p>" + esc(n.summary) + "</p>" +
-      '<div class="source">Source: ' + esc(n.source) + ' · <time datetime="' + esc(n.date) + '">' + MONTHS[d.getUTCMonth()] + " " + d.getUTCDate() + ", " + d.getUTCFullYear() + "</time></div></div></article>";
-  }
-
-  function nextMilestone() {
-    var now = Date.now();
-    var list = (D.roadmap || []).filter(function (r) { return r.countdown; });
-    for (var i = 0; i < list.length; i++) {
-      var t = (list[i].date.length > 10 ? new Date(list[i].date) : parseDay(list[i].date)).getTime();
-      if (t > now) return { item: list[i], t: t };
-    }
-    return null;
-  }
-
-  function startCountdown(el) {
-    var m = nextMilestone();
-    if (!el) return;
-    if (!m) { el.innerHTML = '<p class="muted">All announced milestones are live — check the roadmap for what\'s next.</p>'; return; }
-    // role="timer" is not announced every second (live region off by default), so screen readers aren't spammed
-    var days = Math.ceil((m.t - Date.now()) / 86400000);
-    el.innerHTML = '<div class="eyebrow-sm">Next milestone</div><h3 style="margin-bottom:0">' + esc(m.item.title) + '</h3><div class="faint">' + esc(m.item.when) + "</div>" +
-      '<p class="sr-only">About ' + days + " days to go.</p>" +
-      '<div class="countdown" role="timer" aria-hidden="true"><div><b data-u="d">0</b><span>days</span></div><div><b data-u="h">0</b><span>hours</span></div><div><b data-u="m">0</b><span>min</span></div><div><b data-u="s">0</b><span>sec</span></div></div>' +
-      '<ul class="gems">' + m.item.items.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul>" +
-      '<p class="faint">Counting to the start of the day (UTC). Exact unlock time not yet announced — usually tied to weekly reset in your region.</p>' +
-      (page !== "raids" && m.item.title === "Raids unlock" ? '<a class="btn btn-sm" href="raids.html">Raid prep hub</a>' : "");
-    function tick() {
-      var diff = Math.max(0, m.t - Date.now());
-      var s = Math.floor(diff / 1000);
-      var parts = { d: Math.floor(s / 86400), h: Math.floor(s % 86400 / 3600), m: Math.floor(s % 3600 / 60), s: s % 60 };
-      Object.keys(parts).forEach(function (k) { var b = el.querySelector('[data-u="' + k + '"]'); if (b) b.textContent = parts[k]; });
-    }
-    tick(); setInterval(tick, 1000);
-  }
-
-  // filter buttons: a labelled group of toggle buttons (aria-pressed)
-  function chips(container, values, onPick, allLabel) {
-    var all = [allLabel || "All"].concat(values);
-    container.setAttribute("role", "group");
-    if (!container.getAttribute("aria-label")) container.setAttribute("aria-label", "Filter");
-    container.innerHTML = all.map(function (v, i) {
-      return '<button type="button" class="chip' + (i === 0 ? " active" : "") + '" aria-pressed="' + (i === 0) + '" data-v="' + (i === 0 ? "" : esc(v)) + '">' + esc(v) + "</button>";
-    }).join("");
-    container.addEventListener("click", function (e) {
-      var b = e.target.closest(".chip");
-      if (!b) return;
-      $all(".chip", container).forEach(function (c) { c.classList.remove("active"); c.setAttribute("aria-pressed", "false"); });
-      b.classList.add("active");
-      b.setAttribute("aria-pressed", "true");
-      onPick(b.getAttribute("data-v"));
-    });
-  }
-
-  function raceChip(r, faction) {
-    var isNew = r.charAt(0) === "*";
-    var name = isNew ? r.slice(1) : r;
-    var f = faction[name] || "";
-    var fi = f === "Alliance" ? '<span class="fac fac-a" aria-hidden="true">A</span>' : f === "Horde" ? '<span class="fac fac-h" aria-hidden="true">H</span>' : "";
-    return '<li class="race' + (isNew ? " new" : "") + '">' + fi + esc(name) +
-      '<span class="sr-only"> (' + esc(f) + (isNew ? ", new in Forever" : "") + ")</span>" + (isNew ? ' <span aria-hidden="true">★</span>' : "") + "</li>";
-  }
-  function factionMap() {
-    var m = {}; (D.races || []).forEach(function (r) { m[r.name] = r.faction; }); return m;
-  }
-
   /* ---------- pages ---------- */
   var PAGES = {};
-
-  PAGES.home = function () {
-    var f = $("#facts");
-    if (f) f.innerHTML = D.facts.map(function (x) { return '<div class="stat"><b>' + esc(x.value) + "</b><span>" + esc(x.label) + "</span></div>"; }).join("");
-    startCountdown($("#countdown"));
-    var n = $("#latest-news");
-    if (n) n.innerHTML = D.news.slice(0, 5).map(newsItemHTML).join("");
-    var t = $("#tips");
-    if (t) {
-      var tips = D.tips.slice();
-      for (var i = tips.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)); var k = tips[i]; tips[i] = tips[j]; tips[j] = k; }
-      t.innerHTML = tips.slice(0, 5).map(function (x) {
-        return "<li>" + esc(x.text) + ' <span class="source">— ' + ext(x.url, esc(x.source)) + "</span></li>";
-      }).join("");
-    }
-    var z = $("#zones");
-    if (z) z.innerHTML = D.zones.map(function (x) { return "<li><b>" + esc(x.name) + "</b> — " + esc(x.text) + "</li>"; }).join("");
-  };
-
-  PAGES.news = function () {
-    var list = $("#news-list"), current = "";
-    var tags = []; D.news.forEach(function (n) { if (tags.indexOf(n.tag) < 0) tags.push(n.tag); });
-    function draw() {
-      var items = D.news.filter(function (n) { return !current || n.tag === current; });
-      list.innerHTML = items.length ? items.map(newsItemHTML).join("") : '<div class="empty">Nothing here yet.</div>';
-      if (current) announce(items.length + " " + current + " stories shown");
-    }
-    chips($("#news-filters"), tags, function (v) { current = v; draw(); });
-    draw();
-  };
-
-  PAGES.guides = function () {
-    var out = $("#guide-list"), q = $("#guide-search"), cat = "";
-    function draw() {
-      var term = (q.value || "").toLowerCase().trim();
-      var html = "", total = 0;
-      D.guideCategories.forEach(function (c) {
-        if (cat && c !== cat) return;
-        var items = D.guides.filter(function (g) {
-          return g.cat === c && (!term || (g.title + " " + g.desc + " " + g.site).toLowerCase().indexOf(term) >= 0);
-        });
-        if (!items.length) return;
-        total += items.length;
-        html += '<section class="section" style="padding-top:18px"><h2>' + esc(c) + '</h2><ul class="grid grid-3 card-list">' +
-          items.map(function (g) {
-            return '<li><a class="panel link-card" href="' + esc(g.url) + '" target="_blank" rel="noopener nofollow">' +
-              '<span class="site">' + esc(g.site) + "</span><h3>" + esc(g.title) + "</h3><p>" + esc(g.desc) + '</p><span class="go">Open guide <span aria-hidden="true">&#8599;</span><span class="sr-only">(opens in a new tab)</span></span></a></li>';
-          }).join("") + "</ul></section>";
-      });
-      out.innerHTML = html || '<div class="empty">No guides match that search.</div>';
-      return total;
-    }
-    chips($("#guide-filters"), D.guideCategories, function (v) { cat = v; announce(draw() + " guides shown"); });
-    var t;
-    q.addEventListener("input", function () { var n = draw(); clearTimeout(t); t = setTimeout(function () { announce(n + " guides match"); }, 500); });
-    draw();
-  };
-
-  PAGES.classes = function () {
-    var fm = factionMap();
-    var cards = $("#class-cards");
-    cards.innerHTML = D.classes.map(function (c) {
-      return '<article class="panel class-card" id="' + c.id + '" style="--cc: var(--c-' + c.id + ')">' +
-        '<h3><span class="class-icon" aria-hidden="true">' + c.name.charAt(0) + "</span>" + esc(c.name) + "</h3>" +
-        '<p class="sr-only">Roles:</p><ul class="roles">' + c.roles.map(function (r) { return '<li class="role">' + esc(r) + "</li>"; }).join("") + "</ul>" +
-        '<div class="specs"><span class="sr-only">Talent trees: </span>' + esc(c.specs) + "</div><p>" + esc(c.blurb) + "</p>" +
-        '<h4 class="mini-head">Playable races</h4><ul class="races">' + c.races.map(function (r) { return raceChip(r, fm); }).join("") + "</ul>" +
-        (c.changes ? '<h4 class="mini-head">Worth knowing in Forever</h4><ul class="gems small">' + c.changes.map(function (x) { return "<li>" + linkSpells(x) + "</li>"; }).join("") + "</ul>" +
-          '<div class="source">Source: ' + ext("https://warcraft.wiki.gg/wiki/" + c.name + "_abilities_(Forever)", c.name + " abilities (Forever) — Warcraft Wiki") + "</div>" : "") +
-        "</article>";
-    }).join("");
-
-    // matrix
-    var races = D.races.map(function (r) { return r.name; });
-    var head = '<tr><th scope="col">Class</th>' + races.map(function (r) { return '<th scope="col">' + esc(r.replace("Skyborne ", "Skyborne<br>")).replace("&lt;br&gt;", "<br>") + "</th>"; }).join("") + "</tr>";
-    var body = D.classes.map(function (c) {
-      return '<tr><th scope="row" style="color:var(--c-' + c.id + ')">' + esc(c.name) + "</th>" + races.map(function (r) {
-        if (c.races.indexOf("*" + r) >= 0) return '<td class="newc"><span class="sr-only">Yes, new in Forever</span></td>';
-        if (c.races.indexOf(r) >= 0) return '<td class="yes"><span class="sr-only">Yes</span></td>';
-        return '<td class="no"><span class="sr-only">No</span></td>';
-      }).join("") + "</tr>";
-    }).join("");
-    $("#matrix").innerHTML = '<caption class="sr-only">Which races can play each class. Rows are classes, columns are races.</caption><thead>' + head + "</thead><tbody>" + body + "</tbody>";
-
-    $("#race-cards").innerHTML = D.races.map(function (r) {
-      return '<article class="panel"><h3>' + esc(r.name) + (r.isNew ? ' <span class="tag tag-new">new</span>' : "") + '</h3><div class="faint" style="margin-bottom:8px">' + esc(r.faction) + '</div><ul class="gems">' +
-        r.racials.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul></article>";
-    }).join("");
-  };
-
-  /* ---------- shared: bosses, raids, Wowhead links ---------- */
-  function bossList(b) {
-    if (!b || !b.length) return '<p class="faint">Boss list not documented yet.</p>';
-    return '<ol class="bosses">' + b.map(function (x, i) {
-      var last = i === b.length - 1 && b.length > 1;
-      return "<li" + (last ? ' class="final"' : "") + ">" + esc(x) + (last ? '<span class="sr-only"> (final boss)</span>' : "") + "</li>";
-    }).join("") + "</ol>";
-  }
-
-  // Escape text, then turn known ability names into Wowhead (Forever) links
-  var spellRe = null;
-  function linkSpells(text) {
-    var safe = esc(text), map = D.spells || {};
-    if (!spellRe) {
-      var names = Object.keys(map).sort(function (a, b) { return b.length - a.length; })
-        .map(function (n) { return esc(n).replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); });
-      if (!names.length) return safe;
-      spellRe = new RegExp("(" + names.join("|") + ")", "g");
-    }
-    return safe.replace(spellRe, function (m) {
-      var name = m.replace(/&#39;/g, "'").replace(/&amp;/g, "&");
-      var id = map[name];
-      var url = id ? "https://www.wowhead.com/forever/spell=" + id : "https://www.wowhead.com/forever/search?q=" + encodeURIComponent(name);
-      return '<a class="wh' + (id ? "" : " wh-search") + '" href="' + url + '" target="_blank" rel="noopener nofollow" data-wh-rename-link="false"' + (id ? "" : ' data-wh-icon-added="true"') + ">" + m +
-        '<span class="sr-only"> (Wowhead, opens in a new tab)</span></a>';
-    });
-  }
 
   // Load Wowhead's tooltip script only on pages that have Wowhead database links
   // Wowhead renames links only when asked per link (data-wh-rename-link="true"), so our own text stays.
@@ -405,364 +180,6 @@
     s.async = true;
     document.head.appendChild(s);
   }
-
-  PAGES.dungeons = function () {
-    var lvl = $("#level"), range = $("#level-range"), q = $("#dungeon-search"), onlyNew = $("#only-new"), body = $("#dungeon-rows"), summary = $("#dungeon-summary");
-    var saved = store("codex-level");
-    if (saved) { lvl.value = saved; range.value = saved; }
-    function status(d, L) {
-      if (L >= d.min && L <= d.max) return ["Right for you", "lvl-ok"];
-      if (L < d.min && d.min - L <= 3) return ["Soon (" + (d.min - L) + " lvl)", "lvl-hard"];
-      if (L < d.min) return ["Too high", "lvl-hard"];
-      return ["Below your level", "lvl-easy"];
-    }
-    function draw() {
-      var L = Math.max(1, Math.min(60, parseInt(lvl.value, 10) || 1));
-      store("codex-level", L);
-      var term = (q.value || "").toLowerCase().trim();
-      var rows = D.dungeons.filter(function (d) {
-        return (!onlyNew.checked || d.isNew) && (!term || (d.name + " " + d.zone).toLowerCase().indexOf(term) >= 0);
-      });
-      var fit = rows.filter(function (d) { return L >= d.min && L <= d.max; });
-      var plain = fit.length
-        ? "At level " + L + " you can run " + fit.length + " dungeon" + (fit.length > 1 ? "s" : "") + ": " + fit.map(function (d) { return d.name; }).join(", ") + "."
-        : "At level " + L + " nothing in the list fits yet" + (L < 13 ? ". Dungeons start at level 13." : ".");
-      summary.innerHTML = fit.length
-        ? "At level <b>" + L + "</b> you can run <b>" + fit.length + "</b> dungeon" + (fit.length > 1 ? "s" : "") + ": " + fit.map(function (d) { return esc(d.name) + (d.isNew ? ' <span aria-hidden="true">★</span>' : ""); }).join(", ") + "."
-        : "At level <b>" + L + "</b> nothing in the list fits yet" + (L < 13 ? " — dungeons start at level 13. Keep questing!" : ".");
-      body.innerHTML = rows.map(function (d) {
-        var st = status(d, L);
-        var left = (d.min - 1) / 60 * 100, w = (d.max - d.min + 1) / 60 * 100;
-        return '<tr class="' + (st[1] === "lvl-ok" ? "fit" : "") + '"><th scope="row"><b>' + esc(d.name) + "</b>" + (d.isNew ? ' <span class="tag tag-new">new</span>' : "") + "</th><td>" + esc(d.zone) + "</td><td>" + d.min + "–" + d.max +
-          '</td><td class="col-range" aria-hidden="true"><div class="lvlbar"><i style="left:' + left + "%;width:" + w + '%"></i></div></td><td class="' + st[1] + '"><span class="dot" aria-hidden="true"></span>' + st[0] + "</td></tr>";
-      }).join("") || '<tr><td colspan="5" class="empty">No dungeons match.</td></tr>';
-      return plain;
-    }
-    // announce the result once the user pauses, not on every slider step
-    var at;
-    function redraw() { var msg = draw(); clearTimeout(at); at = setTimeout(function () { announce(msg); }, 700); }
-    lvl.addEventListener("input", function () { range.value = lvl.value; redraw(); });
-    range.addEventListener("input", function () { lvl.value = range.value; redraw(); });
-    q.addEventListener("input", redraw);
-    onlyNew.addEventListener("change", redraw);
-    draw();
-
-    var spot = $("#spotlight-cards");
-    if (spot) spot.innerHTML = D.newDungeons.map(function (d) {
-      return '<article class="panel"><h3>' + esc(d.name) + ' <span class="tag tag-new">new</span></h3>' +
-        '<div class="faint">' + esc(d.where) + " · Levels " + esc(d.levels) + "</div>" +
-        '<p style="margin:8px 0">' + esc(d.about) + "</p>" +
-        '<h4 class="mini-head">Bosses</h4>' + bossList(d.bosses) +
-        '<div class="source">Source: ' + ext(d.url, "Warcraft Wiki") + "</div></article>";
-    }).join("");
-  };
-
-  PAGES.systems = function () {
-    $("#systems-toc").innerHTML = D.systems.map(function (s) {
-      return '<a class="chip" href="#' + s.id + '">' + esc(s.title.split(":")[0]) + "</a>";
-    }).join("");
-    // points contain trusted inline markup (<b>, <i>) written in data.js
-    $("#systems-list").innerHTML = D.systems.map(function (s) {
-      return '<section class="panel system" id="' + s.id + '"><h2><span class="sys-icon" aria-hidden="true">' + s.icon + "</span>" + esc(s.title) + '</h2><ul class="gems">' +
-        s.points.map(function (p) { return "<li>" + p + "</li>"; }).join("") + '</ul><div class="source">Sources: ' +
-        s.sources.map(function (x) { return ext(x[1], esc(x[0])); }).join(" · ") + "</div></section>";
-    }).join("");
-  };
-
-  PAGES.faq = function () {
-    $("#faq-list").innerHTML = D.faq.map(function (f, i) {
-      return '<details class="panel faq"' + (i === 0 ? " open" : "") + "><summary>" + esc(f.q) + "</summary><p>" + esc(f.a) + '</p><a class="more" href="' + esc(f.src) + '">More on this &rarr;</a></details>';
-    }).join("");
-    $("#glossary").innerHTML = D.glossary.map(function (g) {
-      return "<div><dt>" + esc(g[0]) + "</dt><dd>" + esc(g[1]) + "</dd></div>";
-    }).join("");
-    // FAQ structured data for search engines
-    var ld = document.createElement("script");
-    ld.type = "application/ld+json";
-    ld.textContent = JSON.stringify({
-      "@context": "https://schema.org", "@type": "FAQPage",
-      mainEntity: D.faq.map(function (f) { return { "@type": "Question", name: f.q, acceptedAnswer: { "@type": "Answer", text: f.a } }; })
-    });
-    document.head.appendChild(ld);
-  };
-
-  PAGES.roadmap = function () {
-    var now = Date.now(), nextFound = false;
-    $("#timeline").innerHTML = D.roadmap.map(function (r) {
-      var t = (r.date.length > 10 ? new Date(r.date) : parseDay(r.date)).getTime();
-      var cls = "upcoming";
-      if (t <= now) cls = "done";
-      else if (!nextFound) { cls = "next"; nextFound = true; }
-      return '<li class="tl-item ' + cls + '"' + (cls === "next" ? ' aria-current="step"' : "") + '><div class="tl-when">' + esc(r.when) + (cls === "done" ? ' <span class="tag tag-official">done</span>' : cls === "next" ? ' <span class="tag tag-hotfix">next up</span>' : "") + "</div><h3>" + esc(r.title) + "</h3><ul>" +
-        r.items.map(function (x) { return "<li>" + esc(x) + "</li>"; }).join("") + "</ul></li>";
-    }).join("");
-    startCountdown($("#countdown"));
-  };
-
-  PAGES.checklist = function () {
-    var KEY = "codex-checklist";
-    var state = store(KEY) || {};
-    var root = $("#checklist"), bar = $("#progress-bar"), label = $("#progress-label");
-    root.innerHTML = D.checklist.map(function (g, gi) {
-      return '<fieldset class="panel check-group"><legend class="sr-only">' + esc(g.group) + '</legend><h3 aria-hidden="true">' + esc(g.group) + ' <small data-count="' + gi + '"></small></h3>' +
-        g.items.map(function (it) {
-          var hid = it.hint ? ' aria-describedby="hint-' + esc(it.id) + '"' : "";
-          return '<label class="check"><input type="checkbox" data-id="' + esc(it.id) + '"' + hid + "><span>" + esc(it.text) + (it.hint ? '<small id="hint-' + esc(it.id) + '">' + esc(it.hint) + "</small>" : "") + "</span></label>";
-        }).join("") + "</fieldset>";
-    }).join("");
-    var track = bar.parentNode;
-    track.setAttribute("role", "progressbar");
-    track.setAttribute("aria-valuemin", "0");
-    track.setAttribute("aria-valuemax", "100");
-    track.setAttribute("aria-labelledby", "progress-label");
-    function sync() {
-      var total = 0, done = 0;
-      D.checklist.forEach(function (g, gi) {
-        var gd = 0;
-        g.items.forEach(function (it) { total++; if (state[it.id]) { done++; gd++; } });
-        var c = root.querySelector('[data-count="' + gi + '"]'); if (c) c.textContent = gd + " / " + g.items.length;
-      });
-      $all("input[data-id]", root).forEach(function (i) {
-        i.checked = !!state[i.getAttribute("data-id")];
-        i.closest(".check").classList.toggle("done", i.checked);
-      });
-      var pct = total ? Math.round(done / total * 100) : 0;
-      bar.style.width = pct + "%";
-      track.setAttribute("aria-valuenow", pct);
-      label.textContent = done + " of " + total + " complete (" + pct + "%)";
-      return label.textContent;
-    }
-    root.addEventListener("change", function (e) {
-      var id = e.target.getAttribute("data-id"); if (!id) return;
-      if (e.target.checked) state[id] = true; else delete state[id];
-      store(KEY, state); announce(sync());
-    });
-    $("#reset-checklist").addEventListener("click", function () {
-      if (!confirm("Clear all checked items?")) return;
-      state = {}; store(KEY, state); announce("Checklist cleared. " + sync());
-    });
-    sync();
-  };
-
-  /* ---------- reusable saved checklist (one localStorage key per list) ---------- */
-  function savedChecklist(root, key, items, onChange) {
-    var state = store(key) || {};
-    root.innerHTML = items.map(function (it) {
-      var id = key + "-" + it.id;
-      return '<li><label class="check"><input type="checkbox" data-id="' + esc(it.id) + '"' + (it.hint ? ' aria-describedby="' + id + '-h"' : "") + "><span>" +
-        it.html + (it.hint ? '<small id="' + id + '-h">' + esc(it.hint) + "</small>" : "") + "</span></label></li>";
-    }).join("");
-    function sync() {
-      var done = 0;
-      $all("input[data-id]", root).forEach(function (i) {
-        i.checked = !!state[i.getAttribute("data-id")];
-        if (i.checked) done++;
-        i.closest(".check").classList.toggle("done", i.checked);
-      });
-      // highlight the first unfinished step
-      $all("li", root).forEach(function (li) { li.classList.remove("next-step"); });
-      var first = root.querySelector("input:not(:checked)");
-      if (first) first.closest("li").classList.add("next-step");
-      if (onChange) onChange(done, items.length);
-      return done;
-    }
-    // property (not addEventListener) so re-rendering the same list replaces the old handler
-    root.onchange = function (e) {
-      var id = e.target.getAttribute("data-id"); if (!id) return;
-      if (e.target.checked) state[id] = true; else delete state[id];
-      store(key, state);
-      var d = sync();
-      announce(d + " of " + items.length + " done");
-    };
-    sync();
-    return { reset: function () { state = {}; store(key, state); sync(); } };
-  }
-
-  function progressHTML(id) {
-    return '<div class="mini-progress"><div class="progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-labelledby="' + id + '-label"><i id="' + id + '-bar"></i></div><span id="' + id + '-label" class="faint"></span></div>';
-  }
-  function setProgress(id, done, total, noun) {
-    var pct = total ? Math.round(done / total * 100) : 0;
-    var bar = $("#" + id + "-bar"); if (bar) { bar.style.width = pct + "%"; bar.parentNode.setAttribute("aria-valuenow", pct); }
-    var lab = $("#" + id + "-label"); if (lab) lab.textContent = done + " of " + total + " " + (noun || "done");
-  }
-
-  PAGES.raids = function () {
-    startCountdown($("#countdown"));
-
-    $("#raid-cards").innerHTML = D.raids.map(function (r) {
-      return '<article class="panel raid-card" id="raid-' + r.name.toLowerCase().replace(/[^a-z]+/g, "-") + '">' +
-        "<h3>" + esc(r.name) + (r.isNew ? ' <span class="tag tag-new">new</span>' : "") + "</h3>" +
-        '<div class="raid-meta"><span><b>' + r.size + "</b> players</span><span>Opens <b>" + esc(r.opens) + "</b></span><span><b>" + r.bosses.length + "</b> boss" + (r.bosses.length > 1 ? "es" : "") + "</span></div>" +
-        '<p class="muted">' + esc(r.note) + "</p>" +
-        '<h4 class="mini-head">Boss order</h4>' + bossList(r.bosses) +
-        '<div class="loot-tba"><b>Loot:</b> Blizzard hasn\'t revealed loot tables yet. We\'ll add them when the raids open.</div>' +
-        '<div class="source">Source: ' + ext(r.url, "Warcraft Wiki") + "</div></article>";
-    }).join("");
-
-    // raid-readiness checklist
-    $("#prep-progress").innerHTML = progressHTML("prep");
-    savedChecklist($("#prep-list"), "codex-raidprep",
-      D.raidPrep.map(function (p) { return { id: p.id, html: esc(p.text), hint: p.hint }; }),
-      function (d, t) { setProgress("prep", d, t, "ready"); });
-
-    // attunement tracker with faction switch
-    var A = D.attunement, faction = store("codex-faction") || "alliance";
-    $("#attune-intro").textContent = A.intro;
-    $("#attune-sources").innerHTML = "Cross-checked against " + A.sources.map(function (s) { return ext(s[1], esc(s[0])); }).join(", ") + ".";
-    $("#attune-progress").innerHTML = progressHTML("att");
-    function drawFaction() {
-      var f = A[faction];
-      $all("#faction-switch button").forEach(function (b) {
-        var on = b.getAttribute("data-f") === faction;
-        b.setAttribute("aria-pressed", on); b.classList.toggle("active", on);
-      });
-      $("#attune-start").textContent = f.start;
-      savedChecklist($("#attune-list"), "codex-attune-" + faction,
-        f.steps.map(function (s) {
-          return { id: s[0], html: "<b>" + esc(s[1]) + '</b><span class="giver">' + esc(s[2]) + "</span>" + esc(s[3]) };
-        }),
-        function (d, t) { setProgress("att", d, t, "steps"); });
-      $("#attune-notes").innerHTML = f.notes.map(function (n) { return "<li>" + esc(n) + "</li>"; }).join("");
-    }
-    $("#faction-switch").addEventListener("click", function (e) {
-      var b = e.target.closest("button"); if (!b) return;
-      faction = b.getAttribute("data-f"); store("codex-faction", faction);
-      drawFaction();
-      announce((faction === "alliance" ? "Alliance" : "Horde") + " attunement shown");
-    });
-    drawFaction();
-  };
-
-  /* ---------- weekly reset + lockouts ---------- */
-  function resetTimes(prefs) {
-    // returns { next, last } timestamps (ms) for the chosen region or custom schedule
-    var now = new Date(), next;
-    if (prefs.region === "custom") {
-      var hm = (prefs.time || "09:00").split(":");
-      next = new Date(now.getFullYear(), now.getMonth(), now.getDate(), +hm[0], +hm[1], 0, 0);
-      var add = (prefs.day - next.getDay() + 7) % 7;
-      next.setDate(next.getDate() + add);
-      if (next <= now) next.setDate(next.getDate() + 7);
-    } else {
-      var r = D.resetRegions.filter(function (x) { return x.id === prefs.region; })[0] || D.resetRegions[0];
-      next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), r.hourUTC, 0, 0));
-      next.setUTCDate(next.getUTCDate() + (r.day - next.getUTCDay() + 7) % 7);
-      if (next <= now) next.setUTCDate(next.getUTCDate() + 7);
-    }
-    return { next: next.getTime(), last: next.getTime() - 7 * 86400000 };
-  }
-
-  PAGES.resets = function () {
-    var PK = "codex-reset-prefs", CK = "codex-lockouts";
-    // first visit: guess the region from the browser's time zone
-    var tz = "";
-    try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone || ""; } catch (e) { /* ignore */ }
-    var guess = /^(America|Pacific|Australia)\//.test(tz) ? "us" : "eu";
-    var prefs = store(PK) || { region: guess, day: 3, time: "05:00" };
-    var data = store(CK) || { chars: [], done: {}, week: 0 };
-    var regionSel = $("#reset-region"), customBox = $("#custom-reset"), daySel = $("#reset-day"), timeIn = $("#reset-time");
-
-    regionSel.innerHTML = D.resetRegions.map(function (r) { return '<option value="' + r.id + '">' + esc(r.name) + " — " + esc(r.label) + "</option>"; }).join("") +
-      '<option value="custom">Custom day and time…</option>';
-    regionSel.value = prefs.region;
-    daySel.value = String(prefs.day);
-    timeIn.value = prefs.time;
-
-    var timer = null;
-    function weekStart() { return resetTimes(prefs).last; }
-    function clearIfNewWeek() {
-      var ws = weekStart();
-      if (data.week && data.week < ws) {
-        data.done = {};
-        announce("New week: all lockouts have been cleared.");
-        $("#week-note").textContent = "A new week started — your lockouts were cleared automatically.";
-      }
-      data.week = ws;
-      store(CK, data);
-    }
-    function drawClock() {
-      var t = resetTimes(prefs);
-      customBox.hidden = prefs.region !== "custom";
-      var when = new Date(t.next);
-      $("#reset-when").textContent = when.toLocaleString(undefined, { weekday: "long", hour: "2-digit", minute: "2-digit", day: "numeric", month: "short" });
-      $("#reset-sr").textContent = "Next reset " + $("#reset-when").textContent + ".";
-      clearInterval(timer);
-      function tick() {
-        var diff = Math.max(0, t.next - Date.now()), s = Math.floor(diff / 1000);
-        var parts = { d: Math.floor(s / 86400), h: Math.floor(s % 86400 / 3600), m: Math.floor(s % 3600 / 60), s: s % 60 };
-        Object.keys(parts).forEach(function (k) { var b = $('#reset-countdown [data-u="' + k + '"]'); if (b) b.textContent = parts[k]; });
-        if (diff <= 0) { clearIfNewWeek(); drawBoard(); drawClock(); }
-      }
-      tick(); timer = setInterval(tick, 1000);
-    }
-    function savePrefs() { store(PK, prefs); clearIfNewWeek(); drawClock(); drawBoard(); }
-    regionSel.addEventListener("change", function () { prefs.region = regionSel.value; savePrefs(); });
-    daySel.addEventListener("change", function () { prefs.day = +daySel.value; savePrefs(); });
-    timeIn.addEventListener("change", function () { prefs.time = timeIn.value || "09:00"; savePrefs(); });
-
-    // character board
-    var classOpts = D.classes.map(function (c) { return '<option value="' + c.id + '">' + esc(c.name) + "</option>"; }).join("");
-    $("#char-class").innerHTML = classOpts;
-    function drawBoard() {
-      var tasks = D.lockoutTasks, wrap = $("#lockout-board");
-      if (!data.chars.length) {
-        wrap.innerHTML = '<div class="empty">Add your characters above to start tracking this week\'s lockouts.</div>';
-        return;
-      }
-      var total = data.chars.length * tasks.length, done = 0;
-      var rows = data.chars.map(function (ch) {
-        var cls = D.classes.filter(function (c) { return c.id === ch.cls; })[0] || { name: "" };
-        return '<tr><th scope="row"><span class="cdot" style="background:var(--c-' + esc(ch.cls) + ')" aria-hidden="true"></span>' + esc(ch.name) +
-          ' <span class="faint">' + esc(cls.name) + "</span></th>" +
-          tasks.map(function (t) {
-            var on = !!(data.done[ch.id] && data.done[ch.id][t.id]); if (on) done++;
-            return '<td class="lock-cell"><label class="lock' + (on ? " on" : "") + '"><input type="checkbox" data-c="' + esc(ch.id) + '" data-t="' + t.id + '"' + (on ? " checked" : "") + '><span aria-hidden="true">' + (on ? "Done" : "—") + '</span><span class="sr-only">' + esc(t.name) + " done for " + esc(ch.name) + "</span></label></td>";
-          }).join("") +
-          '<td><button type="button" class="icon-btn remove-char" data-c="' + esc(ch.id) + '" title="Remove ' + esc(ch.name) + '"><span aria-hidden="true">×</span><span class="sr-only">Remove ' + esc(ch.name) + "</span></button></td></tr>";
-      }).join("");
-      wrap.innerHTML = '<div class="table-wrap"><table class="lockouts"><caption class="sr-only">Lockouts this week by character</caption><thead><tr><th scope="col">Character</th>' +
-        tasks.map(function (t) { return '<th scope="col"><abbr title="' + esc(t.name) + '">' + esc(t.short) + "</abbr></th>"; }).join("") +
-        '<th scope="col"><span class="sr-only">Remove</span></th></tr></thead><tbody>' + rows + "</tbody></table></div>" +
-        '<p class="faint">' + done + " of " + total + " lockouts used this week.</p>";
-    }
-    $("#lockout-board").addEventListener("change", function (e) {
-      var c = e.target.getAttribute("data-c"), t = e.target.getAttribute("data-t"); if (!c || !t) return;
-      data.done[c] = data.done[c] || {};
-      if (e.target.checked) data.done[c][t] = true; else delete data.done[c][t];
-      store(CK, data); drawBoard();
-      var cell = $('#lockout-board input[data-c="' + c + '"][data-t="' + t + '"]'); if (cell) cell.focus();
-    });
-    $("#lockout-board").addEventListener("click", function (e) {
-      var b = e.target.closest(".remove-char"); if (!b) return;
-      var id = b.getAttribute("data-c");
-      var ch = data.chars.filter(function (x) { return x.id === id; })[0];
-      if (!ch || !confirm("Remove " + ch.name + " from the tracker?")) return;
-      data.chars = data.chars.filter(function (x) { return x.id !== id; });
-      delete data.done[id];
-      store(CK, data); drawBoard(); announce(ch.name + " removed");
-      $("#char-name").focus();
-    });
-    $("#add-char").addEventListener("submit", function (e) {
-      e.preventDefault();
-      var name = $("#char-name").value.trim();
-      if (!name) { $("#char-name").focus(); return; }
-      if (data.chars.length >= 12) { announce("You can track up to 12 characters."); return; }
-      var ch = { id: "c" + Date.now().toString(36), name: name.slice(0, 40), cls: $("#char-class").value };
-      data.chars.push(ch); store(CK, data);
-      $("#char-name").value = "";
-      drawBoard(); announce(ch.name + " added");
-      $("#char-name").focus();
-    });
-    $("#clear-week").addEventListener("click", function () {
-      if (!confirm("Untick every lockout for this week?")) return;
-      data.done = {}; store(CK, data); drawBoard(); announce("All lockouts cleared");
-    });
-
-    clearIfNewWeek();
-    drawClock();
-    drawBoard();
-  };
 
   /* ---------- auction prices ---------- */
   // Money in copper → "1g 40s 5c" with coloured coins (text stays readable without colour).
@@ -1339,7 +756,8 @@
   };
 
   /* ---------- item index (item/index.html): filter the A–Z list as you type ---------- */
-  PAGES.items = function () {
+  // A–Z index search (item index and recipe index share the markup)
+  PAGES.items = PAGES.recipes = function () {
     var box = $("#idx-search");
     if (!box) return; // individual item pages have nothing to set up
     var lists = $all(".item-index ul"), t;
@@ -1565,6 +983,8 @@
   }
 
   /* ---------- character lookup ---------- */
+  // classes with a colour variable (--c-<id>) in style.css
+  var CLASS_IDS = ["druid", "hunter", "mage", "paladin", "priest", "rogue", "shaman", "warlock", "warrior"];
   PAGES.character = function () {
     var form = $("#ch-form"), regionSel = $("#ch-region"), nameIn = $("#ch-name"), out = $("#ch-result");
     var params = new URLSearchParams(location.search);
@@ -1581,7 +1001,7 @@
     };
 
     function render(d) {
-      var c = d.character, cls = (D.classes || []).filter(function (x) { return x.name === c.class; })[0];
+      var c = d.character, cid = String(c.class || "").toLowerCase(), cls = CLASS_IDS.indexOf(cid) >= 0 ? { id: cid } : null;
       var full = esc([c.name, c.surname].filter(Boolean).join(" ") || c.slug);
       var share = location.origin + location.pathname + "?r=" + encodeURIComponent(d.region) + "&n=" + encodeURIComponent(c.slug);
       out.innerHTML =
@@ -1702,90 +1122,6 @@
     });
   }
 
-  /* ---------- site search ---------- */
-  function buildIndex() {
-    var idx = [];
-    function add(type, title, text, url, external) { idx.push({ type: type, title: title, text: text || "", url: url, ext: !!external, hay: (title + " " + (text || "")).toLowerCase() }); }
-    (D.classes || []).forEach(function (c) { add("Class", c.name, c.specs + " " + c.blurb + " " + (c.changes || []).join(" "), "classes.html#" + c.id); });
-    (D.newDungeons || []).forEach(function (d) { add("Dungeon", d.name, d.where + " · levels " + d.levels + ". " + d.bosses.join(", "), "dungeons.html#spotlight"); });
-    (D.dungeons || []).forEach(function (d) { if (!d.isNew) add("Dungeon", d.name, d.zone + " · levels " + d.min + "–" + d.max, "dungeons.html"); });
-    (D.raids || []).forEach(function (r) { add("Raid", r.name, r.size + " players · " + r.note + " " + r.bosses.join(", "), "raids.html"); });
-    add("Tool", "Onyxia attunement tracker", "Drakefire Amulet quest chain, Alliance and Horde, step by step", "raids.html#attunement");
-    add("Tool", "Weekly reset & lockout tracker", "Countdown to weekly reset and per-character raid lockouts", "resets.html");
-    if (D.attunement) ["alliance", "horde"].forEach(function (f) {
-      D.attunement[f].steps.forEach(function (s) { add("Quest", s[1], (f === "alliance" ? "Alliance" : "Horde") + " Onyxia attunement · " + s[3], "raids.html#attunement"); });
-    });
-    (D.systems || []).forEach(function (s) { add("Guide", s.title, s.points.join(" ").replace(/<[^>]+>/g, ""), "systems.html#" + s.id); });
-    (D.faq || []).forEach(function (f) { add("FAQ", f.q, f.a, "faq.html"); });
-    (D.glossary || []).forEach(function (g) { add("Glossary", g[0], g[1], "faq.html#glossary-section"); });
-    (D.news || []).forEach(function (n) { add("News", n.title, n.summary, n.url, true); });
-    (D.guides || []).forEach(function (g) { add("Link", g.title + " (" + g.site + ")", g.desc, g.url, true); });
-    (D.races || []).forEach(function (r) { add("Race", r.name, r.faction + " · " + r.racials.join(", "), "classes.html#race-section"); });
-    return idx;
-  }
-  function setupSearch() {
-    var btn = $("#open-search");
-    if (!btn || typeof HTMLDialogElement === "undefined") { if (btn) btn.hidden = true; return; }
-    var index = null;
-    var dlg = document.createElement("dialog");
-    dlg.className = "search-dialog";
-    dlg.setAttribute("aria-labelledby", "search-title");
-    dlg.innerHTML =
-      '<form method="dialog" class="search-head" role="search">' +
-      '<h2 id="search-title" class="sr-only">Search Forever Tome</h2>' +
-      ICON.search +
-      '<label for="site-search" class="sr-only">Search classes, dungeons, guides, news and FAQ</label>' +
-      '<input id="site-search" type="search" autocomplete="off" placeholder="Search classes, dungeons, guides, FAQ…" aria-describedby="search-count" aria-controls="search-results">' +
-      '<button class="icon-btn" value="close" aria-label="Close search">Esc</button></form>' +
-      '<p id="search-count" class="search-count" aria-live="polite"></p>' +
-      '<ul id="search-results" class="search-results"></ul>' +
-      '<p class="search-hint">Tip: press <kbd>/</kbd> anywhere to search.</p>';
-    document.body.appendChild(dlg);
-    var input = $("#site-search", dlg), list = $("#search-results", dlg), count = $("#search-count", dlg);
-
-    function render() {
-      var q = input.value.toLowerCase().trim();
-      if (!q) { list.innerHTML = ""; count.textContent = ""; return; }
-      var words = q.split(/\s+/);
-      var hits = index.filter(function (it) { return words.every(function (w) { return it.hay.indexOf(w) >= 0; }); })
-        .sort(function (a, b) { return (b.title.toLowerCase().indexOf(q) === 0) - (a.title.toLowerCase().indexOf(q) === 0); })
-        .slice(0, 12);
-      count.textContent = hits.length ? hits.length + (hits.length === 12 ? "+" : "") + " result" + (hits.length === 1 ? "" : "s") : "No results for “" + input.value + "”";
-      list.innerHTML = hits.map(function (h) {
-        var snippet = h.text.length > 120 ? h.text.slice(0, 117) + "…" : h.text;
-        return '<li><a href="' + esc(h.url) + '"' + (h.ext ? ' target="_blank" rel="noopener nofollow"' : "") + '><span class="r-type">' + esc(h.type) + "</span><b>" + esc(h.title) + "</b><span class=\"r-text\">" + esc(snippet) + "</span>" +
-          (h.ext ? '<span class="sr-only"> (opens in a new tab)</span>' : "") + "</a></li>";
-      }).join("");
-    }
-    function openSearch() {
-      if (!index) index = buildIndex();
-      dlg.showModal();
-      input.focus();
-      input.select();
-    }
-    btn.addEventListener("click", openSearch);
-    input.addEventListener("input", render);
-    // arrow keys move between results
-    dlg.addEventListener("keydown", function (e) {
-      if (e.key !== "ArrowDown" && e.key !== "ArrowUp") return;
-      var links = $all("a", list);
-      if (!links.length) return;
-      var i = links.indexOf(document.activeElement);
-      e.preventDefault();
-      if (e.key === "ArrowDown") (links[i + 1] || links[0]).focus();
-      else if (i <= 0) input.focus();
-      else links[i - 1].focus();
-    });
-    list.addEventListener("click", function (e) { if (e.target.closest("a") && !e.target.closest("a").target) dlg.close(); });
-    dlg.addEventListener("click", function (e) { if (e.target === dlg) dlg.close(); });
-    document.addEventListener("keydown", function (e) {
-      var tag = (e.target.tagName || "").toLowerCase();
-      if ((e.key === "/" && tag !== "input" && tag !== "textarea" && !e.target.isContentEditable) || (e.key === "k" && (e.ctrlKey || e.metaKey))) {
-        if (!dlg.open) { e.preventDefault(); openSearch(); }
-      }
-    });
-  }
-
   /* ---------- back to top ---------- */
   function setupBackToTop() {
     var b = document.createElement("button");
@@ -1804,7 +1140,6 @@
   renderHeader();
   renderFooter();
   setupSettings();
-  setupSearch();
   setupBackToTop();
   if (PAGES[page]) PAGES[page]();
   setupDonateBoxes();

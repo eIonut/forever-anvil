@@ -70,7 +70,6 @@ ${body}
 </main>
 <div id="site-footer"></div>
 <script src="js/config.js"></script>
-<script src="js/data.js"></script>
 <script src="js/pricemath.js"></script>
 <script src="js/site.js"></script>
 </body>
@@ -348,7 +347,7 @@ function main() {
   fs.writeFileSync(path.join(RECIPE_DIR, "index.html"), shell({
     title: "WoW: Forever Recipes — Costs & Profit for Every Profession — Forever Tome",
     desc: `All ${allRecipes.length.toLocaleString("en-US")} WoW: Forever crafting recipes with live material costs and profit on every auction house.`,
-    canonical: SITE + "/recipe/", body: recipeIndex
+    canonical: SITE + "/recipe/", body: recipeIndex, dataPage: "recipes"
   }));
 
   // ---- A–Z index ----

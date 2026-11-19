@@ -3,7 +3,7 @@
    ------------------------------------------------------------------ */
 window.SITE_CONFIG = {
   siteName: "Forever Tome",
-  tagline: "Unofficial WoW: Forever fan hub",
+  tagline: "Unofficial WoW: Forever tools",
 
   // Your donation page (Ko-fi, Buy Me a Coffee, Patreon, PayPal.me ...).
   // Leave empty "" to hide all donate buttons.
@@ -26,5 +26,5 @@ window.SITE_CONFIG = {
   pricesApi: "",
 
   // Date of the last content update (shown in the footer).
-  lastUpdated: "2026-11-18"
+  lastUpdated: "2026-11-19"
 };

@@ -1,6 +1,6 @@
-# Forever Tome — unofficial WoW: Forever fan hub
+# Forever Tome — unofficial WoW: Forever tools
 
-A static website (plain HTML/CSS/JS, no build step) that collects WoW: Forever news, the best guides on the web, and original tools.
+A static website (plain HTML/CSS/JS, no build step) with tools for WoW: Forever: auction prices, vendor flips, crafting profits and planner, a talent calculator and a character lookup.
 
 ## Run it locally
 
@@ -10,7 +10,7 @@ node serve.js
 
 Then open http://localhost:8080.
 
-## Live auction prices (Phase 2, in progress)
+## Live data (Blizzard API)
 
 Needs a Battle.net API client. Copy `.env.example` to `.env` and fill it in; `.env` is never committed.
 
@@ -23,7 +23,7 @@ Needs a Battle.net API client. Copy `.env.example` to `.env` and fill it in; `.e
 | `node pipeline/build-items.js` | Builds one SEO page per item (`item/…html`), the A–Z index and `sitemap.xml` from the job's data |
 | `node tools/optout.js eu "Firstname Lastname"` | Hide a character from the character lookup (stores a fingerprint, not the name) |
 
-With `node serve.js` running and `.env` filled in, the **Prices**, **Craft profits** and **Character lookup** pages (under *Tools*) work on localhost. The local server also answers `/api/character`; once the site is online, a Cloudflare Worker will provide the same endpoint.
+With `node serve.js` running and `.env` filled in, every tool works on localhost. The local server also answers `/api/character`; once the site is online, a Cloudflare Worker will provide the same endpoint.
 
 `out/` holds Blizzard API data and is git-ignored. Blizzard's API terms allow keeping that data for at most **30 days**; the job prunes it automatically each time it runs. Delete `out/` if you stop running it. See [docs/phase2-plan.md](docs/phase2-plan.md) for the full plan.
 
@@ -32,7 +32,7 @@ With `node serve.js` running and `.env` filled in, the **Prices**, **Craft profi
 | File | What it holds |
 |---|---|
 | `js/config.js` | **Your settings**: site name, donate link, AdSense id |
-| `js/data.js` | **All content**: news, tips, guides directory, classes, races, dungeons, roadmap, checklist |
+| `js/pricemath.js`, `js/talentmath.js` | Price, crafting and talent math shared by the pages and the pipeline |
 | `js/site.js` | Header/footer and the code behind each page (rarely needs changes) |
 | `css/style.css` | The WoW-style theme |
 | `*.html` | One file per page |
@@ -40,17 +40,8 @@ With `node serve.js` running and `.env` filled in, the **Prices**, **Craft profi
 ## Accessibility built in
 
 - Display settings (sliders icon in the header): text size, high contrast, underlined links, reduced motion. Each visitor's choice is saved in their browser.
-- Site search: the magnifier icon, or press `/` or `Ctrl+K`.
 - Skip-to-content link, visible keyboard focus, screen-reader labels and announcements, proper table headers, and respect for the system "reduce motion" setting.
-- When you add content, keep link text descriptive (not "click here") and don't use colour alone to show meaning.
-
-## Adding content (keep it legal and ad-safe)
-
-1. **News**: add an entry at the top of `CODEX.news` in `js/data.js`. Write the summary **in your own words** (1–3 sentences) and always fill in `source` + `url`.
-2. **Guides**: add to `CODEX.guides` with a short description and link. Never paste the guide itself.
-3. Update `lastUpdated` in `js/config.js`.
-
-Copying whole guides or articles from other sites breaks copyright and gets AdSense rejected. Link and summarise instead.
+- When you change a page, keep link text descriptive (not "click here") and don't use colour alone to show meaning.
 
 ## Turn on donations
 
@@ -75,4 +66,4 @@ Then buy a domain (about $10/year) and point it at the host.
 
 ## Credits
 
-Data adapted from [Warcraft Wiki](https://warcraft.wiki.gg/wiki/World_of_Warcraft:_Forever) is under CC BY-SA 4.0 and credited on the About page. Not affiliated with Blizzard Entertainment.
+Game data is provided by Blizzard Entertainment through the Blizzard Developer API. Not affiliated with Blizzard Entertainment.
