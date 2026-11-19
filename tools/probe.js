@@ -9,12 +9,11 @@
 // Safety: your secret and access token are never printed or written to the report.
 // The report contains game data only and is git-ignored (API terms: keep data ≤ 30 days).
 
-"use strict";
-const fs = require("fs");
-const path = require("path");
+import fs from "node:fs";
+import path from "node:path";
 
-const ROOT = path.join(__dirname, "..");
-const REPORT = path.join(__dirname, "probe-report.md");
+const ROOT = path.join(import.meta.dirname, "..");
+const REPORT = path.join(import.meta.dirname, "probe-report.md");
 
 /* ---------- config ---------- */
 function loadEnv() {

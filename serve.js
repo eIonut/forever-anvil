@@ -1,11 +1,12 @@
-// Local preview server (no install needed): node serve.js  ->  http://localhost:8080
+// Local preview server for the old (pre-Astro) pages: npm run legacy  ->  http://localhost:8080
 // Serves the site, plus /api/character for the character lookup (uses your .env keys
 // server-side; in production a Cloudflare Worker provides the same endpoint).
-"use strict";
-const http = require("http");
-const fs = require("fs");
-const path = require("path");
-const ROOT = __dirname;
+// Removed in step 5 of docs/astro-migration-plan.md, once every page runs on Astro.
+import http from "node:http";
+import fs from "node:fs";
+import path from "node:path";
+import crypto from "node:crypto";
+const ROOT = import.meta.dirname;
 const PORT = process.env.PORT || 8080;
 const TYPES = { ".html": "text/html; charset=utf-8", ".css": "text/css", ".js": "text/javascript", ".json": "application/json", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".ico": "image/x-icon", ".txt": "text/plain", ".xml": "application/xml" };
 
@@ -32,7 +33,7 @@ const hits = new Map();            // ip → [timestamps] (simple rate limit)
 function optedOut(region, slug) {
   try {
     const list = JSON.parse(fs.readFileSync(path.join(ROOT, "data", "optout.json"), "utf8"));
-    const h = require("crypto").createHash("sha256").update(region + ":" + slug).digest("hex");
+    const h = crypto.createHash("sha256").update(region + ":" + slug).digest("hex");
     return Array.isArray(list) && list.includes(h);
   } catch (e) { return false; }
 }
@@ -48,7 +49,7 @@ async function characterApi(req, res, url) {
   if (!["us", "eu", "kr", "tw"].includes(region)) return send(400, { error: "bad-region" });
   if (!process.env.BNET_CLIENT_ID || !process.env.BNET_CLIENT_SECRET) return send(503, { error: "not-configured" });
 
-  const { lookupCharacter, normalizeName } = require("./pipeline/character");
+  const { lookupCharacter, normalizeName } = await import("./pipeline/character.js");
   const slug = normalizeName(url.searchParams.get("name"));
   if (!slug) return send(400, { error: "bad-name" });
   if (optedOut(region, slug)) return send(404, { error: "not-found" });
@@ -57,7 +58,7 @@ async function characterApi(req, res, url) {
   const hit = cache.get(key);
   if (hit && Date.now() - hit.t < CACHE_MS) return send(200, hit.body);
   try {
-    const { createClient } = require("./pipeline/blizzard");
+    const { createClient } = await import("./pipeline/blizzard.js");
     clients[region] = clients[region] || createClient({ clientId: process.env.BNET_CLIENT_ID, clientSecret: process.env.BNET_CLIENT_SECRET, region });
     const result = await lookupCharacter(clients[region], slug);
     if (result.error) return send(result.error === "not-found" ? 404 : result.error === "bad-name" ? 400 : 502, { error: result.error });

@@ -2,9 +2,8 @@
 //   local (default): JSON files in ./out — for testing on your own computer
 //   kv:              Cloudflare Workers KV — used in production (added in the deploy step)
 // Both expose the same two functions, so run.js doesn't care which one is used.
-"use strict";
-const fs = require("fs");
-const path = require("path");
+import fs from "node:fs";
+import path from "node:path";
 
 function localStore(dir) {
   fs.mkdirSync(dir, { recursive: true });
@@ -28,4 +27,4 @@ function localStore(dir) {
   };
 }
 
-module.exports = { localStore };
+export { localStore };

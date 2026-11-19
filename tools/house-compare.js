@@ -4,12 +4,11 @@
 // Run:  node tools/house-compare.js            (uses REGION from .env)
 // Prints a table only; nothing is saved. Secret/token are never printed.
 
-"use strict";
-const fs = require("fs");
-const path = require("path");
+import fs from "node:fs";
+import path from "node:path";
 
 const env = {};
-for (const line of fs.readFileSync(path.join(__dirname, "..", ".env"), "utf8").split(/\r?\n/)) {
+for (const line of fs.readFileSync(path.join(import.meta.dirname, "..", ".env"), "utf8").split(/\r?\n/)) {
   const m = line.match(/^\s*([A-Z_]+)\s*=\s*(.*?)\s*$/);
   if (m) env[m[1]] = m[2].replace(/^["']|["']$/g, "");
 }

@@ -1,7 +1,6 @@
 // Minimal Blizzard API client for WoW: Forever (Node 18+, no dependencies).
 // Credentials come from environment variables (GitHub Secrets in production, .env locally).
 // The secret and access token are never logged.
-"use strict";
 
 function createClient({ clientId, clientSecret, region }) {
   if (!clientId || !clientSecret) throw new Error("Missing BNET_CLIENT_ID / BNET_CLIENT_SECRET");
@@ -68,4 +67,4 @@ async function pool(items, size, fn) {
   return results;
 }
 
-module.exports = { createClient, pool, sleep };
+export { createClient, pool, sleep };

@@ -2,7 +2,7 @@
 //
 // Every run (hourly in production):
 //   1. download all auction houses (+ commodities) for the region
-//   2. compute per item: min price, market price, quantity, listings  (js/pricemath.js)
+//   2. compute per item: min price, market price, quantity, listings  (src/lib/pricemath.js)
 //   3. save one "latest prices" file per auction-house group
 //   4. look up names + vendor prices for new items (in batches until all are known)
 // Once per UTC day (first run of the day):
@@ -13,16 +13,15 @@
 //
 // Run locally:  node pipeline/run.js            (reads .env, writes to ./out)
 // Options:      --region=us   --max-new-items=3000   --force-daily=true   --force-recipes=true
-"use strict";
-const fs = require("fs");
-const path = require("path");
-const { createClient, pool } = require("./blizzard");
-const { aggregate, updateHistory, pruneHistory, computeMovers, computeFlips, dayNumber, SHARDS } = require("./aggregate");
-const { GROUPS, AUCTION_RULESET } = require("./houses");
-const { localStore } = require("./store");
-const { fetchTalents } = require("./talents");
+import fs from "node:fs";
+import path from "node:path";
+import { createClient, pool } from "./blizzard.js";
+import { aggregate, updateHistory, pruneHistory, computeMovers, computeFlips, dayNumber, SHARDS } from "../src/lib/pricemath.js";
+import { GROUPS, AUCTION_RULESET } from "./houses.js";
+import { localStore } from "./store.js";
+import { fetchTalents } from "./talents.js";
 
-const ROOT = path.join(__dirname, "..");
+const ROOT = path.join(import.meta.dirname, "..");
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, "").split("=")));
 
 function loadDotEnv() {

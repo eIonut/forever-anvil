@@ -3,8 +3,7 @@
 // { day, classes: [{ id, name, icon, specs: [{ id, name, icon,
 //     nodes: [[nodeId, row, col, name, icon, [rank descriptions...], [requiredNodeIds...]]] }] }] }
 // Static game data: refreshed every 25 days by run.js (Blizzard's 30-day limit).
-"use strict";
-const { pool } = require("./blizzard");
+import { pool } from "./blizzard.js";
 
 const pathOf = (href) => href.replace(/^https:\/\/[^/]+/, "").replace(/\?.*/, "");
 
@@ -73,4 +72,4 @@ async function fetchTalents(api, today, log) {
   return { day: today, classes: out };
 }
 
-module.exports = { fetchTalents };
+export { fetchTalents };

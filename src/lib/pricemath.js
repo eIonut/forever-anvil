@@ -1,7 +1,5 @@
-// Forever Tome price math, shared by the price job (Node) and the website (browser).
+// Forever Tome price math, shared by the price job (Node) and the website (browser) as an ES module.
 // Pure functions only (no network, no files). Tests: pipeline/aggregate.test.js
-(function (root) {
-  "use strict";
 
 const DAY_MS = 86400000;
 const HISTORY_DAYS = 30; // Blizzard API terms: keep API data no longer than 30 days
@@ -222,7 +220,4 @@ function planShoppingList(plan, have, price) {
   return { mats, cost: Math.round(cost), complete, sales: net, salesComplete, profit: complete && salesComplete ? net - Math.round(cost) : null };
 }
 
-var api = { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, planShoppingList, itemPath, recipePath, iconUrl, dayNumber, HISTORY_DAYS, SHARDS, DAY_MS };
-  if (typeof module !== "undefined" && module.exports) module.exports = api;
-  else root.PriceMath = api;
-})(typeof window !== "undefined" ? window : globalThis);
+export { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, planShoppingList, itemPath, recipePath, iconUrl, dayNumber, HISTORY_DAYS, SHARDS, DAY_MS };

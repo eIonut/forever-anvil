@@ -1,8 +1,7 @@
-// Run: node --test pipeline/talentmath.test.js
-"use strict";
-const test = require("node:test");
-const assert = require("node:assert/strict");
-const TM = require("../js/talentmath.js");
+// Run: npm test
+import test from "node:test";
+import assert from "node:assert/strict";
+import * as TM from "../src/lib/talentmath.js";
 
 // A tiny tree: row 1 has two 5-rank talents, row 2 a 3-rank talent that needs A maxed, row 3 a 1-rank talent.
 const A = [1, 1, 1, "A", null, ["a", "a", "a", "a", "a"], []];

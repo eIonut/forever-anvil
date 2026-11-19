@@ -19,3 +19,7 @@ node_modules/
 .claude/
 .DS_Store
 Thumbs.db
+
+# Astro build output and cache
+dist/
+.astro/

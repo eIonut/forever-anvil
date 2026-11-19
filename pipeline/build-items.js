@@ -10,13 +10,12 @@
 // The pages contain Blizzard API data, so they are NOT committed to git (see .gitignore).
 // In production they're rebuilt daily before deploying, which also keeps every page
 // within Blizzard's 30-day data limit; items no longer seen simply disappear.
-"use strict";
-const fs = require("fs");
-const path = require("path");
-const PM = require("../js/pricemath.js");
-const { GROUPS } = require("./houses");
+import fs from "node:fs";
+import path from "node:path";
+import * as PM from "../src/lib/pricemath.js";
+import { GROUPS } from "./houses.js";
 
-const ROOT = path.join(__dirname, "..");
+const ROOT = path.join(import.meta.dirname, "..");
 const OUT = path.join(ROOT, "out");
 const ITEM_DIR = path.join(ROOT, "item");
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, "").split("=")));
@@ -70,8 +69,7 @@ ${body}
 </main>
 <div id="site-footer"></div>
 <script src="js/config.js"></script>
-<script src="js/pricemath.js"></script>
-<script src="js/site.js"></script>
+<script type="module" src="js/legacy.js"></script>
 </body>
 </html>
 `;

@@ -1,0 +1,28 @@
+{
+  "name": "forever-tome",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "test": "node --test pipeline/aggregate.test.js pipeline/talentmath.test.js",
+    "prices": "node pipeline/run.js",
+    "pages": "node pipeline/build-items.js",
+    "legacy": "node serve.js"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "3.7.6",
+    "@astrojs/svelte": "9.1.6",
+    "astro": "7.4.13",
+    "svelte": "5.58.0"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "typescript": "6.0.3"
+  },
+  "engines": {
+    "node": ">=22.23.4"
+  }
+}

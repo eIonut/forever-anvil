@@ -1,14 +1,25 @@
 # Forever Tome — unofficial WoW: Forever tools
 
-A static website (plain HTML/CSS/JS, no build step) with tools for WoW: Forever: auction prices, vendor flips, crafting profits and planner, a talent calculator and a character lookup.
+A static website with tools for WoW: Forever: auction prices, vendor flips, crafting profits and planner, a talent calculator and a character lookup.
+
+**The site is moving to Astro** ([plan](docs/astro-migration-plan.md)). Step 1 is done: the project has a `package.json`, Astro is installed, and the shared math is in `src/lib/`. Until the pages move over, the old site is still the real one.
 
 ## Run it locally
 
+Needs Node.js 22.23.4 or newer. Install once:
+
 ```bash
-node serve.js
+npm install
 ```
 
-Then open http://localhost:8080.
+Then:
+
+| Command | What it does |
+|---|---|
+| `npm run legacy` | The current site at http://localhost:8080 (old pages, plus `/api/character`) |
+| `npm run dev` | The new Astro site at http://localhost:4321 (only a placeholder page so far) |
+| `npm run build` | Builds the Astro site into `dist/` |
+| `npm test` | Tests for the price and talent math |
 
 ## Live data (Blizzard API)
 
@@ -18,12 +29,11 @@ Needs a Battle.net API client. Copy `.env.example` to `.env` and fill it in; `.e
 |---|---|
 | `node tools/probe.js` | Checks which WoW: Forever API data exists; writes a local report |
 | `node tools/house-compare.js` | Prices of common items per auction-house group (to identify rulesets) |
-| `node pipeline/run.js` | The price job: downloads auctions, computes prices, saves to `out/` |
-| `node --test pipeline/aggregate.test.js` | Tests for the price math |
-| `node pipeline/build-items.js` | Builds one SEO page per item (`item/…html`), the A–Z index and `sitemap.xml` from the job's data |
+| `npm run prices` | The price job (`pipeline/run.js`): downloads auctions, computes prices, saves to `out/` |
+| `npm run pages` | Builds one SEO page per item and recipe (`item/…html`, `recipe/…html`), the A–Z indexes and `sitemap.xml` from the job's data |
 | `node tools/optout.js eu "Firstname Lastname"` | Hide a character from the character lookup (stores a fingerprint, not the name) |
 
-With `node serve.js` running and `.env` filled in, every tool works on localhost. The local server also answers `/api/character`; once the site is online, a Cloudflare Worker will provide the same endpoint.
+With `npm run legacy` running and `.env` filled in, every tool works on localhost. The local server also answers `/api/character`; once the site is online, a Cloudflare Worker will provide the same endpoint.
 
 `out/` holds Blizzard API data and is git-ignored. Blizzard's API terms allow keeping that data for at most **30 days**; the job prunes it automatically each time it runs. Delete `out/` if you stop running it. See [docs/phase2-plan.md](docs/phase2-plan.md) for the full plan.
 
@@ -32,10 +42,13 @@ With `node serve.js` running and `.env` filled in, every tool works on localhost
 | File | What it holds |
 |---|---|
 | `js/config.js` | **Your settings**: site name, donate link, AdSense id |
-| `js/pricemath.js`, `js/talentmath.js` | Price, crafting and talent math shared by the pages and the pipeline |
-| `js/site.js` | Header/footer and the code behind each page (rarely needs changes) |
+| `src/lib/pricemath.js`, `src/lib/talentmath.js` | Price, crafting and talent math shared by the pages and the pipeline |
+| `js/site.js` | Header/footer and the code behind each page (moving to Astro components) |
+| `js/legacy.js` | Loads the shared math and `site.js` on the old pages (temporary, until the move is done) |
 | `css/style.css` | The WoW-style theme |
-| `*.html` | One file per page |
+| `*.html` | One file per page (old site) |
+| `src/pages/` | Pages of the new Astro site |
+| `pipeline/` | The price job, Blizzard API client and item-page builder |
 
 ## Accessibility built in
 

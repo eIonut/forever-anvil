@@ -1,16 +1,13 @@
-// Run: node --test pipeline/
-"use strict";
-const test = require("node:test");
-const assert = require("node:assert/strict");
-const { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, DAY_MS, SHARDS } = require("./aggregate");
+// Run: npm test
+import test from "node:test";
+import assert from "node:assert/strict";
+import { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, planShoppingList, itemPath, recipePath, DAY_MS, SHARDS } from "../src/lib/pricemath.js";
 
 test("recipe page address", () => {
-  const { recipePath } = require("./aggregate");
   assert.equal(recipePath(2359, "Bolt of Linen Cloth"), "recipe/2359-bolt-of-linen-cloth.html");
 });
 
 test("shopping list: combines materials, subtracts what you have, totals cost and sales", () => {
-  const { planShoppingList } = require("./aggregate");
   const prices = {
     1: { ah: 10, vendor: null, sell: 2 },   // cloth on AH
     2: { ah: null, vendor: 5, sell: 1 },    // thread from vendor
@@ -32,14 +29,12 @@ test("shopping list: combines materials, subtracts what you have, totals cost an
 });
 
 test("shopping list: unknown material price → no profit", () => {
-  const { planShoppingList } = require("./aggregate");
   const res = planShoppingList([{ recipe: { id: 1, q: 1, item: 5, r: [[9, 1]] }, crafts: 1 }], {}, (id) => (id === 5 ? { ah: 50 } : { ah: null, vendor: null }));
   assert.equal(res.complete, false);
   assert.equal(res.profit, null);
 });
 
 test("item page address: id + readable slug", () => {
-  const { itemPath } = require("./aggregate");
   assert.equal(itemPath(2770, "Copper Ore"), "item/2770-copper-ore.html");
   assert.equal(itemPath(1, "Hillman's Leather Gloves"), "item/1-hillmans-leather-gloves.html");
   assert.equal(itemPath(5, "Green Hills of Stranglethorn - Page 1"), "item/5-green-hills-of-stranglethorn-page-1.html");
