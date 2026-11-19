@@ -149,7 +149,7 @@
     <div class="pr-search"><label class="field-label" for="pr-search">Find an item</label>
       <input class="input" type="search" id="pr-search" placeholder="e.g. Copper Ore, Linen, Peacebloom" autocomplete="off" bind:value={term} oninput={() => (shown = 100)} /></div>
   </div>
-  <p class="note">Blizzard's data doesn't name which ruleset each server group is, so we confirm them with in-game price checks. <b>PvP and Normal (Europe) are confirmed.</b> The other groups show a letter until they're checked — play on Roleplay or RP-PvP? Tell us a few prices and we'll label yours.</p>
+  <p class="note">Blizzard's data doesn't name which ruleset each server group is, so we confirm them with in-game price checks. <b>All four Europe rulesets are labelled.</b> Groups in the Americas show a letter until they're checked — play there? Tell us a few prices and we'll label yours.</p>
 
   <Movers {region} {group} houseId={groupData ? (current?.id ?? null) : null} />
 

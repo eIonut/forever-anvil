@@ -32,23 +32,25 @@ function createClient({ clientId, clientSecret, region }) {
     const sep = path.includes("?") ? "&" : "?";
     const url = `${api}${path}${sep}namespace=${namespace}&locale=en_US`;
     for (let attempt = 0; ; attempt++) {
-      let res;
+      let res, json;
       try {
         res = await fetch(url, { headers: { Authorization: `Bearer ${await getToken()}` } });
         calls++;
+        if ((res.status === 429 || res.status >= 500) && attempt < retries) {
+          await res.arrayBuffer().catch(() => {});
+          await sleep(1000 * 2 ** attempt);
+          continue;
+        }
+        if (!res.ok) { await res.arrayBuffer().catch(() => {}); return { status: res.status, json: null }; }
+        // reading the body is inside the try: a connection cut mid-download ("terminated") is retried too
+        json = await res.json();
       } catch (e) {
         if (attempt >= retries) return { status: 0, json: null, error: e.message };
         await sleep(1000 * 2 ** attempt);
         continue;
       }
-      if ((res.status === 429 || res.status >= 500) && attempt < retries) {
-        await res.arrayBuffer().catch(() => {});
-        await sleep(1000 * 2 ** attempt);
-        continue;
-      }
-      if (!res.ok) { await res.arrayBuffer().catch(() => {}); return { status: res.status, json: null }; }
       // Last-Modified tells us when Blizzard last refreshed this data (useful for character profiles)
-      return { status: res.status, json: await res.json(), lastModified: res.headers.get("last-modified") || null };
+      return { status: res.status, json, lastModified: res.headers.get("last-modified") || null };
     }
   }
 
