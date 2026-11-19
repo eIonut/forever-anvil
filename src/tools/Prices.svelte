@@ -136,18 +136,20 @@
 </div>
 
 <div class="wrap section" hidden={!!emptyMsg}>
-  <div class="panel pr-controls">
+  <div class="panel controls">
     <MarketSelects prefix="pr" {region} {group} {faction} {groups}
       onregion={(v) => { region = v; shown = 100; save(); detailId = null; loadRegion(); }}
       ongroup={(v) => { group = v; shown = 100; save(); detailId = null; loadGroup(); }}
       onfaction={(v) => { faction = v; shown = 100; save(); detailId = null; }} />
+    <div class="control-row pr-row">
+    <div class="pr-search"><label class="field-label" for="pr-search">Find an item</label>
+      <input class="input" type="search" id="pr-search" placeholder="e.g. Copper Ore, Linen, Peacebloom" autocomplete="off" bind:value={term} oninput={() => (shown = 100)} /></div>
     <div><label class="field-label" for="pr-sort">Sort by</label>
       <select class="input" id="pr-sort" onchange={(e) => { sort = e.currentTarget.value; save(); }}>
         <option value="value" title="Total gold value listed" selected={sort === "value"}>Biggest market</option><option value="qty" selected={sort === "qty"}>Most units</option><option value="market" selected={sort === "market"}>Most expensive</option>
         <option value="listings" selected={sort === "listings"}>Most listings</option><option value="ahgain" selected={sort === "ahgain"}>Best vs. vendor</option><option value="name" selected={sort === "name"}>Name (A–Z)</option>
       </select></div>
-    <div class="pr-search"><label class="field-label" for="pr-search">Find an item</label>
-      <input class="input" type="search" id="pr-search" placeholder="e.g. Copper Ore, Linen, Peacebloom" autocomplete="off" bind:value={term} oninput={() => (shown = 100)} /></div>
+    </div>
   </div>
   <p class="note">Blizzard's data doesn't name which ruleset each server group is, so we confirm them with in-game price checks. <b>All four Europe rulesets are labelled.</b> Groups in the Americas show a letter until they're checked — play there? Tell us a few prices and we'll label yours.</p>
 

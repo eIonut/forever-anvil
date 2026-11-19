@@ -1,21 +1,32 @@
-// Site menus. Change a link here and the header and footer update on every page.
+// Site menus. Change a link here and the header, footer and home page update on every page.
+import type { IconName } from "./icons";
 
 export interface NavLink {
   href: string;
   label: string;
+  /** one line saying what's there: shown in the phone menu, the footer and the home page */
+  desc?: string;
+  icon?: IconName;
   /** page names (the `page` prop of BaseLayout) that mark this link as the current one */
   pages?: string[];
 }
 
 /** Header menu */
 export const NAV: NavLink[] = [
-  { href: "/prices", label: "Prices", pages: ["prices", "items"] },
-  { href: "/economy", label: "Economy", pages: ["economy"] },
-  { href: "/flips", label: "Vendor flips", pages: ["flips"] },
-  { href: "/crafting", label: "Craft profits", pages: ["crafting", "recipe", "recipes"] },
-  { href: "/planner", label: "Planner", pages: ["planner"] },
-  { href: "/talents", label: "Talents", pages: ["talents"] },
-  { href: "/character", label: "Character", pages: ["character"] },
+  { href: "/prices", label: "Prices", icon: "prices", pages: ["prices", "items"],
+    desc: "What every item sells for on the Auction House" },
+  { href: "/economy", label: "Economy", icon: "economy", pages: ["economy"],
+    desc: "Market indexes, material prices and where the gold is" },
+  { href: "/flips", label: "Flips", icon: "flips", pages: ["flips"],
+    desc: "Listings cheaper than what a vendor pays" },
+  { href: "/crafting", label: "Crafting", icon: "crafting", pages: ["crafting", "recipe", "recipes"],
+    desc: "Which recipes make gold after materials and the AH cut" },
+  { href: "/planner", label: "Planner", icon: "planner", pages: ["planner"],
+    desc: "One shopping list for everything you want to craft" },
+  { href: "/talents", label: "Talents", icon: "talents", pages: ["talents"],
+    desc: "Plan a talent build for any class and share it" },
+  { href: "/character", label: "Character", icon: "character", pages: ["character"],
+    desc: "Any character's gear, professions and reputations" },
 ];
 
 /** Footer: every tool, plus the browsable item and recipe pages */

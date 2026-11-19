@@ -1,0 +1,14 @@
+---
+// One of the site's line icons (src/lib/icons.ts). Decorative: hidden from screen readers,
+// so always put a text label next to it.
+import { ICONS, type IconName } from "../lib/icons";
+
+interface Props {
+  name: IconName;
+  size?: number;
+  class?: string;
+}
+
+const { name, size = 24, class: cls } = Astro.props;
+---
+<svg class:list={["icon", cls]} viewBox="0 0 48 48" width={size} height={size} aria-hidden="true" focusable="false" set:html={ICONS[name]} />

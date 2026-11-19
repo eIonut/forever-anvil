@@ -1,6 +1,7 @@
 ---
 // Every recipe page, grouped by profession, with a search box.
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
 import IndexSearch from "../../components/IndexSearch.astro";
 import ItemIcon from "../../components/ItemIcon.astro";
 import Wowhead from "../../components/Wowhead.astro";
@@ -19,11 +20,9 @@ const profs = Object.keys(byProf).sort();
   description={`All ${num(c.recipes.length)} WoW: Forever crafting recipes with live material costs and profit on every auction house.`}
   page="recipes"
 >
-  <section class="hero page-hero"><div class="wrap">
-    <div class="eyebrow">Recipes</div>
-    <h1>WoW: Forever recipes</h1>
-    <p class="lead">{num(c.recipes.length)} recipes across {profs.length} professions — each with today's material cost and profit on every Auction House.</p>
-  </div></section>
+  <PageHero icon="recipes" eyebrow="Crafting" title="WoW: Forever recipes" facts={[{ icon: "recipes", text: "One page per recipe" }, { icon: "prices", text: "Cost and profit on every Auction House" }]}>
+    {num(c.recipes.length)} recipes across {profs.length} professions — each with today's material cost and profit on every Auction House.
+  </PageHero>
 
   <div class="wrap section item-index">
     <IndexSearch label="Find a recipe" placeholder="e.g. Bolt of Linen Cloth" />

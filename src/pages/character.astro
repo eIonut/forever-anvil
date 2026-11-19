@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
 import Character from "../tools/Character.svelte";
 ---
 <BaseLayout
@@ -7,11 +8,9 @@ import Character from "../tools/Character.svelte";
   description="Look up any WoW: Forever character: level, race, class, guild, equipped gear, professions and reputations."
   page="character"
 >
-  <section class="hero page-hero"><div class="wrap">
-    <div class="eyebrow">Tool · Preview</div>
-    <h1>Character lookup</h1>
-    <p class="lead">See any character's gear, professions and reputations — and share the link with your guild.</p>
-  </div></section>
+  <PageHero icon="character" eyebrow="Characters" title="Character lookup" facts={[{ icon: "globe", text: "Europe, Americas, Korea and Taiwan" }, { icon: "clock", text: "Live, cached up to 15 minutes" }, { icon: "privacy", text: "We don't store profiles" }]}>
+    See any character's gear, professions and reputations — and share the link with your guild.
+  </PageHero>
 
   <div class="wrap section">
     <Character client:load />

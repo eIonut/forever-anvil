@@ -1,6 +1,7 @@
 ---
 // A–Z list of every item page, with a search box.
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
 import IndexSearch from "../../components/IndexSearch.astro";
 import ItemIcon from "../../components/ItemIcon.astro";
 import Wowhead from "../../components/Wowhead.astro";
@@ -24,11 +25,9 @@ const anchor = (k: string) => "letter-" + (k === "#" ? "num" : k);
   description={`Auction House prices for ${num(sorted.length)} WoW: Forever items: market price, 30-day history, vendor price and crafting.`}
   page="items"
 >
-  <section class="hero page-hero"><div class="wrap">
-    <div class="eyebrow">Item prices</div>
-    <h1>WoW: Forever item prices</h1>
-    <p class="lead">{num(sorted.length)} items with Auction House prices, 30-day history, vendor prices and crafting info. Updated daily (live prices hourly).</p>
-  </div></section>
+  <PageHero icon="items" eyebrow="Gold & auction house" title="WoW: Forever item prices" facts={[{ icon: "items", text: "One page per traded item" }, { icon: "clock", text: "Pages updated daily, live prices hourly" }]}>
+    {num(sorted.length)} items with Auction House prices, 30-day history, vendor prices and crafting info. Updated daily (live prices hourly).
+  </PageHero>
 
   <div class="wrap section item-index">
     <IndexSearch label="Find an item" placeholder="e.g. Copper Ore" />

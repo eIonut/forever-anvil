@@ -122,7 +122,7 @@
 <div class="wrap section" hidden={!empty}><div class="panel"><h2>No data yet</h2><p>Run <code>npm run prices</code>, then reload this page.</p></div></div>
 
 <div class="wrap section" hidden={empty}>
-  <div class="panel pr-controls fl-controls">
+  <div class="panel controls">
     <MarketSelects prefix="pl" {region} {group} {faction} {groups}
       onregion={(v) => { region = v; save(); load(); }}
       ongroup={(v) => { group = v; save(); loadGroup(); }}

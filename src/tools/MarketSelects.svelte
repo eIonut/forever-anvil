@@ -1,6 +1,7 @@
 <script lang="ts">
-  // Region, server group and auction house pickers, shared by the price tools.
-  // prefix gives the fields unique ids (e.g. "pr" → #pr-region).
+  // Region, ruleset and auction house pickers, shared by the price tools.
+  // Each is a row of radio buttons styled as chips: one click to switch, and every choice is visible.
+  // prefix keeps the radio groups apart (e.g. "pr" → name="pr-region").
   interface Props {
     prefix: string;
     region: string;
@@ -12,18 +13,48 @@
     onfaction: (v: string) => void;
   }
   let { prefix, region, group, faction, groups, onregion, ongroup, onfaction }: Props = $props();
-  const pick = (fn: (v: string) => void) => (e: Event) => fn((e.currentTarget as HTMLSelectElement).value);
+
+  const REGIONS = [
+    { value: "eu", label: "Europe" },
+    { value: "us", label: "Americas & Oceania" },
+  ];
+  const HOUSES = [
+    { value: "alliance", label: "Alliance", hint: "" },
+    { value: "horde", label: "Horde", hint: "" },
+    { value: "neutral", label: "Blackwater", hint: "neutral, both factions" },
+  ];
+
+  // "Group A — ruleset not confirmed yet" → chip "Group A", with the rest as a hint
+  const split = (label: string) => {
+    const [name, ...rest] = label.split(" — ");
+    return { name, hint: rest.join(" — ") };
+  };
 </script>
 
-<div><label class="field-label" for="{prefix}-region">Region</label>
-  <select class="input" id="{prefix}-region" onchange={pick(onregion)}>
-    <option value="eu" selected={region === "eu"}>Europe</option><option value="us" selected={region === "us"}>Americas &amp; Oceania</option>
-  </select></div>
-<div><label class="field-label" for="{prefix}-group">Server group</label>
-  <select class="input" id="{prefix}-group" onchange={pick(ongroup)}>
-    {#each groups as g (g.value)}<option value={g.value} selected={g.value === group}>{g.label}</option>{/each}
-  </select></div>
-<div><label class="field-label" for="{prefix}-faction">Auction House</label>
-  <select class="input" id="{prefix}-faction" onchange={pick(onfaction)}>
-    <option value="alliance" selected={faction === "alliance"}>Alliance</option><option value="horde" selected={faction === "horde"}>Horde</option><option value="neutral" selected={faction === "neutral"}>Blackwater (neutral)</option>
-  </select></div>
+<div class="market-bar">
+  <fieldset class="chip-group">
+    <legend>Region</legend>
+    <div class="chips">
+      {#each REGIONS as r (r.value)}
+        <label class="chip"><input type="radio" name="{prefix}-region" value={r.value} checked={region === r.value} onchange={() => onregion(r.value)} /><span>{r.label}</span></label>
+      {/each}
+    </div>
+  </fieldset>
+  <fieldset class="chip-group">
+    <legend>Ruleset <span class="legend-hint">(server group)</span></legend>
+    <div class="chips">
+      {#each groups as g (g.value)}
+        {@const l = split(g.label)}
+        <label class="chip" title={l.hint || undefined}><input type="radio" name="{prefix}-group" value={g.value} checked={g.value === group} onchange={() => ongroup(g.value)} /><span>{l.name}{#if l.hint}<span class="sr-only"> ({l.hint})</span><sup class="chip-flag" aria-hidden="true">?</sup>{/if}</span></label>
+      {/each}
+    </div>
+  </fieldset>
+  <fieldset class="chip-group">
+    <legend>Auction house</legend>
+    <div class="chips">
+      {#each HOUSES as h (h.value)}
+        <label class="chip chip-{h.value}"><input type="radio" name="{prefix}-faction" value={h.value} checked={faction === h.value} onchange={() => onfaction(h.value)} /><span><i class="chip-dot" aria-hidden="true"></i>{h.label}{#if h.hint}<span class="sr-only"> ({h.hint})</span>{/if}</span></label>
+      {/each}
+    </div>
+  </fieldset>
+</div>

@@ -1,0 +1,46 @@
+---
+// The framed banner at the top of every page: an icon, a small label above the title,
+// the title, one or two sentences on what the page does, and a few quick facts.
+//   <PageHero icon="prices" eyebrow="Gold & auction house" title="Auction House prices"
+//     facts={["Updated every hour", "Europe and the Americas"]}>
+//     What items really sell for…            ← the lead sentence(s)
+//     <Fragment slot="actions">…buttons…</Fragment>
+//   </PageHero>
+import Icon from "./Icon.astro";
+import type { IconName } from "../lib/icons";
+
+export interface Fact {
+  icon: IconName;
+  text: string;
+}
+
+interface Props {
+  title: string;
+  eyebrow?: string;
+  icon?: IconName;
+  facts?: Fact[];
+}
+
+const { title, eyebrow, icon, facts = [] } = Astro.props;
+---
+<section class="page-hero">
+  <div class="wrap">
+    <div class="hero-frame">
+      <slot name="before" />
+      <div class="hero-main">
+        {icon && <div class="hero-emblem"><Icon name={icon} size={40} /></div>}
+        <div class="hero-text">
+          {eyebrow && <p class="eyebrow">{eyebrow}</p>}
+          <h1>{title}</h1>
+          <p class="lead"><slot /></p>
+        </div>
+      </div>
+      {facts.length > 0 && (
+        <ul class="hero-facts" aria-label="At a glance">
+          {facts.map((f) => <li><Icon name={f.icon} size={18} />{f.text}</li>)}
+        </ul>
+      )}
+      <slot name="actions" />
+    </div>
+  </div>
+</section>

@@ -7,18 +7,18 @@ import DonateButton from "./DonateButton.astro";
   <div class="wrap">
     <div class="cols">
       <div>
-        <h4>{config.siteName}</h4>
-        <p>Free, unofficial tools for WoW: Forever: live auction prices, crafting profits, talents and character lookups.</p>
+        <p class="footer-brand"><img src="/img/logo.svg" alt="" width="30" height="30" />{config.siteName}</p>
+        <p>Free, unofficial tools for WoW: Forever: live auction prices, crafting profits, talent builds and character lookups. Prices refresh about every hour from Blizzard's official API.</p>
         <DonateButton class="btn-sm" />
       </div>
-      <div>
-        <h4>Tools</h4>
+      <nav aria-labelledby="footer-tools">
+        <h2 class="footer-head" id="footer-tools">Tools</h2>
         <ul>{FOOTER_TOOLS.map((n) => <li><a href={n.href}>{n.label}</a></li>)}</ul>
-      </div>
-      <div>
-        <h4>Site</h4>
+      </nav>
+      <nav aria-labelledby="footer-site">
+        <h2 class="footer-head" id="footer-site">About this site</h2>
         <ul>{FOOTER_SITE.map((n) => <li><a href={n.href}>{n.label}</a></li>)}</ul>
-      </div>
+      </nav>
     </div>
     <div class="legal">
       World of Warcraft, Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc.{" "}

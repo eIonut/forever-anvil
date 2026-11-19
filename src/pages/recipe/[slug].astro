@@ -41,7 +41,7 @@ const jsonld = {
 };
 ---
 <BaseLayout title={`${r.name} — ${r.prof} Recipe, Cost & Profit — WoW: Forever — Forever Tome`} description={description} page="recipe" jsonld={jsonld}>
-  <section class="hero page-hero"><div class="wrap">
+  <section class="page-hero page-hero-item"><div class="wrap"><div class="hero-frame">
     <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/recipe">Recipes</a> › {r.prof} › {r.name}</nav>
     <div class="item-title">{r.item && <ItemTitleIcon id={r.item} />}<h1>{r.name}</h1></div>
     <p class="item-sub">{[r.prof, r.cat, "WoW: Forever recipe"].filter(Boolean).join(" · ")}</p>
@@ -58,7 +58,7 @@ const jsonld = {
       <a class="btn btn-ghost" href={`/crafting?q=${encodeURIComponent(itemName || r.name)}`}>Compare with other recipes</a>
       {r.item && c.hasPage.has(String(r.item)) && <a class="btn btn-ghost" href={itemPageUrl(c, r.item)}>{itemName} prices</a>}
     </div>
-  </div></section>
+  </div></div></section>
 
   <div class="wrap section grid">
     <section class="panel">

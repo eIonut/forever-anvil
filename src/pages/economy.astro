@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
 import AdSlot from "../components/AdSlot.astro";
 import Economy from "../tools/Economy.svelte";
 ---
@@ -8,11 +9,9 @@ import Economy from "../tools/Economy.svelte";
   description="The WoW: Forever auction house economy at a glance: market indexes over time, material prices with daily changes, where the gold is, Blackwater flips and Alliance vs Horde price gaps."
   page="economy"
 >
-  <section class="hero page-hero"><div class="wrap">
-    <div class="eyebrow">Tool · Preview</div>
-    <h1>The Economy</h1>
-    <p class="lead">How the auction houses of your ruleset are doing: what's getting dearer, where the gold sits, and where there's gold to be made.</p>
-  </div></section>
+  <PageHero icon="economy" eyebrow="Gold & auction house" title="The Economy" facts={[{ icon: "clock", text: "Refreshed about every hour" }, { icon: "economy", text: "Market indexes since tracking began" }, { icon: "globe", text: "All three auction houses per ruleset" }]}>
+    How the auction houses of your ruleset are doing: what's getting dearer, where the gold sits, and where there's gold to be made.
+  </PageHero>
 
   <Economy client:load>
     <div class="panel pr-help">

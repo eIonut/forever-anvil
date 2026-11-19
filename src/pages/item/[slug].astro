@@ -54,7 +54,7 @@ const jsonld = {
 };
 ---
 <BaseLayout title={`${name} Price — WoW: Forever — Forever Tome`} description={description} page="items" jsonld={jsonld}>
-  <section class="hero page-hero"><div class="wrap">
+  <section class="page-hero page-hero-item"><div class="wrap"><div class="hero-frame">
     <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/item">Item prices</a> › {name}</nav>
     <div class="item-title"><ItemTitleIcon id={id} /><h1 class={quality ? `q-${quality}` : ""}>{name}</h1></div>
     <p class="item-sub">{[quality && capitalize(quality), itemClass, "WoW: Forever"].filter(Boolean).join(" · ")}</p>
@@ -68,7 +68,7 @@ const jsonld = {
       {(made.length > 0 || used.length > 0) && <a class="btn btn-ghost" href={`/crafting?q=${encodeURIComponent(name)}`}>Crafting profits</a>}
       <a class="btn btn-ghost wh" href={`https://www.wowhead.com/forever/item=${id}`} target="_blank" rel="noopener nofollow" data-wh-rename-link="false" data-wh-icon-added="true">Full details on Wowhead<span class="sr-only">{" (opens in a new tab)"}</span></a>
     </div>
-  </div></section>
+  </div></div></section>
 
   <div class="wrap section grid">
     <section class="panel">

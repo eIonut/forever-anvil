@@ -7,8 +7,9 @@ const sizes = [
   ["xl", "Larger"],
 ];
 ---
-<div id="settings-panel" class="settings-panel" role="dialog" aria-labelledby="settings-title" hidden>
+<div id="settings-panel" class="settings-panel" role="dialog" aria-labelledby="settings-title" aria-describedby="settings-desc" hidden>
   <h2 id="settings-title">Display settings</h2>
+  <p class="settings-intro" id="settings-desc">Make the site easier to read. Your choices are saved in this browser only.</p>
   <fieldset>
     <legend>Text size</legend>
     <div class="seg">
@@ -17,9 +18,9 @@ const sizes = [
       ))}
     </div>
   </fieldset>
-  <label class="switch"><input type="checkbox" data-pref="contrast" /><span class="track" aria-hidden="true"></span><span>High contrast</span></label>
-  <label class="switch"><input type="checkbox" data-pref="underline" /><span class="track" aria-hidden="true"></span><span>Underline all links</span></label>
-  <label class="switch"><input type="checkbox" data-pref="calm" /><span class="track" aria-hidden="true"></span><span>Reduce motion &amp; textures</span></label>
+  <label class="switch"><input type="checkbox" data-pref="contrast" /><span class="track" aria-hidden="true"></span><span class="switch-text">High contrast<small>Pure black background, brighter text and borders</small></span></label>
+  <label class="switch"><input type="checkbox" data-pref="underline" /><span class="track" aria-hidden="true"></span><span class="switch-text">Underline all links<small>Spot links without relying on colour</small></span></label>
+  <label class="switch"><input type="checkbox" data-pref="calm" /><span class="track" aria-hidden="true"></span><span class="switch-text">Reduce motion &amp; textures<small>No animations, plain backgrounds</small></span></label>
   <div class="settings-foot">
     <button type="button" class="btn btn-ghost btn-sm" id="reset-settings">Reset</button>
     <button type="button" class="btn btn-sm" id="close-settings">Done</button>

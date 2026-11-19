@@ -12,6 +12,7 @@
   import { useItems, itemSource, type ItemInfo } from "./itemIcons.svelte";
   import { houseOf, type Econ, type GroupPrices, type Meta } from "./types";
   import MarketSelects from "./MarketSelects.svelte";
+  import Icon from "./Icon.svelte";
   import Movers from "./Movers.svelte";
   import IndexChart from "./econ/IndexChart.svelte";
   import TradeBoard from "./econ/TradeBoard.svelte";
@@ -119,13 +120,13 @@
 </div>
 
 <div class="wrap section ec" hidden={!!emptyMsg}>
-  <div class="panel pr-controls ec-controls">
+  <div class="panel controls">
     <MarketSelects prefix="ec" {region} {group} {faction} {groups}
       onregion={(v) => { region = v; save(); loadRegion(); }}
       ongroup={(v) => { group = v; save(); loadGroup(); }}
       onfaction={(v) => { faction = v; save(); }} />
+    <p class="faint ec-scope">The numbers cover all three auction houses of the {ruleset || "chosen"} ruleset. The trade board, flips, gold map and bazaar follow the auction house you pick.</p>
   </div>
-  <p class="faint ec-scope">The numbers cover all three auction houses of the {ruleset || "chosen"} ruleset. The trade board, flips, gold map and bazaar follow the auction house you pick.</p>
 
   {#if loading && !groupData}
     <p class="faint">Loading the market…</p>
@@ -133,10 +134,10 @@
     <div class="panel"><p>Couldn't load this ruleset's prices. Please try again in a moment.</p></div>
   {:else if groupData}
     <div class="ec-tiles">
-      <div class="stat"><span>Auctions up</span><b>{totals.listings.toLocaleString()}</b><span>{totals.units.toLocaleString()} items, counting stacks</span></div>
-      <div class="stat"><span>Gold listed</span><b>{compact(totals.gold / 10000)}</b><span>at typical prices; joke listings left out</span></div>
-      <div class="stat"><span>Different items</span><b>{totals.items.toLocaleString()}</b><span>for sale in this ruleset</span></div>
-      <div class="stat"><span>Next update</span><b>{nextUpdate.big}</b><span>{nextUpdate.small}</span></div>
+      <div class="stat stat-icon"><Icon name="prices" size={30} /><div><span>Auctions up</span><b>{totals.listings.toLocaleString()}</b><span>{totals.units.toLocaleString()} items, counting stacks</span></div></div>
+      <div class="stat stat-icon"><Icon name="database" size={30} /><div><span>Gold listed</span><b>{compact(totals.gold / 10000)}</b><span>at typical prices; joke listings left out</span></div></div>
+      <div class="stat stat-icon"><Icon name="items" size={30} /><div><span>Different items</span><b>{totals.items.toLocaleString()}</b><span>for sale in this ruleset</span></div></div>
+      <div class="stat stat-icon"><Icon name="clock" size={30} /><div><span>Next update</span><b>{nextUpdate.big}</b><span>{nextUpdate.small}</span></div></div>
     </div>
 
     <section class="ec-houses" aria-label="The three auction houses">

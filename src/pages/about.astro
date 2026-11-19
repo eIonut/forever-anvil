@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
 import DonateBox from "../components/DonateBox.astro";
 import config from "../config.js";
 ---
@@ -8,11 +9,9 @@ import config from "../config.js";
   description="About Forever Tome, an unofficial WoW: Forever fan site. Credits, sources and legal notices."
   page="about"
 >
-  <section class="hero page-hero"><div class="wrap">
-    <div class="eyebrow">About</div>
-    <h1>About the Tome</h1>
-    <p class="lead">Fan-made tools for World of Warcraft: Forever.</p>
-  </div></section>
+  <PageHero icon="about" eyebrow="About" title="About the Tome">
+    Fan-made tools for World of Warcraft: Forever.
+  </PageHero>
 
   <div class="wrap section grid grid-2">
     <div class="panel">

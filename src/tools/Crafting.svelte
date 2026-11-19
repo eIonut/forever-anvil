@@ -129,23 +129,27 @@
 <div class="wrap section" hidden={!emptyMsg}><div class="panel"><h2>No data yet</h2><p>{emptyMsg}</p></div></div>
 
 <div class="wrap section" hidden={!!emptyMsg}>
-  <div class="panel pr-controls cr-controls">
-    <div><label class="field-label" for="cr-prof">Profession</label>
-      <select class="input" id="cr-prof" onchange={(e) => { prof = e.currentTarget.value; shown = 100; open = {}; save(); }}>
-        {#each profs as p (p.id)}<option value={String(p.id)} selected={String(p.id) === String(prof)}>{p.name} ({p.recipes.length})</option>{/each}
-      </select></div>
+  <div class="panel controls">
     <MarketSelects prefix="cr" {region} {group} {faction} {groups}
       onregion={(v) => { region = v; save(); loadRegion(); }}
       ongroup={(v) => { group = v; save(); loadGroup(); }}
       onfaction={(v) => { faction = v; save(); }} />
+    <div class="control-row cr-row">
+    <div><label class="field-label" for="cr-prof">Profession</label>
+      <select class="input" id="cr-prof" onchange={(e) => { prof = e.currentTarget.value; shown = 100; open = {}; save(); }}>
+        {#each profs as p (p.id)}<option value={String(p.id)} selected={String(p.id) === String(prof)}>{p.name} ({p.recipes.length} recipes)</option>{/each}
+      </select></div>
     <div><label class="field-label" for="cr-sort">Sort by</label>
       <select class="input" id="cr-sort" onchange={(e) => { sort = e.currentTarget.value; save(); }}>
         <option value="profit" selected={sort === "profit"}>Profit</option><option value="margin" selected={sort === "margin"}>Profit margin</option><option value="cost" selected={sort === "cost"}>Cheapest to make</option><option value="name" selected={sort === "name"}>Name</option>
       </select></div>
     <div class="pr-search"><label class="field-label" for="cr-search">Find a recipe or material</label>
       <input class="input" type="search" id="cr-search" placeholder="e.g. Bolt of Linen, Copper" autocomplete="off" bind:value={term} oninput={() => (shown = 100)} /></div>
-    <label class="cr-check"><input type="checkbox" id="cr-profitable" bind:checked={onlyProfit} /> Only profitable recipes</label>
-    <label class="cr-check"><input type="checkbox" id="cr-hidethin" bind:checked={hideThin} /> Hide thin markets (fewer than 3 listed)</label>
+    </div>
+    <div class="control-checks">
+      <label class="cr-check"><input type="checkbox" id="cr-profitable" bind:checked={onlyProfit} /> Only profitable recipes</label>
+      <label class="cr-check"><input type="checkbox" id="cr-hidethin" bind:checked={hideThin} /> Hide thin markets (fewer than 3 listed)</label>
+    </div>
   </div>
 
   <div class="section-head" style="margin-top:18px">

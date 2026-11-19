@@ -5,6 +5,7 @@ import config from "../config.js";
 import { NAV } from "../lib/nav";
 import SettingsPanel from "./SettingsPanel.astro";
 import DonateButton from "./DonateButton.astro";
+import Icon from "./Icon.astro";
 
 interface Props {
   page?: string;
@@ -21,7 +22,12 @@ const { page = "" } = Astro.props;
     <nav class="nav" id="main-nav" aria-label="Main">
       {NAV.map((n) => {
         const active = !!n.pages?.includes(page);
-        return <a href={n.href} class={active ? "active" : undefined} aria-current={active ? "page" : undefined}>{n.label}</a>;
+        return (
+          <a href={n.href} class:list={["nav-link", { active }]} aria-current={active ? "page" : undefined}>
+            {n.icon && <Icon name={n.icon} size={22} class="nav-icon" />}
+            <span class="nav-text"><span class="nav-label">{n.label}</span>{n.desc && <span class="nav-desc">{n.desc}</span>}</span>
+          </a>
+        );
       })}
     </nav>
     <div class="tools">
@@ -30,7 +36,7 @@ const { page = "" } = Astro.props;
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path d="M4 7h10M18 7h2M4 17h4M12 17h8" stroke="currentColor" stroke-width="2" stroke-linecap="round" /><circle cx="16" cy="7" r="2.3" fill="none" stroke="currentColor" stroke-width="2" /><circle cx="10" cy="17" r="2.3" fill="none" stroke="currentColor" stroke-width="2" /></svg>
       </button>
       <button type="button" class="icon-btn nav-toggle" aria-controls="main-nav" aria-expanded="false">
-        <span class="sr-only">Menu</span>
+        <span class="nav-toggle-text">Menu</span>
         <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" focusable="false"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2" stroke-linecap="round" /></svg>
       </button>
       <DonateButton class="btn-sm" />

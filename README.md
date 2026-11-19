@@ -44,7 +44,7 @@ With `npm run dev` running and `.env` filled in, every tool works on localhost, 
 | `src/config.js` | **Your settings**: site name, donate link, AdSense id, where live prices come from |
 | `src/pages/` | One file per page. `item/[slug].astro` and `recipe/[slug].astro` build a page for every item and recipe |
 | `src/layouts/BaseLayout.astro` | The frame of every page: `<head>`, header, footer |
-| `src/components/` | Header, footer, settings panel, SEO tags, ad space, donate box, and pieces of the item and recipe pages |
+| `src/components/` | Header, footer, settings panel, the framed page banner (`PageHero.astro`), icons (`Icon.astro`, drawn in `src/lib/icons.ts`), SEO tags, ad space, donate box, and pieces of the item and recipe pages |
 | `src/tools/` | The six interactive tools (Svelte) and the pieces they share: pickers, prices, item links, charts |
 | `src/lib/` | Code shared by pages and tools: the price and talent math (also used by the price job), formatting, page addresses, menus, saved settings, the crafting plan, Wowhead tooltips |
 | `src/data/catalog.ts` | Reads `out/` at build time for the item and recipe pages |

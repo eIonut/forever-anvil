@@ -1,16 +1,15 @@
 ---
 import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
 ---
 <BaseLayout
   title="Privacy Policy — Forever Tome"
   description="Forever Tome privacy policy: no accounts, no personal data collected, trackers saved only in your browser."
   page="privacy"
 >
-  <section class="hero page-hero"><div class="wrap">
-    <div class="eyebrow">Privacy</div>
-    <h1>Privacy policy</h1>
-    <p class="lead">Short version: we don't have accounts, we don't collect your personal data, and your saved builds and plans stay on your own device.</p>
-  </div></section>
+  <PageHero icon="privacy" eyebrow="Privacy" title="Privacy policy">
+    Short version: we don't have accounts, we don't collect your personal data, and your saved builds and plans stay on your own device.
+  </PageHero>
 
   <div class="wrap section">
     <div class="panel legal-text">
