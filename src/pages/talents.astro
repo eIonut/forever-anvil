@@ -1,0 +1,21 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import AdSlot from "../components/AdSlot.astro";
+import Talents from "../tools/Talents.svelte";
+---
+<BaseLayout
+  title="WoW: Forever Talent Calculator — All Classes — Forever Tome"
+  description="Free WoW: Forever talent calculator for every class: the real Forever talent trees with icons, rank descriptions and prerequisites. Plan your build and share it with one link."
+  page="talents"
+>
+  <section class="hero page-hero"><div class="wrap">
+    <div class="eyebrow">Tool · Preview</div>
+    <h1>Talent calculator</h1>
+    <p class="lead">Plan your WoW: Forever talents with the real Forever trees — then share your build with one link.</p>
+  </div></section>
+
+  <Talents client:load>
+    <p class="faint" style="margin-top:16px">Talent trees, descriptions and icons are provided by Blizzard Entertainment for WoW: Forever. Forever Tome is not affiliated with or endorsed by Blizzard.</p>
+  </Talents>
+  <div class="wrap"><AdSlot name="bottom" /></div>
+</BaseLayout>

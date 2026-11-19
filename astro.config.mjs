@@ -2,6 +2,7 @@
 import { defineConfig } from "astro/config";
 import svelte from "@astrojs/svelte";
 import sitemap from "@astrojs/sitemap";
+import devApi from "./integrations/dev-api.ts";
 
 export default defineConfig({
   // Used for canonical links and the sitemap. Override with SITE_URL when testing another domain.
@@ -14,5 +15,6 @@ export default defineConfig({
   // so browsers cache them once and pages stay small.
   vite: { build: { assetsInlineLimit: 0 } },
   // lastmod = build day: generated pages are rebuilt daily with fresh prices
-  integrations: [svelte(), sitemap({ lastmod: new Date() })],
+  // devApi: /out/* and /api/character during `npm run dev` only
+  integrations: [svelte(), sitemap({ lastmod: new Date() }), devApi()],
 });

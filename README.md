@@ -2,7 +2,7 @@
 
 A static website with tools for WoW: Forever: auction prices, vendor flips, crafting profits and planner, a talent calculator and a character lookup.
 
-**The site is moving to Astro** ([plan](docs/astro-migration-plan.md)). Steps 1–3 are done: Astro is set up, the shared math and settings are in `src/`, and Home, About, Privacy and every item and recipe page run on Astro. Until the tools move over, the old site is still the real one.
+**The site is moving to Astro** ([plan](docs/astro-migration-plan.md)). Steps 1–4 are done: every page and tool runs on Astro (`npm run dev`). The old site still works (`npm run legacy`) until step 5 removes it.
 
 ## Run it locally
 
@@ -16,8 +16,8 @@ Then:
 
 | Command | What it does |
 |---|---|
-| `npm run legacy` | The current site at http://localhost:8080 (old pages, plus `/api/character`) |
-| `npm run dev` | The new Astro site at http://localhost:4321 (Home, About, Privacy, item and recipe pages so far; the tools 404 until they move) |
+| `npm run legacy` | The old site at http://localhost:8080 (kept for comparison until step 5) |
+| `npm run dev` | The new Astro site at http://localhost:4321 with every page and tool. It also serves the price data from `out/` and answers `/api/character` using your `.env` keys |
 | `npm run build` | Builds the Astro site into `dist/`, including one page per item and recipe from the data in `out/` (about 20 seconds) |
 | `npm test` | Tests for the price and talent math |
 
@@ -33,7 +33,7 @@ Needs a Battle.net API client. Copy `.env.example` to `.env` and fill it in; `.e
 | `npm run pages` | Old site only: builds one SEO page per item and recipe (`item/…html`, `recipe/…html`), the A–Z indexes and `sitemap.xml` from the job's data |
 | `node tools/optout.js eu "Firstname Lastname"` | Hide a character from the character lookup (stores a fingerprint, not the name) |
 
-With `npm run legacy` running and `.env` filled in, every tool works on localhost. The local server also answers `/api/character`; once the site is online, a Cloudflare Worker will provide the same endpoint.
+With `npm run dev` running and `.env` filled in, every tool works on localhost, including the character lookup; once the site is online, a Cloudflare Worker will provide the same endpoint.
 
 `out/` holds Blizzard API data and is git-ignored. Blizzard's API terms allow keeping that data for at most **30 days**; the job prunes it automatically each time it runs. Delete `out/` if you stop running it. See [docs/phase2-plan.md](docs/phase2-plan.md) for the full plan.
 
@@ -53,6 +53,9 @@ With `npm run legacy` running and `.env` filled in, every tool works on localhos
 | `src/lib/nav.ts` | The header and footer menus |
 | `src/data/catalog.ts` | Reads `out/` at build time for the item and recipe pages |
 | `src/pages/item/`, `src/pages/recipe/` | The item and recipe page templates and their A–Z indexes |
+| `src/tools/` | The six interactive tools (Svelte components) and the pieces they share: pickers, prices, item links, charts |
+| `src/lib/` | Helpers shared by pages and tools: formatting, data loading, saved settings, crafting plan, Wowhead tooltips |
+| `integrations/dev-api.ts` | `npm run dev` only: serves `out/` and `/api/character` |
 | `public/` | Files served as-is: favicon, images, robots.txt |
 | `pipeline/` | The price job, Blizzard API client and item-page builder |
 

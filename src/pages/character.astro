@@ -1,0 +1,20 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Character from "../tools/Character.svelte";
+---
+<BaseLayout
+  title="WoW: Forever Character Lookup — Forever Tome"
+  description="Look up any WoW: Forever character: level, race, class, guild, equipped gear, professions and reputations."
+  page="character"
+>
+  <section class="hero page-hero"><div class="wrap">
+    <div class="eyebrow">Tool · Preview</div>
+    <h1>Character lookup</h1>
+    <p class="lead">See any character's gear, professions and reputations — and share the link with your guild.</p>
+  </div></section>
+
+  <div class="wrap section">
+    <Character client:load />
+    <p class="faint" style="margin-top:16px">Data provided by Blizzard Entertainment and shown live (cached up to 15 minutes); we don't store profiles. Want a character hidden? See our <a href="/privacy">privacy policy</a>.</p>
+  </div>
+</BaseLayout>

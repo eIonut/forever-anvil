@@ -1,0 +1,29 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import AdSlot from "../components/AdSlot.astro";
+import Prices from "../tools/Prices.svelte";
+---
+<BaseLayout
+  title="WoW: Forever Auction House Prices — Forever Tome"
+  description="WoW: Forever auction house prices by region and faction: market price, lowest price, quantity listed, and whether to sell on the AH or to a vendor."
+  page="prices"
+>
+  <section class="hero page-hero"><div class="wrap">
+    <div class="eyebrow">Tool · Preview</div>
+    <h1>Auction House prices</h1>
+    <p class="lead">What items really sell for, how much is listed, and whether you're better off selling on the Auction House or to a vendor.</p>
+  </div></section>
+
+  <Prices client:load>
+    <div class="panel pr-help">
+      <h2>How to read this</h2>
+      <ul class="gems">
+        <li><b>Market price</b> is the average of the cheapest 10% of units on sale. It's steadier than the lowest price, which one bargain listing can drag down.</li>
+        <li><b>Sell where?</b> compares the market price after the Auction House's 5% cut with what a vendor pays. It ignores the listing deposit and whether the item actually sells.</li>
+        <li>Prices refresh about once an hour, and history covers up to 30 days.</li>
+      </ul>
+      <p class="faint">Data provided by Blizzard Entertainment. Forever Tome is not affiliated with or endorsed by Blizzard. Item names and icons for items missing from Blizzard's data come from Wowhead.</p>
+    </div>
+  </Prices>
+  <div class="wrap"><AdSlot name="bottom" /></div>
+</BaseLayout>

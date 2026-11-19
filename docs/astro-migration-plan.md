@@ -157,7 +157,45 @@ Original plan:
 - `<base href="../">` and its focus workaround go away.
 - **Done when:** the new build has the same number of item and recipe pages as `build-items.js`. A script compares every page's title, description and canonical link with the old output. The build stays under Cloudflare's 20,000-file limit (today ~10,700 pages).
 
-### Step 4: The tools, one at a time
+### Step 4: The tools, one at a time (done 2026-11-19)
+
+What was done:
+- Six Svelte components in `src/tools/`: `Flips`, `Prices` (with `Movers` and `PriceHistory`), `Crafting`, `Planner`, `Talents` and `Character`. Each page in `src/pages/` adds its tool with `client:load`, so the tool's markup is still in the HTML for search engines.
+- The static help text stays in the Astro page, passed into the tool. The planner's sidebar ad space is passed in the same way.
+- Shared tool pieces:
+  - `MarketSelects` (region / server group / auction house)
+  - `Money`, `ItemIcon` and `ItemLink`
+  - `itemIcons.svelte.ts` (the item cache for icons)
+  - `types.ts` (shapes of the data files)
+- New helpers:
+  - `src/lib/api.ts`: data URLs, fetching, labels, the AH-or-vendor verdict, times, copy to clipboard
+  - `src/lib/marketPrefs.ts`: the shared `codex-prices` choice
+- All storage keys are unchanged: `codex-prices`, `codex-crafting`, `codex-plan`, `codex-talents`, `codex-char`.
+- Moved forward from step 5: `integrations/dev-api.ts` serves `/out/*` and `/api/character` during `npm run dev`. The character endpoint logic (checks, rate limit, opt-out, 15-minute cache) now lives in `pipeline/character-api.js`, which both `serve.js` and the dev server use.
+- Large data (prices, the item cache, recipes) is kept out of Svelte's deep reactivity (`$state.raw`), so the tables stay fast.
+
+Checks: each tool was run side by side with the old page on the same data, and the results compared.
+
+| Tool | Checks | Result |
+|---|---|---|
+| Vendor flips | 12 (4 groups × 3 auction houses) | all the same |
+| Prices | 47 (every group and auction house, 6 sorts, 4 searches, rising / falling / deals), plus the details panel, `?item=` link, "Show 100 more" and focus | all the same |
+| Craft profits | 28 (12 professions, 4 sorts, both filters, factions, groups, search, materials row), plus the `?q=` link | all the same |
+| Crafting planner | 21 (all groups and auction houses, quantity and "have" edits including out-of-range values, search and add, remove, clear) | all the same |
+| Talent calculator | 27 (9 classes, learn and unlearn by click, Shift-click, right-click and Delete, locked talents, details panel, level, reset, shared and hand-edited links) | all the same |
+| Character lookup | 12 (a made-up profile and six error replies, since there's no real test character) | the same apart from a trailing `;` in inline styles |
+
+Also checked:
+- At desktop width, every heading, panel, control, table row and talent button has the same position and size on all six tools. Talent tooltips are placed at exactly the same spot.
+- No horizontal scroll at 375px, and the page height is the same as the old pages.
+- No console errors. `astro check` passes, and the dev server shows no Svelte warnings.
+- Not run: `svelte-check`, because its download was blocked here. Worth adding as a dev dependency in step 5.
+
+Small differences from the old pages, on purpose:
+- Empty-data messages say `npm run prices` instead of `node pipeline/run.js`.
+- After "✓ Added", the craft-profit "+ Plan" button goes back to its normal label. The old page restored it as plain text, which made the hidden recipe name visible.
+
+Original plan:
 Port each tool from `site.js` into its own Svelte component. The logic is copied as-is first; cleanup comes after it works. Order, smallest first:
 
 | Tool | From `site.js` | Notes |
@@ -174,6 +212,13 @@ Shared pieces (money formatting, item icons, Wowhead tooltips, the price file UR
 - **Done when:** each tool matches the old page on the same data: same numbers, same sorting, same empty and error messages, keyboard use and screen-reader labels.
 
 ### Step 5: Local API and cleanup
+Left for this step, now that the dev routes exist:
+- Delete `serve.js`, `js/`, the nine root `*.html` files and the old-page part of `build-items.js`.
+- Move `css/style.css` to `src/styles/`.
+- Drop the `legacy` and `pages` npm scripts.
+- Add `svelte-check`.
+
+Original plan:
 - `integrations/dev-api.ts` adds `/api/character` (with the 15-minute cache, rate limit and opt-out check, reusing `pipeline/character.js`) and serves `out/*` during `npm run dev` only. This replaces `serve.js`. The production Worker is still the M2/M0 task from the phase 2 plan.
 - Delete the old files listed in section 3. Update `.gitignore` (`dist/`, `.astro/`).
 - Rewrite the README's "Run it locally" and "Where things live" sections for the new layout.
