@@ -160,11 +160,15 @@
   /* ---------- pages ---------- */
   var PAGES = {};
 
-  // Load Wowhead's tooltip script only on pages that have Wowhead database links
-  // Wowhead renames links only when asked per link (data-wh-rename-link="true"), so our own text stays.
+  // Load Wowhead's tooltip script only on pages with item links (Wowhead links or data-wowhead tooltips).
+  // Our links carry their own icon and name, so tooltip data loads only on hover. Two Wowhead options:
+  //  - renameLinks: on everywhere. Wowhead then fetches names up front only for links that ask for it
+  //    (data-wh-rename-link="true": items Blizzard has no name for), and leaves our own links alone.
+  //  - iconizeLinks: only where a Wowhead link has no icon of ours (character gear). With it on,
+  //    Wowhead downloads data for every link on page load — thousands of requests on the item index.
   var whLoaded = false;
   function setupWowhead() {
-    if (!document.querySelector('a.wh:not(.wh-search)')) return;
+    if (!document.querySelector('a.wh:not(.wh-search), [data-wowhead]')) return;
     if (whLoaded) {
       // links added after page load: ask the script to scan again
       try {
@@ -174,7 +178,8 @@
       return;
     }
     whLoaded = true;
-    window.whTooltips = { colorLinks: false, iconizeLinks: true, renameLinks: true };
+    var needsWh = !!document.querySelector("a.wh:not([data-wh-icon-added])");
+    window.whTooltips = { colorLinks: false, iconizeLinks: needsWh, renameLinks: true };
     var s = document.createElement("script");
     s.src = "https://wow.zamimg.com/js/tooltips.js";
     s.async = true;
@@ -238,6 +243,7 @@
       status.textContent = "Loading prices…";
       Promise.all([getJSON(priceUrl("meta", state.region)), getJSON(priceUrl("items", state.region))]).then(function (res) {
         meta = res[0]; names = res[1] || {};
+        useItemIcons(state.region, names);
         if (!meta || !meta.groups || !meta.groups.length) {
           showUnavailable(C.pricesApi ? "Live prices are temporarily unavailable. Please try again later." :
             "No price data on this computer yet. Run `node pipeline/run.js` in the project folder, then reload this page.");
@@ -427,10 +433,25 @@
     loadRegion();
   };
 
-  // Link to our own item page when we know the item's name, otherwise to Wowhead
+  /* ---------- item icons ---------- */
+  // Pages that load the item cache (items_<region>.json) register it here, so any item link can show its icon.
+  var iconSrc = { region: "eu", items: {} };
+  function useItemIcons(region, items) { iconSrc = { region: region, items: items || {} }; }
+  // Small icon for an item (empty space of the same size when we have none, so lists stay aligned)
+  function itemIcon(id) {
+    var it = iconSrc.items[id] || [], url = window.PriceMath ? window.PriceMath.iconUrl(it[6], iconSrc.region, 36) : null;
+    if (!url) return '<span class="item-icon" aria-hidden="true"></span>';
+    return '<img class="item-icon' + (it[4] ? " qb-" + esc(it[4]) : "") + '" src="' + esc(url) + '" alt="" width="20" height="20" loading="lazy" decoding="async">';
+  }
+
+  // Wowhead hover tooltip on one of our own links (keeps our icon and text)
+  function whTip(id) { return id ? ' data-wowhead="item=' + Number(id) + '&amp;domain=forever" data-wh-icon-added="true" data-wh-rename-link="false"' : ""; }
+
+  // Link to our own item page when we know the item's name. Otherwise link to Wowhead, which fills in
+  // the name (brand-new Forever items Blizzard's API doesn't describe yet); our icon stays.
   function itemPageLink(id, name, cls) {
-    if (name && window.PriceMath) return '<a class="item-link' + (cls ? " " + cls : "") + '" href="' + esc(window.PriceMath.itemPath(id, name)) + '">' + esc(name) + "</a>";
-    return '<a class="wh item-link" href="https://www.wowhead.com/forever/item=' + id + '" target="_blank" rel="noopener nofollow" data-wh-rename-link="true">Item #' + id + "</a>";
+    if (name && window.PriceMath) return '<a class="item-link' + (cls ? " " + cls : "") + '" href="' + esc(window.PriceMath.itemPath(id, name)) + '"' + whTip(id) + ">" + itemIcon(id) + esc(name) + "</a>";
+    return itemIcon(id) + '<a class="wh item-link" href="https://www.wowhead.com/forever/item=' + id + '" target="_blank" rel="noopener nofollow" data-wh-rename-link="true" data-wh-icon-added="true">Item #' + id + "</a>";
   }
 
   /* ---------- talent calculator ---------- */
@@ -661,6 +682,7 @@
     function load() {
       Promise.all([getJSON(priceUrl("meta", state.region)), getJSON(priceUrl("items", state.region)), getJSON(priceUrl("recipes", state.region))]).then(function (r) {
         meta = r[0]; items = r[1] || {}; recipes = r[2];
+        useItemIcons(state.region, items);
         if (!meta || !recipes) { $("#pl-app").hidden = true; $("#pl-empty").hidden = false; return; }
         byId = {};
         recipes.professions.forEach(function (p) { p.recipes.forEach(function (x) { if (x[6].length) byId[x[0]] = { id: x[0], name: x[1], prof: p.name, item: x[3], itemName: x[4], q: x[5], r: x[6] }; }); });
@@ -687,7 +709,7 @@
 
       $("#pl-recipes").innerHTML = rows.length ? rows.map(function (x) {
         var r = x.recipe;
-        return '<li><div class="pl-rec"><a href="' + esc(PM.recipePath(r.id, r.name)) + '">' + esc(r.name) + '</a> <span class="faint">' + esc(r.prof) + "</span></div>" +
+        return '<li><div class="pl-rec"><a href="' + esc(PM.recipePath(r.id, r.name)) + '"' + whTip(r.item) + ">" + itemIcon(r.item) + esc(r.name) + '</a> <span class="faint">' + esc(r.prof) + "</span></div>" +
           '<label class="pl-qty"><span class="sr-only">Times to craft ' + esc(r.name) + '</span><input class="input" type="number" min="1" max="999" value="' + x.crafts + '" data-r="' + r.id + '"></label>' +
           '<button type="button" class="icon-btn pl-remove" data-r="' + r.id + '"><span aria-hidden="true">×</span><span class="sr-only">Remove ' + esc(r.name) + "</span></button></li>";
       }).join("") : '<li class="empty">Your plan is empty. Add recipes with the search box above, or with "+ Add to my crafting plan" on any recipe page.</li>';
@@ -716,7 +738,7 @@
       var hits = Object.keys(byId).map(function (k) { return byId[k]; }).filter(function (r) {
         return r.name.toLowerCase().indexOf(term) >= 0 || (r.itemName || "").toLowerCase().indexOf(term) >= 0;
       }).slice(0, 8);
-      addList.innerHTML = hits.map(function (r) { return '<li><button type="button" class="pl-pick" data-r="' + r.id + '">' + esc(r.name) + ' <span class="faint">' + esc(r.prof) + "</span></button></li>"; }).join("") ||
+      addList.innerHTML = hits.map(function (r) { return '<li><button type="button" class="pl-pick" data-r="' + r.id + '">' + itemIcon(r.item) + esc(r.name) + ' <span class="faint">' + esc(r.prof) + "</span></button></li>"; }).join("") ||
         '<li class="faint" style="padding:8px">No recipe matches.</li>';
     });
     addList.addEventListener("click", function (e) {
@@ -789,6 +811,7 @@
       summary.textContent = "Loading…";
       Promise.all([getJSON(priceUrl("meta", state.region)), getJSON(priceUrl("items", state.region))]).then(function (r) {
         var meta = r[0]; names = r[1] || {};
+        useItemIcons(state.region, names);
         if (!meta || !meta.groups || !meta.groups.length) { $("#fl-app").hidden = true; $("#fl-empty").hidden = false; return; }
         $("#fl-app").hidden = false; $("#fl-empty").hidden = true;
         groupSel.innerHTML = meta.groups.map(function (g) { return '<option value="' + esc(g) + '">' + esc(groupLabel(meta, g)) + "</option>"; }).join("");
@@ -842,6 +865,7 @@
       status.textContent = "Loading recipes and prices…";
       Promise.all([getJSON(priceUrl("meta", state.region)), getJSON(priceUrl("items", state.region)), getJSON(priceUrl("recipes", state.region))]).then(function (r) {
         meta = r[0]; items = r[1] || {}; recipes = r[2];
+        useItemIcons(state.region, items);
         if (!meta || !meta.groups || !meta.groups.length || !recipes) {
           unavailable(C.pricesApi ? "The craft calculator is temporarily unavailable." : "No recipe/price data on this computer yet. Run `node pipeline/run.js`, then reload.");
           return;
@@ -912,16 +936,17 @@
     // recipe name → its own recipe page (cost, profit on every AH)
     function itemOrRecipe(r) {
       var href = esc(PM.recipePath(r.id, r.name));
-      if (!r.item) return '<a class="item-link" href="' + href + '">' + esc(r.name) + '</a> <span class="tag">enchant</span>';
+      if (!r.item) return '<a class="item-link" href="' + href + '">' + itemIcon(null) + esc(r.name) + '</a> <span class="tag">enchant</span>';
       var it = items[r.item] || [];
-      return '<a class="item-link" href="' + href + '">' + esc(r.itemName || it[0] || r.name) + "</a>" + (r.q > 1 ? ' <span class="faint">×' + r.q + "</span>" : "");
+      return '<a class="item-link" href="' + href + '"' + whTip(r.item) + ">" + itemIcon(r.item) + esc(r.itemName || it[0] || r.name) + "</a>" + (r.q > 1 ? ' <span class="faint">×' + r.q + "</span>" : "");
     }
     function detailRow(r) {
       var res = r.res;
       return '<tr class="cr-detail"><td colspan="6"><ul class="mats">' + r.reagents.map(function (x, i) {
         var p = res.parts[i];
         var src = p.source === "ah" ? "Auction House" : p.source === "vendor" ? "vendor price (estimate — check a vendor sells it)" : "no price found";
-        return '<li><b>' + x[1] + "×</b> " + '<a class="wh item-link" href="https://www.wowhead.com/forever/item=' + x[0] + '" target="_blank" rel="noopener nofollow" data-wh-rename-link="false">' + esc(x[2]) + "</a> — " +
+        // our icon sits outside the Wowhead link, which is told not to add its own
+        return '<li><b>' + x[1] + "×</b> " + itemIcon(x[0]) + '<a class="wh item-link" href="https://www.wowhead.com/forever/item=' + x[0] + '" target="_blank" rel="noopener nofollow" data-wh-rename-link="false" data-wh-icon-added="true">' + esc(x[2]) + "</a> — " +
           (p.unit != null ? money(p.unit) + " each = " + money(p.unit * x[1]) : "?") + ' <span class="faint">(' + src + ")</span></li>";
       }).join("") + "</ul>" +
         '<p class="faint">Sells on the AH for ' + money(res.sellAh) + (res.sellVendor ? ", to a vendor for " + money(res.sellVendor) : "") + ". Profit = AH price minus the 5% AH cut minus materials. It ignores deposits, whether it sells, and your time.</p></td></tr>";

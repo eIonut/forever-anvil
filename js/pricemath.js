@@ -185,6 +185,12 @@ function slugify(name) {
 function itemPath(id, name) { const s = slugify(name); return "item/" + id + (s ? "-" + s : "") + ".html"; }
 function recipePath(id, name) { const s = slugify(name); return "recipe/" + id + (s ? "-" + s : "") + ".html"; }
 
+// Item icon on Blizzard's image server, from the icon file id in the item cache (entry [6]).
+// The same id works in every region; sizes 18, 36 and 56 exist.
+function iconUrl(fileId, region, size) {
+  return fileId ? "https://render.worldofwarcraft.com/forever-" + (region || "eu") + "/icons/" + (size || 36) + "/" + fileId + ".jpg" : null;
+}
+
 // Combined shopping list for a crafting plan.
 // plan: [{ recipe: { id, q, item, r: [[reagentId, qty], ...] }, crafts }]
 // have: { itemId: unitsAlreadyOwned }; price(id) → { ah, vendor, sell }
@@ -216,7 +222,7 @@ function planShoppingList(plan, have, price) {
   return { mats, cost: Math.round(cost), complete, sales: net, salesComplete, profit: complete && salesComplete ? net - Math.round(cost) : null };
 }
 
-var api = { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, planShoppingList, itemPath, recipePath, dayNumber, HISTORY_DAYS, SHARDS, DAY_MS };
+var api = { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, planShoppingList, itemPath, recipePath, iconUrl, dayNumber, HISTORY_DAYS, SHARDS, DAY_MS };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.PriceMath = api;
 })(typeof window !== "undefined" ? window : globalThis);

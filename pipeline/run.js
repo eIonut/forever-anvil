@@ -48,7 +48,8 @@ async function main() {
   const log = (s) => console.log(`[${((Date.now() - t0) / 1000).toFixed(1)}s] ${s}`);
 
   // item cache (names, vendor prices) is needed during aggregation for vendor flips
-  // entry: [name|null, sellPrice|null, dayFetched, buyPrice|null, quality|null, itemClass|null]
+  // entry: [name|null, sellPrice|null, dayFetched, buyPrice|null, quality|null, itemClass|null, iconFileId|0|null, source]
+  //   iconFileId: 0 = none, null = not looked up yet; source: "era" = name/quality/type from Classic Era data
   const items = (await store.getJSON(`items:${region}`)) || {};
   const vendorPays = (id) => (items[id] && items[id][1]) || null;
 
@@ -91,29 +92,55 @@ async function main() {
   const reagentIds = new Set();
   for (const p of recipes.professions) for (const r of p.recipes) { for (const x of r[6]) reagentIds.add(x[0]); if (r[3]) reagentIds.add(r[3]); }
 
-  /* 4: item names, vendor prices, quality and type (for item pages) */
+  /* 4: item names, vendor prices, quality, type and icon (for item pages) */
+  // Blizzard's Forever item data lacks many older items (e.g. Brain Hacker, 1263) that its Classic Era
+  // data still has. For those we take the name, quality and type from Classic Era, but not vendor prices,
+  // so vendor flips and costs only ever use Forever's own numbers. Entry [7] = "era" marks them.
   let changed = false;
   for (const id of Object.keys(items)) if (today - items[id][2] >= 30) { delete items[id]; changed = true; } // never keep > 30 days
   const wanted = new Set([...seenItems, ...reagentIds]);
   const todo = [...wanted].filter((id) => {
     const e = items[id];
     if (!e || (e[0] != null && e.length < 6)) return true; // older entries lack quality/type
+    if (e[0] == null && e.length < 8) return true;          // unknown, and Classic Era not tried yet
     const age = today - e[2];
     return e[0] == null ? age >= ITEM_RETRY_404_DAYS : age >= REFRESH_DAYS;
   }).slice(0, maxNewItems);
   if (todo.length) {
-    let found = 0;
+    let found = 0, fromEra = 0;
+    const lower = (x) => (x && x.type ? x.type.toLowerCase() : null);
     await pool(todo, 10, async (id) => {
+      const icon = items[id] && items[id][6] != null ? items[id][6] : null; // keep a known icon
       const r = await api.get(`/data/wow/item/${id}`, api.ns.static, { retries: 2 });
       if (r.status === 200 && r.json) {
         const j = r.json;
-        items[id] = [j.name || null, j.sell_price ?? null, today, j.purchase_price ?? null,
-          j.quality && j.quality.type ? j.quality.type.toLowerCase() : null, j.item_class && j.item_class.name ? j.item_class.name : null];
+        items[id] = [j.name || null, j.sell_price ?? null, today, j.purchase_price ?? null, lower(j.quality), (j.item_class && j.item_class.name) || null, icon, null];
         found++;
-      } else if (r.status === 404) items[id] = [null, null, today, null, null, null];
+      } else if (r.status === 404) {
+        const era = await api.get(`/data/wow/item/${id}`, `static-classic1x-${region}`, { retries: 2 });
+        if (era.status === 200 && era.json && era.json.name) {
+          const j = era.json;
+          items[id] = [j.name, null, today, null, lower(j.quality), (j.item_class && j.item_class.name) || null, icon, "era"];
+          found++; fromEra++;
+        } else if (era.status === 200 || era.status === 404) items[id] = [null, null, today, null, null, null, icon, null];
+      }
     });
     changed = true;
-    log(`Item names: looked up ${todo.length}, found ${found}; ${Object.keys(items).length} cached`);
+    log(`Item names: looked up ${todo.length}, found ${found} (${fromEra} from Classic Era data); ${Object.keys(items).length} cached`);
+  }
+
+  // icons: every item without one yet, named or not (the icon lookup knows items the item lookup doesn't)
+  const iconTodo = Object.keys(items).filter((id) => items[id][6] == null);
+  if (iconTodo.length) {
+    let found = 0;
+    await pool(iconTodo, 10, async (id) => {
+      const r = await api.get(`/data/wow/media/item/${id}`, api.ns.static, { retries: 2 });
+      const a = r.status === 200 && r.json && Array.isArray(r.json.assets) ? r.json.assets.find((x) => x.key === "icon") : null;
+      if (a && a.file_data_id) found++;
+      if (r.status === 200 || r.status === 404) items[id][6] = (a && a.file_data_id) || 0; // 0 = no icon; other errors retry next run
+    });
+    changed = true;
+    log(`Item icons: looked up ${iconTodo.length}, found ${found}`);
   }
   if (changed) await store.putJSON(`items:${region}`, items);
 

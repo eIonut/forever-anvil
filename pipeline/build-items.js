@@ -104,7 +104,7 @@ function main() {
   if (!regions.length) { console.error("No data in ./out — run `node pipeline/run.js` first."); process.exit(1); }
 
   // ---- gather data ----
-  const names = {};              // id → [name, sell, day, buy, quality, class]
+  const names = {};              // id → [name, sell, day, buy, quality, class, iconFileId]
   const prices = {};             // id → [{ region, group, label, faction, houseId, min, market, qty, n }]
   const history = {};            // `${region}:${houseId}` → { itemId: points }
   const recipesBy = { made: {}, used: {} };
@@ -143,7 +143,20 @@ function main() {
   // Items that get a page: named, and either on an auction house or part of a recipe
   const pageIds = Object.keys(names).filter((id) => names[id] && names[id][0] && (prices[id] || recipesBy.made[id] || recipesBy.used[id]));
   const hasPage = new Set(pageIds);
-  const link = (id, name) => (hasPage.has(String(id)) ? `<a href="${esc(PM.itemPath(id, name))}">${esc(name)}</a>` : esc(name));
+  // item icon from Blizzard's image server (same file id in every region); a blank of the same size keeps lists aligned
+  const icon = (id, size = 36, px = 20, cls = "item-icon") => {
+    const n = names[id] || [], url = PM.iconUrl(n[6], regions[0], size);
+    return url ? `<img class="${cls}${n[4] ? " qb-" + esc(n[4]) : ""}" src="${esc(url)}" alt="" width="${px}" height="${px}"${px < 40 ? ' loading="lazy" decoding="async"' : ""}>`
+      : (px < 40 ? '<span class="item-icon" aria-hidden="true"></span>' : "");
+  };
+  // Wowhead hover tooltip on our own links (Wowhead keeps our icon and text)
+  const tip = (id) => (id ? ` data-wowhead="item=${Number(id)}&amp;domain=forever" data-wh-icon-added="true" data-wh-rename-link="false"` : "");
+  // tooltips only work on links, so items without a page of their own link to Wowhead
+  const whHref = (id) => `https://www.wowhead.com/forever/item=${Number(id)}`;
+  const link = (id, name) => (hasPage.has(String(id)) ? `<a href="${esc(PM.itemPath(id, name))}"${tip(id)}>${icon(id)}${esc(name)}</a>`
+    : `<a href="${whHref(id)}" target="_blank" rel="noopener nofollow"${tip(id)}>${icon(id)}${esc(name)}<span class="sr-only"> (Wowhead, opens in a new tab)</span></a>`);
+  // big title icon: hover for the tooltip, click for the full Wowhead page
+  const bigIcon = (id) => `<a class="item-icon-link" href="${whHref(id)}" target="_blank" rel="noopener nofollow"${tip(id)}>${icon(id, 56, 56, "item-icon-lg")}<span class="sr-only">Item details on Wowhead (opens in a new tab)</span></a>`;
   const recipeLink = (r, text) => `<a href="${esc(PM.recipePath(r.id, r.name))}">${esc(text || r.name)}</a>`;
 
   // "Primary" market for summaries and material costs: first confirmed ruleset, Alliance; else first group
@@ -215,7 +228,7 @@ function main() {
     const canonical = `${SITE}/${PM.itemPath(id, name)}`;
     const body = `<section class="hero page-hero"><div class="wrap">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a> › <a href="item/index.html">Item prices</a> › ${esc(name)}</nav>
-  <div class="item-title"><h1 class="${quality ? "q-" + esc(quality) : ""}">${esc(name)}</h1></div>
+  <div class="item-title">${bigIcon(id)}<h1 class="${quality ? "q-" + esc(quality) : ""}">${esc(name)}</h1></div>
   <p class="item-sub">${[qualityName, itemClass, "WoW: Forever"].filter(Boolean).map(esc).join(" · ")}</p>
   <p class="item-summary">${summary}${v ? " " + v : ""}</p>
   <div class="item-actions">
@@ -303,7 +316,7 @@ function main() {
     const desc = `${r.name} (${r.prof}) in WoW: Forever: materials${res && res.costComplete ? ` cost about ${money(res.cost, true)}` : ""}${res && res.profit != null ? `, ${res.profit >= 0 ? "profit" : "loss"} ${money(Math.abs(res.profit), true)} after the AH cut` : ""}. Live material prices and profit on every auction house.`;
     const body = `<section class="hero page-hero"><div class="wrap">
   <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a> › <a href="recipe/index.html">Recipes</a> › ${esc(r.prof)} › ${esc(r.name)}</nav>
-  <h1>${esc(r.name)}</h1>
+  <div class="item-title">${r.item ? bigIcon(r.item) : ""}<h1>${esc(r.name)}</h1></div>
   <p class="item-sub">${[r.prof, r.cat, "WoW: Forever recipe"].filter(Boolean).map(esc).join(" · ")}</p>
   <p class="item-summary">${summary}</p>
   <div class="item-actions">
@@ -341,7 +354,7 @@ function main() {
   <label class="field-label" for="idx-search">Find a recipe</label>
   <input class="input" type="search" id="idx-search" placeholder="e.g. Bolt of Linen Cloth" autocomplete="off" style="width:100%;max-width:420px">
   <nav class="az" aria-label="Jump to profession">${profs.map((p) => `<a href="recipe/index.html#prof-${PM.recipePath(0, p).slice(9, -5)}">${esc(p)}</a>`).join("")}</nav>
-  ${profs.map((p) => `<h2 id="prof-${PM.recipePath(0, p).slice(9, -5)}">${esc(p)} <span class="faint">(${byProf[p].length})</span></h2><ul>${byProf[p].slice().sort((a, b) => a.name.localeCompare(b.name)).map((r) => `<li>${recipeLink(r)}</li>`).join("")}</ul>`).join("\n")}
+  ${profs.map((p) => `<h2 id="prof-${PM.recipePath(0, p).slice(9, -5)}">${esc(p)} <span class="faint">(${byProf[p].length})</span></h2><ul>${byProf[p].slice().sort((a, b) => a.name.localeCompare(b.name)).map((r) => `<li><a href="${esc(PM.recipePath(r.id, r.name))}"${tip(r.item)}>${icon(r.item)}${esc(r.name)}</a></li>`).join("")}</ul>`).join("\n")}
   <p class="faint">Data provided by Blizzard Entertainment. Prices as of ${esc(asOf)}.</p>
 </div>`;
   fs.writeFileSync(path.join(RECIPE_DIR, "index.html"), shell({
@@ -366,7 +379,7 @@ function main() {
   <nav class="az" aria-label="Jump to letter">${keys.map((k) => `<a href="item/index.html#letter-${k === "#" ? "num" : k}">${k}</a>`).join("")}</nav>
   ${keys.map((k) => `<h2 id="letter-${k === "#" ? "num" : k}">${k}</h2><ul>${groups[k].map(([id, name]) => {
     const q = names[id][4];
-    return `<li><a class="${q ? "q-" + esc(q) : ""}" href="${esc(PM.itemPath(id, name))}">${esc(name)}</a></li>`;
+    return `<li><a class="${q ? "q-" + esc(q) : ""}" href="${esc(PM.itemPath(id, name))}"${tip(id)}>${icon(id)}${esc(name)}</a></li>`;
   }).join("")}</ul>`).join("\n")}
   <p class="faint">Data provided by Blizzard Entertainment. Snapshot from ${esc(asOf)}.</p>
 </div>`;
