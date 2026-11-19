@@ -1,4 +1,4 @@
-# secrets — never publish these
+# secrets: never publish these
 .env
 .env.*
 !.env.example

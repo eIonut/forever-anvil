@@ -7,10 +7,10 @@ export function coins(copper: number | null | undefined): { g: number; s: number
   return { g: Math.floor(c / 10000), s: Math.floor((c % 10000) / 100), c: c % 100 };
 }
 
-/** "1,234g 40s 5c" as plain text (for descriptions and labels), "—" when there's no price. */
+/** "1,234g 40s 5c" as plain text (for descriptions and labels), "-" when there's no price. */
 export function moneyText(copper: number | null | undefined): string {
   const m = coins(copper);
-  if (!m) return "—";
+  if (!m) return "-";
   const parts: string[] = [];
   if (m.g) parts.push(num(m.g) + "g");
   if (m.g || m.s) parts.push(m.s + "s");

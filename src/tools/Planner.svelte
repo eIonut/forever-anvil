@@ -4,7 +4,7 @@
   import type { Snippet } from "svelte";
   import { onMount, tick } from "svelte";
   import { planShoppingList } from "../lib/pricemath.js";
-  import { copyText, getJSON, groupLabel, localTime, priceUrl } from "../lib/api";
+  import { copyText, getCachedJSON, getJSON, groupLabel, localTime, priceUrl } from "../lib/api";
   import { announce } from "../lib/announce";
   import { getMarketPrefs, saveMarketPrefs } from "../lib/marketPrefs";
   import { addToPlan, getPlan, setPlan, type Plan } from "../lib/plan";
@@ -50,7 +50,7 @@
 
   async function load() {
     const [meta, items, recipes] = await Promise.all([
-      getJSON<Meta>(priceUrl("meta", region)), getJSON<Record<string, ItemInfo>>(priceUrl("items", region)), getJSON<Recipes>(priceUrl("recipes", region)),
+      getJSON<Meta>(priceUrl("meta", region)), getCachedJSON<Record<string, ItemInfo>>(priceUrl("items", region)), getCachedJSON<Recipes>(priceUrl("recipes", region)),
     ]);
     useItems(region, items);
     if (!meta || !recipes) { empty = true; return; }
@@ -166,9 +166,9 @@
             <tbody>
               {#if ready}
                 {#each mats as m (m.id)}
-                  <tr><th scope="row"><ItemLink id={m.id} name={itemName(m.id)} /></th><td>{m.need}</td>
+                  <tr><th scope="row"><ItemLink id={m.id} name={itemName(m.id)} copy /></th><td>{m.need}</td>
                     <td><label><span class="sr-only">Already have {itemName(m.id) || "Item #" + m.id}</span><input class="input pl-have" type="number" min="0" value={m.have} onchange={(e) => setHave(m.id, e.currentTarget)} /></label></td>
-                    <td><b>{m.buy}</b></td><td>{#if m.unit != null}<Money c={m.unit} />{:else}<span class="faint">no price</span>{/if} <span class="faint">{m.source === "ah" ? "AH" : m.source === "vendor" ? "vendor" : ""}</span></td><td>{#if m.cost != null}<Money c={m.cost} />{:else}—{/if}</td></tr>
+                    <td><b>{m.buy}</b></td><td>{#if m.unit != null}<Money c={m.unit} />{:else}<span class="faint">no price</span>{/if} <span class="faint">{m.source === "ah" ? "AH" : m.source === "vendor" ? "vendor" : ""}</span></td><td>{#if m.cost != null}<Money c={m.cost} />{:else}-{/if}</td></tr>
                 {:else}
                   <tr><td colspan="6" class="empty">Materials appear here once you add recipes.</td></tr>
                 {/each}
@@ -176,7 +176,7 @@
             </tbody>
           </table>
         </div>
-        <p class="faint" style="margin-top:8px">Type how many you already have in the <b>Have</b> column and the list updates. "vendor" prices are Blizzard's vendor price for items not on the AH — check a trade vendor sells them.</p>
+        <p class="faint" style="margin-top:8px">Type how many you already have in the <b>Have</b> column and the list updates. "vendor" prices are Blizzard's vendor price for items not on the AH. Check a trade vendor sells them.</p>
       </section>
     </div>
 
@@ -185,11 +185,11 @@
         <h2 id="pl-sum-title">Totals</h2>
         <dl>
           <div><dt>Materials to buy</dt><dd>{#if ready}<Money c={res.cost} />{#if !res.complete}{" "}<span class="faint">+ items with no price</span>{/if}{/if}</dd></div>
-          <div><dt>Results sell for <span class="faint">(after 5% AH cut)</span></dt><dd>{#if ready}{#if res.sales}<Money c={res.sales} />{#if !res.salesComplete}{" "}<span class="faint">(some results not on AH)</span>{/if}{:else}<span class="faint">—</span>{/if}{/if}</dd></div>
-          <div><dt>Profit</dt><dd>{#if ready}{#if res.profit != null}<span class="pct {res.profit >= 0 ? 'up' : 'down'}">{res.profit >= 0 ? "+" : "−"}</span> <Money c={Math.abs(res.profit)} />{:else}<span class="faint">—</span>{/if}{/if}</dd></div>
+          <div><dt>Results sell for <span class="faint">(after 5% AH cut)</span></dt><dd>{#if ready}{#if res.sales}<Money c={res.sales} />{#if !res.salesComplete}{" "}<span class="faint">(some results not on AH)</span>{/if}{:else}<span class="faint">-</span>{/if}{/if}</dd></div>
+          <div><dt>Profit</dt><dd>{#if ready}{#if res.profit != null}<span class="pct {res.profit >= 0 ? 'up' : 'down'}">{res.profit >= 0 ? "+" : "−"}</span> <Money c={Math.abs(res.profit)} />{:else}<span class="faint">-</span>{/if}{/if}</dd></div>
         </dl>
         <p class="faint">{groupData ? "Prices from " + localTime(groupData.updated) : ""}</p>
-        <p class="faint">Your plan is saved in this browser — no account needed.</p>
+        <p class="faint">Your plan is saved in this browser, no account needed.</p>
       </section>
       {@render sidebar?.()}
     </aside>

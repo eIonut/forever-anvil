@@ -22,12 +22,56 @@ export async function getJSON<T = any>(url: string): Promise<T | null> {
   }
 }
 
+// Item and recipe files are big (~1 MB and ~0.5 MB) and change rarely (new items, a recipe refresh
+// every 25 days), unlike prices, which change hourly. So they're kept for a while in session storage:
+// moving between Prices, Crafting, Flips, Economy and the Planner doesn't download them again.
+// Session storage is per tab and cleared when the tab closes; a full or blocked storage just means
+// no caching. Several tools asking at once share one download.
+const CACHE_PREFIX = "codex-cache:";
+const inFlight = new Map<string, Promise<unknown>>();
+
+/** Like getJSON, but reuses a copy from the last maxAgeMs (default 30 minutes) in this tab. */
+export function getCachedJSON<T = any>(url: string, maxAgeMs = 30 * 60 * 1000): Promise<T | null> {
+  const key = CACHE_PREFIX + url;
+  try {
+    const hit = sessionStorage.getItem(key);
+    if (hit) {
+      const bar = hit.indexOf("|"), saved = Number(hit.slice(0, bar));
+      if (Date.now() - saved < maxAgeMs) return Promise.resolve(JSON.parse(hit.slice(bar + 1)) as T);
+    }
+  } catch { /* storage blocked or corrupt copy: download instead */ }
+  if (inFlight.has(url)) return inFlight.get(url) as Promise<T | null>;
+  const job = (async () => {
+    try {
+      const r = await fetch(url, { cache: "no-cache" });
+      if (!r.ok) return null;
+      const text = await r.text();
+      try {
+        sessionStorage.setItem(key, Date.now() + "|" + text);
+      } catch {
+        // storage full: drop older copies and try once more; if it still doesn't fit, just don't cache
+        try {
+          for (const k of Object.keys(sessionStorage)) if (k.startsWith(CACHE_PREFIX)) sessionStorage.removeItem(k);
+          sessionStorage.setItem(key, Date.now() + "|" + text);
+        } catch { /* no caching this time */ }
+      }
+      return JSON.parse(text) as T;
+    } catch {
+      return null;
+    } finally {
+      inFlight.delete(url);
+    }
+  })();
+  inFlight.set(url, job);
+  return job;
+}
+
 /** Message when the data files can't be loaded: different on the live site and on your computer. */
 export const noDataMessage = (live: string, local: string) => (config.pricesApi ? live : local);
 
-/** "PvP" once confirmed by an in-game check, otherwise "Group B — ruleset not confirmed yet" */
+/** "PvP" once confirmed by an in-game check, otherwise "Group B, ruleset not confirmed yet" */
 export function groupLabel(rulesets: Record<string, string> | undefined, g: string): string {
-  return rulesets?.[g] || "Group " + g + " — ruleset not confirmed yet";
+  return rulesets?.[g] || "Group " + g + " · ruleset not confirmed yet";
 }
 
 /** Is it better to sell on the auction house or to a vendor? (The AH keeps 5% of the sale price.) */

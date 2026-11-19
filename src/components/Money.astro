@@ -1,5 +1,6 @@
 ---
-// A price in copper shown as coloured coins: 1,234g 40s 5c (the text stays readable without colour).
+// A price in copper as in the game's money frame: number + gold/silver/copper coin icon.
+// The g/s/c letters stay in the text (visually hidden) for screen readers and copy-paste.
 import { coins, num } from "../lib/format";
 
 interface Props {
@@ -8,11 +9,11 @@ interface Props {
 
 const m = coins(Astro.props.c);
 const parts = m
-  ? [m.g ? ["g", num(m.g) + "g"] : null, m.g || m.s ? ["s", m.s + "s"] : null, ["c", m.c + "c"]].filter((p): p is string[] => !!p)
+  ? [m.g ? ["g", num(m.g)] : null, m.g || m.s ? ["s", String(m.s)] : null, ["c", String(m.c)]].filter((p): p is string[] => !!p)
   : [];
 ---
 {m ? (
-  <span class="money">{parts.map(([k, text], i) => <Fragment>{i > 0 && " "}<span class={`coin ${k}`}>{text}</span></Fragment>)}</span>
+  <span class="money">{parts.map(([k, text]) => <span class={`coin ${k}`}>{text}<span class="sr-only">{k}</span></span>)}</span>
 ) : (
-  <span class="faint">—</span>
+  <span class="faint">-</span>
 )}

@@ -2,6 +2,9 @@
 // Add to pages with item links: loads Wowhead's hover tooltips (see src/lib/wowhead.ts).
 ---
 <script>
-  import { setupWowhead } from "../lib/wowhead";
-  setupWowhead();
+import { setupWowhead } from "../lib/wowhead";
+  import { onPage } from "../lib/page";
+
+  // loads the tooltip script on the first page with item links; on later pages, asks it to find the new links
+  onPage(() => setupWowhead());
 </script>

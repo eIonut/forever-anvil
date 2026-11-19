@@ -102,7 +102,7 @@
   function change(t: number, n: Node, dir: 1 | -1) {
     const ok = dir > 0 ? TM.add(specs, build, t, n, available) : TM.remove(specs, build, t, n);
     if (!ok) {
-      announce(dir > 0 ? reqText(t, n) || n[3] + " is at max rank." : "Can't unlearn " + n[3] + " — other talents depend on it.");
+      announce(dir > 0 ? reqText(t, n) || n[3] + " is at max rank." : "Can't unlearn " + n[3] + ": other talents depend on it.");
       shake = t + ":" + n[0];
       setTimeout(() => (shake = ""), 300);
     }

@@ -5,8 +5,8 @@ export interface Meta {
   rulesets?: Record<string, string>;
 }
 
-/** Per item on one auction house: [lowest, market, units listed, listings] */
-export type ItemPrice = [number, number, number, number];
+/** Per item on one auction house: [lowest, market, units listed, listings, estimated units sold per day (absent = none seen)] */
+export type ItemPrice = [number, number, number, number, number?];
 
 /** [itemId, unitsBelowVendor, totalProfit, cheapestUnit, vendorPays] */
 export type Flip = [number, number, number, number, number];
@@ -16,6 +16,8 @@ export interface House {
   listings: number;
   items: Record<string, ItemPrice>;
   flips?: Flip[];
+  /** hours of auction changes behind the sold-per-day estimates (last 7 days); absent/0 = still collecting */
+  salesHours?: number;
 }
 
 export interface GroupPrices {
@@ -25,8 +27,11 @@ export interface GroupPrices {
   houses: Record<string, House>;
 }
 
-/** [recipeId, name, category, itemId, itemName, makes, [[reagentId, qty, name], ...]] */
-export type RecipeRow = [number, string, string, number | null, string | null, number, [number, number, string][]];
+import type { RecipeInfo } from "../lib/recipeinfo";
+export type { RecipeInfo };
+
+/** [recipeId, name, category, itemId, itemName, makes, [[reagentId, qty, name], ...], details from the game files] */
+export type RecipeRow = [number, string, string, number | null, string | null, number, [number, number, string][], RecipeInfo?];
 
 export interface Recipes {
   professions: { id: number; name: string; recipes: RecipeRow[] }[];
@@ -40,16 +45,8 @@ export function houseOf(g: GroupPrices | null, faction: string): { id: string; h
   return found;
 }
 
-/** One server group's market history (econ_<region>.json, written by pipeline/economy.js) */
+/** One server group's economy file entry (econ_<region>.json, written by pipeline/economy.js) */
 export interface EconGroup {
-  /** unix seconds of each point (daily points from history first, then one per price update) */
-  t: number[];
-  /** index key → value at each point (100 = when tracking began; null before an index started) */
-  idx: Record<string, (number | null)[]>;
-  /** listings in the group at each point (null for points from daily history) */
-  auctions: (number | null)[];
-  /** gold listed in the group at each point, whole gold */
-  gold: number[];
   /** houseId → itemId → % change in typical price since about a day ago (trade board items only) */
   board?: Record<string, Record<string, number>>;
 }

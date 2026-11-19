@@ -149,7 +149,7 @@ function craftProfit(recipe, price) {
 // Only counts listings with a buyout. Returns the best `top` items, most total profit first:
 //   [[itemId, unitsBelowVendor, totalProfit, cheapestUnit, vendorPays], ...]
 // A flip must earn at least minProfit copper AND minPct of the vendor price per unit,
-// so "pay 25s 99c to earn 10c" (0.4%) doesn't count — too risky for too little.
+// so "pay 25s 99c to earn 10c" (0.4%) doesn't count: too risky for too little.
 function computeFlips(listings, vendorPrice, opts) {
   opts = Object.assign({ minProfit: 10, minPct: 0.05, top: 100 }, opts || {});
   const byItem = new Map();

@@ -4,22 +4,24 @@ import PageHero from "../components/PageHero.astro";
 import Crafting from "../tools/Crafting.svelte";
 ---
 <BaseLayout
-  title="WoW: Forever Crafting Profit Calculator — Forever Tome"
+  title="WoW: Forever Crafting Profit Calculator | Forever Tome"
   description="Which WoW: Forever recipes make gold? Material costs from live auction prices, sale price, profit after the AH cut, for every profession."
   page="crafting"
 >
   <PageHero icon="crafting" eyebrow="Crafting" title="Craft profit calculator" facts={[{ icon: "clock", text: "Prices refreshed about every hour" }, { icon: "prices", text: "Profit after the 5% AH cut" }, { icon: "recipes", text: "Every profession and recipe" }]}>
-    Is it worth crafting? Material costs from current Auction House prices, what the result sells for, and your profit after the AH's 5% cut — for every recipe.
+    Is it worth crafting? Material costs from current Auction House prices, what the result sells for, and your profit after the AH's 5% cut, for every recipe.
   </PageHero>
 
   <Crafting client:load>
     <div class="panel pr-help">
       <h2>How it works</h2>
       <ul class="gems">
-        <li><b>Materials cost</b> uses each material's market price on the Auction House you picked. If a material isn't on the AH (like threads and dyes sold by trade vendors), we use Blizzard's vendor price — open "Materials" to see which.</li>
+        <li><b>Materials cost</b> uses each material's market price on the Auction House you picked. If a material isn't on the AH (like threads and dyes sold by trade vendors), we use Blizzard's vendor price. Open "Recipe" to see which.</li>
         <li><b>Profit</b> = AH price of what you make, minus the AH's 5% cut, minus materials. It doesn't include listing deposits, whether it actually sells, or the skill-ups you gain.</li>
         <li>"?" means at least one material has no price, so we can't work out a profit.</li>
-        <li>Recipe data comes from Blizzard and is refreshed every 25 days; prices every hour.</li>
+        <li><b>Skill</b> shows four numbers in the game's colours: the skill you need to learn the recipe (orange), then where it turns yellow, green and grey and stops giving skill points. For trainer recipes the trainer sets the exact skill, so we show "≤" the most it can be. Under each recipe you see where it's learned: a pattern or plan (linked to Wowhead, which shows where it drops or who sells it), a trainer, or automatically.</li>
+        <li><b>Sold/day</b> is our estimate of how many of the crafted item sell per day on that auction house, from hourly snapshots over the last 7 days.</li>
+        <li>Recipe data comes from Blizzard, skill levels and recipe sources from the game's own data files; both are refreshed every 25 days. Prices every hour.</li>
       </ul>
       <p class="faint">Data provided by Blizzard Entertainment. Forever Tome is not affiliated with or endorsed by Blizzard.</p>
     </div>

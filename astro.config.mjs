@@ -14,6 +14,9 @@ export default defineConfig({
   // Keep page scripts as shared files instead of copying small ones into all ~10,700 pages,
   // so browsers cache them once and pages stay small.
   vite: { build: { assetsInlineLimit: 0 } },
+  // Load a page in the background when the pointer rests on a link to it (or a finger touches it),
+  // so the click opens it almost at once. Only pages on this site; external links are left alone.
+  prefetch: { prefetchAll: true, defaultStrategy: "hover" },
   // lastmod = build day: generated pages are rebuilt daily with fresh prices
   // devApi: /out/* and /api/character during `npm run dev` only
   integrations: [svelte(), sitemap({ lastmod: new Date() }), devApi()],

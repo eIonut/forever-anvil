@@ -16,12 +16,12 @@ for (const r of c.recipes) (byProf[r.prof] ||= []).push(r);
 const profs = Object.keys(byProf).sort();
 ---
 <BaseLayout
-  title="WoW: Forever Recipes — Costs & Profit for Every Profession — Forever Tome"
+  title="WoW: Forever Recipes: Costs & Profit for Every Profession | Forever Tome"
   description={`All ${num(c.recipes.length)} WoW: Forever crafting recipes with live material costs and profit on every auction house.`}
   page="recipes"
 >
   <PageHero icon="recipes" eyebrow="Crafting" title="WoW: Forever recipes" facts={[{ icon: "recipes", text: "One page per recipe" }, { icon: "prices", text: "Cost and profit on every Auction House" }]}>
-    {num(c.recipes.length)} recipes across {profs.length} professions — each with today's material cost and profit on every Auction House.
+    {num(c.recipes.length)} recipes across {profs.length} professions, each with today's material cost and profit on every Auction House.
   </PageHero>
 
   <div class="wrap section item-index">
@@ -30,7 +30,7 @@ const profs = Object.keys(byProf).sort();
     {profs.map((p) => (
       <Fragment>
         <h2 id={professionAnchor(p)}>{p}{" "}<span class="faint">({byProf[p].length})</span></h2>
-        <ul>
+        <ul style={`--rows:${Math.ceil(byProf[p].length / 3)}`}>
           {byProf[p].slice().sort((a, b) => a.name.localeCompare(b.name)).map((r) => (
             <li><a href={recipeUrl(r.id, r.name)} {...tooltipAttrs(r.item)}><ItemIcon id={r.item} />{r.name}</a></li>
           ))}

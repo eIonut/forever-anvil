@@ -1,14 +1,22 @@
 ---
-// One of the site's line icons (src/lib/icons.ts). Decorative: hidden from screen readers,
-// so always put a text label next to it.
-import { ICONS, type IconName } from "../lib/icons";
+// One of the site's icons. Names listed in WOW_ICONS (src/lib/icons.ts) show Blizzard's own game icon,
+// framed like an action-bar button; the rest are line icons (Lucide). Decorative: hidden from
+// screen readers, so always put a text label next to it.
+import { ICONS, wowIcon, type AnyIconName } from "../lib/icons";
 
 interface Props {
-  name: IconName;
+  name: AnyIconName;
   size?: number;
+  /** line thickness on the 24-unit grid; Lucide's default is 2 */
+  stroke?: number;
+  /** force the line icon even when a WoW icon exists */
+  line?: boolean;
   class?: string;
 }
 
-const { name, size = 24, class: cls } = Astro.props;
+const { name, size = 24, stroke = 2, line = false, class: cls } = Astro.props;
+const wow = line ? undefined : wowIcon(name);
 ---
-<svg class:list={["icon", cls]} viewBox="0 0 48 48" width={size} height={size} aria-hidden="true" focusable="false" set:html={ICONS[name]} />
+{wow
+  ? <span class:list={["icon", "wow-icon", cls]} style={`width:${size}px;height:${size}px;background-image:url(${wow})`} aria-hidden="true"></span>
+  : <svg class:list={["icon", cls]} viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" stroke-width={stroke} stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false" set:html={ICONS[name as keyof typeof ICONS]} />}

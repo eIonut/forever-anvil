@@ -1,6 +1,6 @@
-# Forever Tome — unofficial WoW: Forever tools
+# Forever Tome: unofficial WoW: Forever tools
 
-A static website with tools for WoW: Forever: auction prices, an economy overview (market indexes, trade board, Blackwater flips), vendor flips, crafting profits and planner, a talent calculator and a character lookup. Built with [Astro](https://astro.build); the interactive tools are [Svelte](https://svelte.dev) components. See [docs/astro-migration-plan.md](docs/astro-migration-plan.md) for how the site moved to Astro.
+A static website with tools for WoW: Forever: auction prices, an economy overview (trade board, where the gold is, Blackwater flips), vendor flips, crafting profits and planner, a talent calculator and a character lookup. Built with [Astro](https://astro.build); the interactive tools are [Svelte](https://svelte.dev) components. See [docs/astro-migration-plan.md](docs/astro-migration-plan.md) for how the site moved to Astro.
 
 ## Run it locally
 
@@ -51,7 +51,7 @@ With `npm run dev` running and `.env` filled in, every tool works on localhost, 
 | `src/styles/global.css` | The WoW-style theme |
 | `public/` | Files served as-is: favicon, images, robots.txt |
 | `integrations/dev-api.ts` | `npm run dev` only: serves `out/` and `/api/character` |
-| `pipeline/` | The price job, the Blizzard API client and the character lookup. `pipeline/economy.js` adds the market indexes (`out/econ_<region>.json`) |
+| `pipeline/` | The price job, the Blizzard API client and the character lookup. `pipeline/economy.js` adds the trade board's 24-hour price changes (`out/econ_<region>.json`) |
 | `tools/` | One-off scripts: API probe, ruleset check, character opt-out |
 
 ## How to change things

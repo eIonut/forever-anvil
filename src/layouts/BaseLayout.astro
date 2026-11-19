@@ -13,6 +13,9 @@ import Seo from "../components/Seo.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
 import BackToTop from "../components/BackToTop.astro";
+// Client-side navigation: links swap the page in place instead of reloading the browser, so the
+// fonts, styles, scripts and the tools' cached data stay loaded. See src/lib/page.ts for page scripts.
+import { ClientRouter } from "astro:transitions";
 
 interface Props {
   title: string;
@@ -43,7 +46,19 @@ const { title, description, page, jsonld, noindex } = Astro.props;
         if (p.calm) h.setAttribute("data-calm", "");
         if (p.underline) h.setAttribute("data-underline", "");
       } catch (e) { /* storage blocked: defaults */ }
+      // On a client-side navigation the new page's <html> replaces these attributes:
+      // copy them over before the swap so the settings stay and nothing flashes. Registered once.
+      if (!window.__prefsSwap) {
+        window.__prefsSwap = true;
+        document.addEventListener("astro:before-swap", function (e) {
+          var to = e.newDocument.documentElement, from = document.documentElement;
+          ["data-text", "data-contrast", "data-calm", "data-underline"].forEach(function (a) {
+            if (from.hasAttribute(a)) to.setAttribute(a, from.getAttribute(a)); else to.removeAttribute(a);
+          });
+        });
+      }
     </script>
+    <ClientRouter />
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to main content</a>

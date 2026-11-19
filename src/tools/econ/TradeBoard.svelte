@@ -6,9 +6,10 @@
   import type { ItemPrice } from "../types";
   import ItemLink from "../ItemLink.svelte";
   import Money from "../Money.svelte";
+  import SoldPerDay from "../SoldPerDay.svelte";
   import { pctText } from "./shared";
 
-  let { houseItems, changes, houseName }: { houseItems: Record<string, ItemPrice>; changes: Record<string, number> | undefined; houseName: string } = $props();
+  let { houseItems, changes, houseName, salesHours }: { houseItems: Record<string, ItemPrice>; changes: Record<string, number> | undefined; houseName: string; salesHours: number | undefined } = $props();
 
   const SHOW = 8;
   const SECTIONS: [keyof typeof BASKETS, string][] = [["ORE", "Ore & bars"], ["CLOTH", "Cloth"], ["LEATHER", "Leather"], ["HERB", "Herbs"], ["ENCH", "Enchanting"], ["ELEM", "Elemental"], ["GEM", "Gems"]];
@@ -31,15 +32,16 @@
         <div class="ec-board">
           <h3 class="mini-head">{b.title}</h3>
           <table class="ec-board-table" id="ec-board-{b.k}">
-            <caption class="sr-only">{b.title}: lowest price, typical price and change since about a day ago</caption>
-            <thead class="sr-only"><tr><th scope="col">Item</th><th scope="col">Lowest</th><th scope="col">Typical</th><th scope="col">Change</th></tr></thead>
+            <caption class="sr-only">{b.title}: lowest price, typical price, change since about a day ago and units sold per day</caption>
+            <thead class="sr-only"><tr><th scope="col">Item</th><th scope="col">Lowest</th><th scope="col">Typical</th><th scope="col">Change</th><th scope="col">Sold per day</th></tr></thead>
             <tbody>
               {#each open[b.k] ? b.rows : b.rows.slice(0, SHOW) as r (r.id)}
                 <tr>
                   <th scope="row"><ItemLink id={r.id} name={itemName(r.id)} /></th>
                   <td class="ec-dim" title="Lowest price"><Money c={r.a[0]} /></td>
                   <td title="Typical price"><Money c={r.a[1]} /></td>
-                  <td>{#if r.chg != null}<span class="pct {r.chg >= 0 ? 'up' : 'down'}">{r.chg >= 0 ? "▲" : "▼"} {pctText(r.chg)}</span>{:else}<span class="faint">—</span>{/if}</td>
+                  <td>{#if r.chg != null}<span class="pct {r.chg >= 0 ? 'up' : 'down'}">{r.chg >= 0 ? "▲" : "▼"} {pctText(r.chg)}</span>{:else}<span class="faint">-</span>{/if}</td>
+                  <td class="ec-dim ec-sold"><SoldPerDay a={r.a} hours={salesHours} /></td>
                 </tr>
               {/each}
             </tbody>
@@ -51,6 +53,6 @@
         </div>
       {/each}
     </div>
-    <p class="faint" style="margin-top:10px">Each row: lowest price, typical price (the cheapest 10% of units), and ▲▼ change in the typical price since about a day ago.</p>
+    <p class="faint" style="margin-top:10px">Each row: lowest price, typical price (the cheapest 10% of units), ▲▼ change in the typical price since about a day ago, and roughly how many sell per day.</p>
   {/if}
 </section>

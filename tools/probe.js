@@ -1,4 +1,4 @@
-// Forever Tome — Blizzard API probe for WoW: Forever (Phase 2, milestone M1)
+// Forever Tome: Blizzard API probe for WoW: Forever (Phase 2, milestone M1)
 //
 // What it does: asks Blizzard's API which WoW: Forever data exists and writes a
 // readable report to tools/probe-report.md. It changes nothing anywhere.
@@ -97,7 +97,7 @@ async function pool(items, size, fn) {
 
 /* ---------- probes ---------- */
 async function main() {
-  log(`# WoW: Forever API probe — region ${REGION.toUpperCase()}`);
+  log(`# WoW: Forever API probe, region ${REGION.toUpperCase()}`);
   log(`Run at ${new Date().toISOString()}. Namespaces: ${NS.static}, ${NS.dynamic}, ${NS.profile}.`);
   log();
 
@@ -120,7 +120,7 @@ async function main() {
   }
   log();
   const rulesetIds = rulesets.map((r) => r.id || ((r.key && r.key.href || "").match(/ruleset\/(\d+)/) || [])[1]).filter(Boolean);
-  if (!rulesetIds.length) { log("No rulesets found — stopping auction checks."); return finish(); }
+  if (!rulesetIds.length) { log("No rulesets found, stopping auction checks."); return finish(); }
 
   /* 2. Auction houses */
   log("## 2. Auction houses");
@@ -146,7 +146,7 @@ async function main() {
     if (items.size > biggest.items.size) biggest = { id: hid, items };
     const c = await get(`/data/wow/ruleset/${rid}/auctions/${hid}/commodities`, NS.dynamic);
     const cl = (c.json && c.json.auctions) || [];
-    log(`| ${hid} | ${meta.name || "—"} | ${a.status} | ${mb(a.bytes)} | ${list.length} | ${items.size} | ${c.status} | ${cl.length} |`);
+    log(`| ${hid} | ${meta.name || "-"} | ${a.status} | ${mb(a.bytes)} | ${list.length} | ${items.size} | ${c.status} | ${cl.length} |`);
   }
   log();
   log("Fields on one auction listing (to plan the price math): " + show(sampleAuction, 500));
@@ -206,7 +206,7 @@ async function main() {
   /* 5. Character lookup */
   log("## 5. Character lookup");
   if (!env.CHARACTER) {
-    log("Skipped — set CHARACTER=Firstname-Lastname in .env to test this.");
+    log("Skipped. Set CHARACTER=Firstname-Lastname in .env to test this.");
   } else {
     const slug = encodeURIComponent(env.CHARACTER.trim().toLowerCase());
     const c = await get(`/profile/wow/character/${slug}`, NS.profile);

@@ -1,5 +1,5 @@
 /* ------------------------------------------------------------------
-   SITE SETTINGS — edit these, nothing else needs to change.
+   SITE SETTINGS: edit these, nothing else needs to change.
    Used by the new Astro pages and (until the move is done) the old ones.
    ------------------------------------------------------------------ */
 const config = {

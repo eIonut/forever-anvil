@@ -7,7 +7,8 @@
   import type { GroupPrices } from "../types";
   import ItemLink from "../ItemLink.svelte";
   import Money from "../Money.svelte";
-  import { ALLIANCE, HORDE } from "./shared";
+  import SoldPerDay from "../SoldPerDay.svelte";
+  import { houseOf } from "../types";
 
   let { group }: { group: GroupPrices } = $props();
 
@@ -15,6 +16,7 @@
   let tab = $state("all");
 
   const all = $derived(factionGaps(group, itemSource.items));
+  const ally = $derived(houseOf(group, "alliance")?.house), horde = $derived(houseOf(group, "horde")?.house);
   const list = $derived(all.filter((g: any) => tab === "all" || g.cat === tab).slice(0, 12));
 
   // log scale over the shown prices, with gridlines at 1c, 10c, 1s, 10s, 1g, 10g, 100g…
@@ -54,16 +56,16 @@
             <span class="ec-gap-track" aria-hidden="true">
               {#each scale.ticks as t}<i class="ec-gap-grid" style:left="{t.left}%"></i>{/each}
               <i class="ec-gap-bar" style:left="{Math.min(a, h)}%" style:width="{Math.abs(a - h)}%"></i>
-              <i class="ec-dot" style:left="{a}%" style:background={ALLIANCE} title="Alliance {moneyText(g.alliance)}">A</i>
-              <i class="ec-dot" style:left="{h}%" style:background={HORDE} title="Horde {moneyText(g.horde)}">H</i>
+              <i class="ec-dot crest crest-alliance" style:left="{a}%" title="Alliance {moneyText(g.alliance)}">A</i>
+              <i class="ec-dot crest crest-horde" style:left="{h}%" title="Horde {moneyText(g.horde)}">H</i>
             </span>
             <span class="ec-gap-val"><b>{g.ratio >= 10 ? Math.round(g.ratio) : g.ratio.toFixed(1)}×</b> <span class="faint">{dearer} pays more</span>
               <span class="sr-only">: Alliance {moneyText(g.alliance)}, Horde {moneyText(g.horde)}</span></span>
-            <span class="ec-gap-prices"><span><i class="ec-key" style:background={ALLIANCE}>A</i><Money c={g.alliance} /></span><span><i class="ec-key" style:background={HORDE}>H</i><Money c={g.horde} /></span></span>
+            <span class="ec-gap-prices"><span><i class="ec-key crest crest-alliance">A</i><Money c={g.alliance} /> <SoldPerDay a={ally?.items[g.id]} hours={ally?.salesHours} /></span><span><i class="ec-key crest crest-horde">H</i><Money c={g.horde} /> <SoldPerDay a={horde?.items[g.id]} hours={horde?.salesHours} /></span></span>
           </li>
         {/each}
       </ul>
-      <p class="faint ec-legend-line"><i class="ec-key" style:background={ALLIANCE}>A</i> Alliance typical price · <i class="ec-key" style:background={HORDE}>H</i> Horde typical price · log scale</p>
+      <p class="faint ec-legend-line"><i class="ec-key crest crest-alliance">A</i> Alliance typical price · <i class="ec-key crest crest-horde">H</i> Horde typical price · log scale · "/day" is how many sell per day on each side</p>
     </div>
   {/if}
 </section>

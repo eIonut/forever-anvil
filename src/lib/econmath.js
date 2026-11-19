@@ -7,7 +7,6 @@
 
 const HOUR = 3600;
 const DAY = 86400;
-const KEEP_SECONDS = 30 * DAY;  // Blizzard API terms: keep API data no longer than 30 days
 const WILD = 10000 * 10000;     // 10,000g in copper: a single item priced above this is a joke listing, not a price
 
 // Materials on the trade board, by item ID (WoW: Forever uses the classic item IDs).
@@ -22,146 +21,13 @@ const BASKETS = {
 };
 const BOARD_IDS = [...new Set(Object.values(BASKETS).flat())];
 
-const GEAR_QUALITY = new Set(["uncommon", "rare", "epic", "legendary"]);
-
-// The market indexes. Each one follows the typical price of a set of items, starting at 100.
-//   classes: item classes (from the item cache) that belong to it; ids: a fixed list of items
-//   gear: only uncommon (green) and better; minQty: units needed on both sides of a comparison
-const INDEXES = [
-  { k: "TOP100", name: "Top 100", group: "Market", desc: "The 100 items with the most gold listed: the market as a whole." },
-  { k: "TRADE", name: "Trade goods", group: "Sectors", classes: ["Trade Goods", "Reagent"], desc: "Every crafting material." },
-  { k: "CONS", name: "Consumables", group: "Sectors", classes: ["Consumable"], desc: "Potions, elixirs, food, bandages and scrolls." },
-  { k: "ARMOR", name: "Armor", group: "Sectors", classes: ["Armor"], gear: true, minQty: 2, desc: "Green and better armor." },
-  { k: "WEAP", name: "Weapons", group: "Sectors", classes: ["Weapon"], gear: true, minQty: 2, desc: "Green and better weapons." },
-  { k: "RECIPE", name: "Recipes", group: "Sectors", classes: ["Recipe"], minQty: 2, desc: "Patterns, plans, formulas and recipes." },
-  { k: "BAGS", name: "Bags", group: "Sectors", classes: ["Container", "Quiver"], minQty: 2, desc: "Bags, quivers and ammo pouches." },
-  { k: "ORE", name: "Ore & bars", group: "Materials", ids: BASKETS.ORE, desc: "Ore, bars and stone." },
-  { k: "CLOTH", name: "Cloth", group: "Materials", ids: BASKETS.CLOTH, desc: "Linen to Felcloth, and bolts." },
-  { k: "LEATHER", name: "Leather", group: "Materials", ids: BASKETS.LEATHER, desc: "Leather and hides." },
-  { k: "HERB", name: "Herbs", group: "Materials", ids: BASKETS.HERB, desc: "Every herb." },
-  { k: "ENCH", name: "Enchanting", group: "Materials", ids: BASKETS.ENCH, desc: "Dusts, essences and shards." },
-  { k: "ELEM", name: "Elemental", group: "Materials", ids: BASKETS.ELEM, desc: "Elementals, hearts, globes and essences." },
-  { k: "GEM", name: "Gems", group: "Materials", ids: BASKETS.GEM, desc: "Gems and Arcane Crystal." }
-];
-
 /* ---------- small helpers ---------- */
 
-const clamp = (x, lo, hi) => Math.min(hi, Math.max(lo, x));
 const round1 = (x) => (x == null ? null : Math.round(x * 10) / 10);
-const sig5 = (x) => (x == null ? null : Number(x.toPrecision(5))); // index values: 5 significant digits, so small levels stay precise
 const fair = (market) => market > 0 && market <= WILD; // a believable unit price
 
 /** Gold value of one item's listings, or 0 for wild prices */
 const itemValue = (a) => (fair(a[1]) ? a[1] * a[2] : 0);
-
-/** Set of item IDs with the most gold listed across a group's houses (fair prices only). */
-function topByValue(group, n) {
-  const total = new Map();
-  for (const h of Object.values(group.houses)) for (const [id, a] of Object.entries(h.items)) total.set(id, (total.get(id) || 0) + itemValue(a));
-  return new Set([...total.entries()].sort((a, b) => b[1] - a[1]).slice(0, n).map((e) => e[0]));
-}
-
-/**
- * Which items belong to an index. Returns { ids: string[] | null, test(id) }.
- * prevGroup is used for the Top 100, whose members are the biggest items an hour ago.
- */
-function members(def, items, prevGroup) {
-  if (def.ids) { const s = new Set(def.ids.map(String)); return { ids: [...s], test: (id) => s.has(id) }; }
-  if (def.k === "TOP100") { const s = prevGroup ? topByValue(prevGroup, 100) : new Set(); return { ids: [...s], test: (id) => s.has(id) }; }
-  const classes = new Set(def.classes || []);
-  return {
-    ids: null,
-    test: (id) => {
-      const e = items[id];
-      if (!e || !classes.has(e[5])) return false;
-      return !def.gear || GEAR_QUALITY.has(e[4]);
-    }
-  };
-}
-
-/**
- * One step of a chain-linked index: how much the index moves from snapshot `prev` to `cur`.
- * Value-weighted geometric mean of each (house, item) price ratio, so one item can't dominate:
- *   weight = sqrt(price × units) at the earlier snapshot; ratios clamped to [0.25, 4].
- * Only pairs with enough units and a price of at least 10c in both snapshots count.
- * Returns the factor (e.g. 1.02 = up 2%), or null when fewer than minN pairs (carry the index forward).
- */
-function chainStep(prev, cur, member, opts) {
-  opts = Object.assign({ minQty: 5, minPrice: 10, minN: 5 }, opts || {});
-  let sw = 0, swl = 0, n = 0;
-  for (const [houseId, h] of Object.entries(cur.houses)) {
-    const ph = prev.houses[houseId];
-    if (!ph) continue;
-    const ids = member.ids || Object.keys(h.items);
-    for (const id of ids) {
-      if (!member.ids && !member.test(id)) continue;
-      const a = ph.items[id], b = h.items[id];
-      if (!a || !b) continue;
-      if (a[2] < opts.minQty || b[2] < opts.minQty) continue;
-      if (a[1] < opts.minPrice || b[1] < opts.minPrice || !fair(a[1]) || !fair(b[1])) continue;
-      const r = clamp(b[1] / a[1], 0.25, 4);
-      const w = Math.sqrt(a[1] * a[2]);
-      sw += w; swl += w * Math.log(r); n++;
-    }
-  }
-  return n >= opts.minN && sw > 0 ? Math.exp(swl / sw) : null;
-}
-
-/** Totals for one group snapshot: listings, units and fair gold value. */
-function groupTotals(group) {
-  let listings = 0, gold = 0;
-  for (const h of Object.values(group.houses)) {
-    listings += h.listings || 0;
-    for (const a of Object.values(h.items)) gold += itemValue(a);
-  }
-  return { listings, gold };
-}
-
-/** An empty series for one group. */
-function emptySeries() {
-  const idx = {};
-  for (const d of INDEXES) idx[d.k] = [];
-  return { t: [], idx, auctions: [], gold: [] };
-}
-
-/**
- * Add one point to a group's series. prev = the previous snapshot, or null when there is none
- * (the very first point starts every index at 100; later, indexes carry forward).
- * listings may be null (history snapshots don't have it).
- */
-function pushPoint(series, prev, cur, items, tSec, listings) {
-  const last = series.t.length - 1;
-  for (const d of INDEXES) {
-    const arr = series.idx[d.k] || (series.idx[d.k] = new Array(series.t.length).fill(null));
-    const before = last >= 0 ? arr[last] : null;
-    let value;
-    if (!prev) value = last >= 0 ? before : 100;  // nothing to compare with: start at 100, or carry forward
-    else {
-      const f = chainStep(prev, cur, members(d, items, prev), { minQty: d.minQty });
-      if (before == null) value = f != null ? 100 : null; // start a late index once there's something to compare
-      else value = f == null ? before : before * f;       // too few items this hour: carry it forward
-    }
-    arr.push(sig5(value));
-  }
-  const tot = groupTotals(cur);
-  series.t.push(tSec);
-  series.auctions.push(listings == null ? null : listings);
-  series.gold.push(Math.round(tot.gold / 10000)); // whole gold
-  return series;
-}
-
-/** Drop points older than 30 days. */
-function prunePoints(series, nowSec) {
-  const oldest = nowSec - KEEP_SECONDS;
-  let cut = 0;
-  while (cut < series.t.length && series.t[cut] < oldest) cut++;
-  if (!cut) return series;
-  series.t = series.t.slice(cut);
-  series.auctions = series.auctions.slice(cut);
-  series.gold = series.gold.slice(cut);
-  for (const k of Object.keys(series.idx)) series.idx[k] = series.idx[k].slice(cut);
-  return series;
-}
 
 /**
  * Turn one group's daily history (all shards merged) into daily snapshots, oldest first.
@@ -182,21 +48,6 @@ function snapshotsFromHistory(history, houses) {
     }
   }
   return [...byDay.entries()].sort((a, b) => a[0] - b[0]).map(([day, group]) => ({ day, group }));
-}
-
-/**
- * Start a group's series from daily history (days before today), so charts aren't empty on the first run.
- * Returns { series, last } where last is the newest snapshot used (the next hourly point chains from it).
- */
-function seedFromHistory(snapshots, items, today) {
-  const series = emptySeries();
-  let prev = null;
-  for (const s of snapshots) {
-    if (s.day >= today) continue;
-    pushPoint(series, prev, s.group, items, s.day * DAY + DAY / 2, null);
-    prev = s.group;
-  }
-  return { series, last: prev };
 }
 
 /* ---------- 24-hour change for the trade board ---------- */
@@ -242,9 +93,12 @@ function updateRing(ring, group, nowSec, ids) {
 
 /** One house: listings, units, different items and fair gold value (copper). */
 function houseSummary(house) {
-  let units = 0, gold = 0, items = 0;
-  for (const a of Object.values(house.items)) { units += a[2]; gold += itemValue(a); items++; }
-  return { listings: house.listings || 0, units, items, gold };
+  let units = 0, gold = 0, items = 0, sold = 0, soldGold = 0;
+  for (const a of Object.values(house.items)) {
+    units += a[2]; gold += itemValue(a); items++;
+    if (a[4] > 0) { sold += a[4]; if (fair(a[1])) soldGold += a[4] * a[1]; } // estimated units sold per day
+  }
+  return { listings: house.listings || 0, units, items, gold, sold, soldGold, salesHours: house.salesHours || 0 };
 }
 
 const CLASS_LABEL = { "Trade Goods": "Trade goods", Reagent: "Trade goods", Container: "Bags", Quiver: "Bags", Projectile: "Ammo", Quest: "Quest items", Key: "Keys", Miscellaneous: "Miscellaneous", Consumable: "Consumables", Armor: "Armor", Weapon: "Weapons", Recipe: "Recipes" };
@@ -376,15 +230,8 @@ function squarify(values, w, h) {
   return out;
 }
 
-/** Index values in [fromSec, ∞), as [[sec, value], ...] (nulls dropped). */
-function seriesFrom(t, values, fromSec) {
-  const out = [];
-  for (let i = 0; i < t.length; i++) if (t[i] >= fromSec && values[i] != null) out.push([t[i], values[i]]);
-  return out;
-}
-
 export {
-  BASKETS, BOARD_IDS, INDEXES, WILD, HOUR, DAY, KEEP_SECONDS,
-  members, chainStep, groupTotals, emptySeries, pushPoint, prunePoints, snapshotsFromHistory, seedFromHistory, updateRing,
-  houseSummary, goldByClass, crownJewels, bazaar, categoryOf, factionGaps, blackwaterFlips, squarify, seriesFrom, topByValue
+  BASKETS, BOARD_IDS, WILD, HOUR, DAY,
+  snapshotsFromHistory, updateRing,
+  houseSummary, goldByClass, crownJewels, bazaar, categoryOf, factionGaps, blackwaterFlips, squarify
 };

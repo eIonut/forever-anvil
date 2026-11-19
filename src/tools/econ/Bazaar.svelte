@@ -7,6 +7,7 @@
   import { itemSource, itemName } from "../itemIcons.svelte";
   import type { House } from "../types";
   import Money from "../Money.svelte";
+  import SoldPerDay from "../SoldPerDay.svelte";
   import { compact } from "./shared";
 
   let { house, houseName }: { house: House; houseName: string } = $props();
@@ -33,7 +34,7 @@
           <span class="ec-baz-icon qb-{info[4] || 'common'}">{#if icon}<img src={icon} alt="" width="44" height="44" loading="lazy" />{/if}<b>{compact(b.count)}<span class="sr-only"> {mode === "listings" ? "auctions" : "units"}</span></b></span>
           <span class="ec-baz-name">{name || "Item #" + b.id}</span>
         </a>
-        <span class="ec-baz-price"><Money c={b.market} /></span>
+        <span class="ec-baz-price"><Money c={b.market} /> <span class="ec-baz-sold"><SoldPerDay a={house.items[b.id]} hours={house.salesHours} suffix=" sold/day" /></span></span>
       </li>
     {/each}
   </ol>

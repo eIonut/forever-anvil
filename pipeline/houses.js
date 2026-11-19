@@ -18,7 +18,7 @@
 const GROUPS = [
   { id: "A", houses: { alliance: 110, horde: 113, neutral: 116 }, ruleset: { eu: "PvP" }, note: "large" },
   { id: "B", houses: { alliance: 111, horde: 114, neutral: 117 }, ruleset: { eu: "Normal" }, note: "large" },
-  { id: "E", houses: { alliance: 112, horde: 115, neutral: 118 }, ruleset: {}, note: "empty — probably Hardcore (not launched)" },
+  { id: "E", houses: { alliance: 112, horde: 115, neutral: 118 }, ruleset: {}, note: "empty, probably Hardcore (not launched)" },
   { id: "C", houses: { alliance: 119, horde: 120, neutral: 121 }, ruleset: { eu: "Roleplay" }, note: "small" },
   { id: "D", houses: { alliance: 123, horde: 124, neutral: 125 }, ruleset: { eu: "RP-PvP" }, note: "small" }
 ];

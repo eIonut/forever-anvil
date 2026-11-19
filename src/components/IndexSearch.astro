@@ -12,26 +12,31 @@ const { label, placeholder } = Astro.props;
 <input class="input" type="search" id="idx-search" placeholder={placeholder} autocomplete="off" style="width:100%;max-width:420px" />
 
 <script>
-  import { announce } from "../lib/announce";
+import { announce } from "../lib/announce";
+  import { onPage } from "../lib/page";
 
-  const box = document.getElementById("idx-search") as HTMLInputElement;
-  const lists = [...(box.closest(".item-index")?.querySelectorAll("ul") || [])];
-  let timer: ReturnType<typeof setTimeout>;
-  box.addEventListener("input", () => {
-    const term = box.value.toLowerCase().trim();
-    let shown = 0;
-    for (const ul of lists) {
-      let any = false;
-      for (const li of ul.querySelectorAll("li")) {
-        const hit = !term || (li.textContent || "").toLowerCase().includes(term);
-        li.hidden = !hit;
-        if (hit) { any = true; shown++; }
+  onPage((signal) => {
+    const box = document.getElementById("idx-search") as HTMLInputElement | null;
+    if (!box) return; // not an index page
+    const lists = [...(box.closest(".item-index")?.querySelectorAll("ul") || [])];
+    let timer: ReturnType<typeof setTimeout>;
+    signal.addEventListener("abort", () => clearTimeout(timer));
+    box.addEventListener("input", () => {
+      const term = box.value.toLowerCase().trim();
+      let shown = 0;
+      for (const ul of lists) {
+        let any = false;
+        for (const li of ul.querySelectorAll("li")) {
+          const hit = !term || (li.textContent || "").toLowerCase().includes(term);
+          li.hidden = !hit;
+          if (hit) { any = true; shown++; }
+        }
+        ul.hidden = !any;
+        const heading = ul.previousElementSibling as HTMLElement | null;
+        if (heading?.tagName === "H2") heading.hidden = !any;
       }
-      ul.hidden = !any;
-      const heading = ul.previousElementSibling as HTMLElement | null;
-      if (heading?.tagName === "H2") heading.hidden = !any;
-    }
-    clearTimeout(timer);
-    timer = setTimeout(() => announce(shown + " items"), 500);
+      clearTimeout(timer);
+      timer = setTimeout(() => announce(shown + " items"), 500);
+    }, { signal });
   });
 </script>

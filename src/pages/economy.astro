@@ -5,11 +5,11 @@ import AdSlot from "../components/AdSlot.astro";
 import Economy from "../tools/Economy.svelte";
 ---
 <BaseLayout
-  title="WoW: Forever Economy — Market Indexes, Trade Board & Gold — Forever Tome"
-  description="The WoW: Forever auction house economy at a glance: market indexes over time, material prices with daily changes, where the gold is, Blackwater flips and Alliance vs Horde price gaps."
+  title="WoW: Forever Economy: Trade Board, Gold & Flips | Forever Tome"
+  description="The WoW: Forever auction house economy at a glance: material prices with daily changes, where the gold is, Blackwater flips and Alliance vs Horde price gaps."
   page="economy"
 >
-  <PageHero icon="economy" eyebrow="Gold & auction house" title="The Economy" facts={[{ icon: "clock", text: "Refreshed about every hour" }, { icon: "economy", text: "Market indexes since tracking began" }, { icon: "globe", text: "All three auction houses per ruleset" }]}>
+  <PageHero icon="economy" eyebrow="Gold & auction house" title="The Economy" facts={[{ icon: "clock", text: "Refreshed about every hour" }, { icon: "economy", text: "Where the gold is, by kind of item" }, { icon: "globe", text: "All three auction houses per ruleset" }]}>
     How the auction houses of your ruleset are doing: what's getting dearer, where the gold sits, and where there's gold to be made.
   </PageHero>
 
@@ -18,7 +18,6 @@ import Economy from "../tools/Economy.svelte";
       <h2>How these numbers work</h2>
       <ul class="gems">
         <li><b>Typical price</b> is the average of the cheapest 10% of units on sale. One bargain or one silly listing barely moves it.</li>
-        <li><b>Indexes</b> started at 100 when tracking began. Each update compares every item's typical price with the previous update and moves the index by the weighted average change, so 85 means about 15% cheaper than at the start. Items need a few units on sale both times to count, and no single item can move an index more than 4× in one step.</li>
         <li><b>Gold listed</b> is units × typical price. Anything priced above 10,000g each is treated as a joke listing and left out.</li>
         <li><b>Blackwater flips</b> and <b>Alliance vs Horde</b> leave out thinly traded items. Deposits aren't counted, and a listed price isn't a sale.</li>
         <li>Prices refresh about once an hour. Blizzard's terms let us keep data for 30 days, so history covers at most that.</li>

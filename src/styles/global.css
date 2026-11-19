@@ -1,4 +1,4 @@
-/* Forever Tome — unofficial WoW: Forever tools
+/* Forever Tome: unofficial WoW: Forever tools
    Theme: dark stone and gilded frames, with clean sans-serif text for everything you read.
    Original art only (CSS + SVG). Colours are checked for contrast: body text ≥ 7:1,
    secondary text ≥ 4.5:1, control borders ≥ 3:1 on the panels.
@@ -119,32 +119,39 @@ main { flex: 1; padding-bottom: 56px; }
 .brand-name { font-family: "Cinzel Decorative", var(--font-display); font-weight: 700; font-size: 1.22rem; line-height: 1; }
 .brand-sub { display: block; font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); margin-top: 4px; }
 
-.nav { display: flex; gap: 2px; margin-left: auto; flex-wrap: nowrap; min-width: 0; }
+/* main menu: icon + label in one line, 44px tall targets; the current page gets a gold pill and underline */
+.nav { display: flex; align-items: center; gap: 4px; margin-left: auto; flex-wrap: nowrap; min-width: 0; }
 .nav-link {
-  display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 66px;
-  padding: 7px 8px 6px; border-radius: var(--radius-sm); border: 1px solid transparent;
-  color: var(--ink-dim); font-size: .84rem; font-weight: 700; line-height: 1.1; white-space: nowrap; position: relative;
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; position: relative;
+  border-radius: 8px; border: 1px solid transparent; color: var(--ink-dim);
+  font-size: 1rem; font-weight: 500; line-height: 1.2; letter-spacing: .01em; white-space: nowrap;
+  transition: background-color .15s, color .15s, border-color .15s;
 }
-.nav-icon { color: var(--gold-dim); transition: color .15s; }
+.nav-icon { display: inline-grid; place-items: center; color: var(--gold-dim); transition: color .15s; }
 .nav-desc { display: none; }
-.nav-link:hover { color: var(--ink); background: rgba(255, 255, 255, .04); text-decoration: none; }
+.nav-link:hover { color: var(--ink); background: rgba(255, 255, 255, .06); text-decoration: none; }
 .nav-link:hover .nav-icon { color: var(--gold-2); }
-.nav-link.active { color: var(--gold-2); background: var(--gold-tint); border-color: rgba(232, 189, 85, .4); }
+.nav-link.active { color: var(--gold-2); background: var(--gold-tint); border-color: rgba(232, 189, 85, .35); }
 .nav-link.active .nav-icon { color: var(--gold); }
-.nav-link.active::after { content: ""; position: absolute; left: 14px; right: 14px; bottom: -1px; height: 2px; border-radius: 2px; background: var(--gold); }
+.nav-link.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 5px; height: 2px; border-radius: 2px; background: var(--gold); }
+.nav-link:focus-visible { outline-offset: 2px; border-radius: 8px; }
 
 .tools { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .icon-btn {
-  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 42px; height: 42px; padding: 0 10px; cursor: pointer;
-  color: var(--gold-2); background: var(--surface); border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
-  font: 700 .9rem var(--font);
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 44px; height: 44px; padding: 0 11px; cursor: pointer;
+  color: var(--gold-2); background: var(--surface); border: 1px solid var(--line-strong); border-radius: 8px;
+  font: 500 1rem var(--font);
+  transition: background-color .15s, border-color .15s, color .15s;
 }
 .icon-btn:hover { border-color: var(--gold); background: var(--gold-tint); color: #fff; }
 .icon-btn[aria-expanded="true"] { border-color: var(--gold); background: rgba(232, 189, 85, .16); }
 .nav-toggle { display: none; }
+.nav-toggle .nav-toggle-close { display: none; }
+.nav-toggle[aria-expanded="true"] .nav-toggle-open { display: none; }
+.nav-toggle[aria-expanded="true"] .nav-toggle-close { display: block; }
 
 /* collapsed header: narrow screens, and whenever the links don't fit (Header.astro adds .compact, e.g. with large text) */
-@media (max-width: 1080px) {
+@media (max-width: 1140px) {
   .nav-toggle { display: inline-flex; }
   .tools { margin-left: auto; }
   .topbar .btn-donate { display: none; }
@@ -154,25 +161,31 @@ main { flex: 1; padding-bottom: 56px; }
 .topbar.compact .tools { margin-left: auto; }
 .topbar.compact .btn-donate { display: none; }
 .topbar.compact .nav { display: none; }
-@media (max-width: 1080px) {
+/* the open menu: a panel under the header with one large row per page (icon, name, one-line description) */
+@media (max-width: 1140px) {
   .nav.open {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 6px;
-    position: absolute; left: 0; right: 0; top: 100%; max-height: calc(100vh - var(--header-h)); overflow-y: auto;
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 6px;
+    position: absolute; left: 0; right: 0; top: 100%; max-height: calc(100dvh - var(--header-h)); overflow-y: auto; overscroll-behavior: contain;
     background: #100d0a; border-bottom: 1px solid var(--line); padding: 12px 16px 16px; box-shadow: 0 16px 30px rgba(0, 0, 0, .6);
   }
 }
 .topbar.compact .nav.open {
-  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr)); gap: 6px;
-  position: absolute; left: 0; right: 0; top: 100%; max-height: calc(100vh - var(--header-h)); overflow-y: auto;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(min(320px, 100%), 1fr)); gap: 6px;
+  position: absolute; left: 0; right: 0; top: 100%; max-height: calc(100dvh - var(--header-h)); overflow-y: auto; overscroll-behavior: contain;
   background: #100d0a; border-bottom: 1px solid var(--line); padding: 12px 16px 16px; box-shadow: 0 16px 30px rgba(0, 0, 0, .6);
 }
-.nav.open .nav-link { flex-direction: row; align-items: flex-start; gap: 12px; padding: 10px 12px; white-space: normal; font-size: 1rem; border-color: var(--line-soft); background: var(--surface); }
-.nav.open .nav-link.active { border-color: rgba(232, 189, 85, .5); background: var(--gold-tint); }
+.nav.open .nav-link { align-items: center; gap: 14px; min-height: 60px; padding: 9px 14px 9px 10px; white-space: normal; border-color: var(--line-soft); background: var(--surface); }
+.nav.open .nav-link:hover { border-color: var(--line-strong); background: var(--surface-2); }
+.nav.open .nav-icon { width: 40px; height: 40px; flex-shrink: 0; border-radius: 8px; color: var(--gold); background: var(--gold-tint); border: 1px solid rgba(232, 189, 85, .25); }
+.nav.open .nav-icon .icon { width: 20px; height: 20px; }
+.nav.open .nav-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.nav.open .nav-label { font-size: 1.06rem; font-weight: 700; color: var(--ink); }
+.nav.open .nav-desc { display: block; font-weight: 400; font-size: .9rem; color: var(--ink-faint); line-height: 1.35; }
+.nav.open .nav-link.active { border-color: rgba(232, 189, 85, .55); background: var(--gold-tint); box-shadow: inset 3px 0 0 var(--gold); }
+.nav.open .nav-link.active .nav-label { color: var(--gold-2); }
 .nav.open .nav-link.active::after { display: none; }
-.nav.open .nav-icon { margin-top: 2px; }
-.nav.open .nav-text { display: flex; flex-direction: column; gap: 2px; }
-.nav.open .nav-desc { display: block; font-weight: 400; font-size: .88rem; color: var(--ink-faint); line-height: 1.35; }
 html[data-contrast] .nav.open { background: #000; }
+html[data-contrast] .nav-link.active { border-color: var(--gold); }
 @media (max-width: 480px) {
   .brand-sub { display: none; } .brand-name { font-size: 1.08rem; }
   .nav-toggle-text { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } /* hidden but still the button's name */
@@ -229,6 +242,7 @@ html[data-contrast] .nav.open { background: #000; }
 .hero-facts { display: flex; flex-wrap: wrap; gap: 8px 10px; list-style: none; margin: 20px 0 0; padding: 16px 0 0; border-top: 1px solid var(--line); }
 .hero-facts li { display: inline-flex; align-items: center; gap: 7px; font-size: .9rem; color: var(--ink-dim); padding: 4px 12px 4px 9px; border-radius: 999px; background: rgba(0, 0, 0, .3); border: 1px solid var(--line); max-width: none; }
 .hero-facts .icon { color: var(--gold); }
+.hero-emblem .icon, .tool-icon .icon, .stat-icon > .icon { stroke-width: 1.75; } /* thinner lines for the big icons */
 .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
 @media (max-width: 640px) {
   .hero-frame { padding: 20px 18px; border-radius: 12px; }
@@ -311,6 +325,8 @@ html[data-contrast] .nav.open { background: #000; }
 }
 .panel > .section-head:first-child h2, .panel > h2:first-child { font-size: clamp(1.15rem, 1.8vw, 1.35rem); }
 .panel > .section-head:first-child > p.faint { flex-basis: 100%; max-width: none; margin: -6px 0 0; }
+/* text inside a panel spans the panel, so notes and centred buttons line up with the table above */
+.panel p, .panel li { max-width: none; }
 .panel > h2:first-child { padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid var(--line); }
 
 .grid { display: grid; gap: 18px; }
@@ -360,17 +376,13 @@ ul.gems.small li { font-size: .92rem; margin-bottom: 5px; color: var(--ink-dim);
 .chip input:checked + span { color: var(--on-gold); background: linear-gradient(#f0c962, #c99a34); border-color: #f7da8f; }
 .chip input:checked + span::before { content: "✓"; font-size: .85em; } /* not colour alone */
 .chip input:focus-visible + span { outline: 3px solid var(--focus); outline-offset: 2px; }
-.chip-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--gold-dim); box-shadow: 0 0 0 2px rgba(0, 0, 0, .4); }
-.chip-alliance .chip-dot { background: var(--alliance); }
-.chip-horde .chip-dot { background: var(--horde); }
 .chip-flag { font-size: .7em; color: var(--warn); margin-left: 1px; }
 .chip input:checked + span .chip-flag { color: #6b3b00; }
 .control-row { display: grid; gap: 12px 16px; align-items: end; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line-soft); }
 .control-row .input { width: 100%; }
 .control-row .field-label { margin-top: 0; }
-.pr-row { grid-template-columns: minmax(0, 2fr) minmax(180px, 1fr); }
-.cr-row { grid-template-columns: minmax(180px, 1fr) minmax(160px, 1fr) minmax(0, 2fr); }
-@media (max-width: 760px) { .pr-row, .cr-row { grid-template-columns: 1fr; } }
+.pr-row { grid-template-columns: minmax(0, 1.6fr) minmax(300px, 1.2fr); }
+
 .control-checks { display: flex; flex-wrap: wrap; gap: 8px 24px; margin-top: 14px; }
 
 /* ---------- Inputs ---------- */
@@ -482,7 +494,7 @@ kbd { font-family: inherit; font-size: .85em; padding: 1px 6px; border: 1px soli
 /* keyboard focus: always visible, never on mouse click */
 :focus { outline: none; }
 :focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; border-radius: 4px; }
-.btn:focus-visible, .icon-btn:focus-visible, .nav-link:focus-visible { outline-offset: 2px; }
+.btn:focus-visible, .icon-btn:focus-visible { outline-offset: 2px; }
 main:focus { outline: none; }
 .skip-link { position: absolute; left: 12px; top: -60px; z-index: 100; padding: 10px 16px; border-radius: 6px; background: var(--gold); color: var(--on-gold); font-weight: 700; text-decoration: none; }
 .skip-link:focus { top: 10px; }
@@ -501,10 +513,17 @@ a.wh::after { content: none; }
 
 /* ---------- Prices ---------- */
 .money { white-space: nowrap; font-variant-numeric: tabular-nums; }
-.coin { font-weight: 700; }
-.coin.g { color: #ffd257; }
-.coin.s { color: #d6d6d6; }
-.coin.c { color: #e09a5c; }
+/* Amounts read like the in-game money frame: "34 (gold) 52 (silver) 15 (copper)". */
+.coin { font-weight: 700; color: var(--ink); }
+.coin + .coin { margin-left: .35em; }
+.coin::after {
+  content: ""; display: inline-block; width: .8em; height: .8em; margin-left: .2em;
+  vertical-align: -.06em; border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.5), inset -1px -1px 0 1px rgba(0,0,0,.15);
+}
+.coin.g::after { background: radial-gradient(circle at 35% 30%, #fff6c2 0 12%, #ffd84a 34%, #d29a12 70%, #8a5a00 100%); }
+.coin.s::after { background: radial-gradient(circle at 35% 30%, #ffffff 0 12%, #dfe3e8 34%, #9ea4ab 70%, #5d6268 100%); }
+.coin.c::after { background: radial-gradient(circle at 35% 30%, #ffd9b3 0 12%, #e59a5a 34%, #a85a26 70%, #63300f 100%); }
 table.prices td, table.prices th { vertical-align: middle; }
 table.prices tbody th { font-weight: 700; }
 table.prices a.item-link { color: var(--ink); text-decoration: none; }
@@ -525,6 +544,8 @@ table.prices a.item-link:hover { color: var(--gold-2); text-decoration: underlin
 .pr-chart .plabel { fill: var(--ink-faint); font-size: 12px; font-family: var(--font); }
 .pr-help { margin-top: 24px; }
 .pr-movers { margin-top: 18px; }
+/* below the search results: a little more room after the table */
+.pr-movers-slot.after { margin-top: 28px; }
 .pr-movers .section-head { margin-bottom: 8px; }
 .pct { font-weight: 700; white-space: nowrap; }
 .pct.up { color: #7fdc6a; }
@@ -545,6 +566,10 @@ table.prices td.dim { color: var(--ink-faint); }
 .item-index h2 { scroll-margin-top: 80px; font-size: 1.3rem; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
 .item-index ul { columns: 3 220px; column-gap: 24px; list-style: none; padding: 0; margin: 0 0 18px; }
 .item-index li { break-inside: avoid; padding: 2px 0; }
+/* thousands of links: the browser skips laying out and painting lists far off screen, but they stay
+   in the page for search engines, Ctrl+F and screen readers. --rows (set per list) is the size guess
+   until a list is first drawn; after that the browser remembers its real size. */
+.item-index ul { content-visibility: auto; contain-intrinsic-block-size: auto calc(var(--rows, 10) * 28px); }
 
 /* ---------- Crafting planner ---------- */
 .pl-search { position: relative; margin-bottom: 12px; }
@@ -563,6 +588,9 @@ table.prices td.dim { color: var(--ink-faint); }
 .plan-count { display: inline-grid; place-items: center; min-width: 22px; height: 22px; padding: 0 6px; border-radius: 11px; background: var(--gold); color: #1d1306; font-size: .8rem; margin-left: 6px; }
 td.cr-actions { white-space: nowrap; }
 td.cr-actions .btn + .btn { margin-left: 6px; }
+/* the craft table has more columns: stack its two buttons */
+table.crafting td.cr-actions .btn { display: flex; width: 100%; justify-content: center; }
+table.crafting td.cr-actions .btn + .btn { margin: 4px 0 0; }
 
 /* ---------- Talent calculator ---------- */
 .tc-app { position: relative; }
@@ -638,13 +666,83 @@ html[data-calm] .tc-shake { animation: none; }
 
 
 /* ---------- Crafting ---------- */
-.cr-check { display: flex; gap: 8px; align-items: center; grid-column: span 2; cursor: pointer; align-self: center; }
-.cr-check input { width: 18px; height: 18px; accent-color: var(--gold); }
+.cr-profs { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
+.cr-profs .chips { gap: 8px; }
+.cr-row { grid-template-columns: minmax(260px, 1fr) minmax(0, 1.4fr); margin-top: 16px; }
+.cr-sort { display: flex; gap: 8px; }
+.cr-sort select { flex: 1 1 auto; }
+.cr-dir { flex: 0 0 auto; min-height: 44px; padding: 0 14px; gap: 6px; white-space: nowrap; }
+.cr-dir-arrow { color: var(--gold); font-size: 1.05em; }
+.cr-search .input {
+  padding-left: 38px;
+  background: var(--field) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' stroke='%23b5a888' stroke-width='2' stroke-linecap='round'%3E%3Ccircle cx='7' cy='7' r='5'/%3E%3Cpath d='m11 11 3.5 3.5'/%3E%3C/svg%3E") no-repeat 13px center;
+}
+.cr-filters { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
+.cr-filters .chips { gap: 8px; }
+.chip-note { font-weight: 400; opacity: .8; }
+@media (max-width: 760px) { .pr-row, .cr-row { grid-template-columns: 1fr; } }
 table.crafting .cat { display: block; font-size: .78rem; font-weight: 400; color: var(--ink-faint); }
 tr.cr-detail td { background: rgba(0,0,0,.25); white-space: normal; }
 ul.mats { margin: 4px 0 8px; padding-left: 0; list-style: none; }
 .thin { color: #ffb36b; }
 ul.mats li { margin: 3px 0; }
+.th-sort { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; border-radius: 3px; }
+.th-sort:hover, .th-sort.active { color: var(--gold); }
+.th-sort:focus-visible { outline: 2px solid var(--focus, var(--gold)); outline-offset: 2px; }
+.th-arrow { font-size: .7em; opacity: .55; }
+.th-sort.active .th-arrow { opacity: 1; }
+/* recipe difficulty, in the game's skill colours */
+.sk { font-weight: 700; font-variant-numeric: tabular-nums; }
+.sk-o { color: #ff8040; } .sk-y { color: #ffd200; } .sk-g { color: #40c040; } .sk-x { color: #a0a0a0; }
+td.cr-skill { white-space: nowrap; }
+.cr-legend { margin: 6px 0 8px; font-size: .88rem; }
+.cr-detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 28px; }
+.cr-detail-grid .mini-head { margin: 4px 0 2px; }
+.cr-detail-grid p { margin: 4px 0 8px; }
+@media (max-width: 760px) { .cr-detail-grid { grid-template-columns: 1fr; } }
+/* the craft table has 8 columns: tighter cells, and recipe names may wrap */
+table.crafting th, table.crafting td { padding-left: 9px; padding-right: 9px; }
+table.crafting tbody th[scope="row"] { white-space: normal; min-width: 150px; }
+table.crafting td .cat { white-space: normal; }
+/* phones and narrow windows: each recipe becomes a card; the column headings give way to the Sort by menu */
+@media (max-width: 900px) {
+  table.crafting, table.crafting tbody { display: block; }
+  table.crafting thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); }
+  table.crafting tbody tr:not(.cr-detail) { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; padding: 12px 4px 14px; border-bottom: 1px solid var(--line, rgba(255,255,255,.1)); }
+  table.crafting tbody tr:not(.cr-detail) > * { display: block; padding: 0; border: 0; white-space: normal; }
+  table.crafting tbody th[scope="row"], table.crafting td.cr-actions { grid-column: 1 / -1; }
+  table.crafting td[data-label]::before { content: attr(data-label); display: block; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 1px; }
+  table.crafting tbody tr:not(.cr-detail) > td.cr-actions { display: flex; gap: 8px; }
+  .cr-legend-sort { display: none; }
+  table.crafting td.cr-actions .btn { flex: 1; width: auto; }
+  table.crafting td.cr-actions .btn + .btn { margin: 0; }
+  table.crafting tr.cr-detail, table.crafting tr.cr-detail td { display: block; }
+  table.crafting td.empty { display: block; }
+  table.crafting tbody tr.v-pad, table.crafting tbody tr.v-pad > td { display: block; padding: 0; border: 0; }
+}
+
+/* ---------- Prices: item filters ---------- */
+.pr-filters { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
+.pr-filters .chips { gap: 8px; }
+.pr-subfilters { display: flex; flex-wrap: wrap; gap: 14px 20px; align-items: end; margin-top: 14px; }
+.pr-subfilters > div { min-width: 200px; }
+.pr-subfilters > .pr-clear { min-width: 0; }
+.pr-level { border: 0; padding: 0; margin: 0; min-width: 0; }
+.pr-level legend { padding: 0; }
+.pr-level-boxes { display: flex; align-items: center; gap: 8px; }
+.pr-level-boxes .input { width: 84px; }
+.pr-level-boxes span { color: var(--ink-faint); }
+.pr-level-note { margin: 4px 0 0; font-size: .82rem; }
+@media (max-width: 760px) { .pr-subfilters > div { flex: 1 1 100%; } }
+
+/* ---------- Virtual tables (src/tools/virtual.svelte.ts) ---------- */
+/* spacer rows stand in for the rows scrolled out of the page */
+tr.v-pad > td { padding: 0; border: 0; }
+/* the script keeps the page steady itself when rows above the screen change height */
+.v-body { overflow-anchor: none; }
+.v-more { text-align: center; margin-top: 14px; }
+.sold { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.ec-baz-sold { display: block; font-size: .78rem; color: var(--ink-faint); }
 
 /* ---------- Character ---------- */
 .ch-form { display: grid; grid-template-columns: 180px 1fr auto; gap: 12px; align-items: end; }
@@ -681,7 +779,7 @@ span.item-icon { border-color: transparent; background: none; }
 .ec > .panel, .ec > section, .ec > .ec-tiles { margin-top: 18px; }
 .ec li { max-width: none; } /* lists here are layout rows, not prose */
 .ec-scope { margin: 12px 0 0; }
-.ec-lead { margin: 0 0 14px; max-width: 760px; }
+.ec-lead { margin: 0 0 14px; }
 .ec-num { font-variant-numeric: tabular-nums; }
 .ec-tiles { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 .ec-tiles .stat b { font-size: 1.75rem; margin: 4px 0 2px; }
@@ -704,45 +802,7 @@ span.item-icon { border-color: transparent; background: none; }
 .ec-share i { display: block; height: 100%; background: var(--gold-dim); border-radius: 3px; }
 @media (max-width: 700px) { .ec-houses { grid-template-columns: 1fr; } }
 
-/* market indexes */
-.ec-idx-grid { display: grid; grid-template-columns: 330px 1fr; gap: 22px; align-items: start; }
-@media (max-width: 960px) { .ec-idx-grid { grid-template-columns: 1fr; } }
-.ec-idx-list ul { list-style: none; margin: 0; padding: 0; }
-.ec-idx-list .mini-head { margin: 12px 0 4px; }
-.ec-idx-head, .ec-idx-row { display: grid; grid-template-columns: 1fr 64px 52px 74px; gap: 8px; align-items: center; }
-.ec-idx-head { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); padding: 0 8px; }
-.ec-idx-head span:nth-child(n+3) { text-align: right; }
-.ec-idx-row { width: 100%; font: inherit; color: var(--ink); background: none; border: 1px solid transparent; border-radius: 5px; padding: 6px 8px; cursor: pointer; text-align: left; min-height: 36px; }
-.ec-idx-row:hover { background: rgba(230,184,74,.07); }
-.ec-idx-row.on { background: rgba(230,184,74,.1); border-color: rgba(230,184,74,.35); }
-.ec-idx-row .ec-num, .ec-idx-row .pct { text-align: right; font-size: .9rem; }
-.ec-idx-name { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: .95rem; }
-.ec-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; border: 1px solid var(--stone-edge); flex-shrink: 0; }
-.ec-spark path { fill: none; stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
-@media (max-width: 480px) { .ec-idx-head, .ec-idx-row { grid-template-columns: 1fr 52px 74px; } .ec-idx-head span:nth-child(2), .ec-idx-row .ec-spark { display: none; } }
-.ec-add { position: relative; max-width: 420px; }
-.ec-add .field-label { margin-top: 0; }
-.ec-add .input { width: 100%; }
-.ec-matches { position: absolute; z-index: 5; left: 0; right: 0; list-style: none; margin: 4px 0 0; padding: 4px; background: var(--stone); border: 1px solid var(--gold-dim); border-radius: 6px; box-shadow: var(--shadow); }
-.ec-matches button { display: flex; align-items: center; width: 100%; font: inherit; color: var(--ink); background: none; border: 0; padding: 7px 8px; border-radius: 4px; cursor: pointer; text-align: left; }
-.ec-matches button:hover, .ec-matches button:focus-visible { background: rgba(230,184,74,.12); }
-.ec-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; list-style: none; margin: 14px 0 6px; padding: 0; font-size: .92rem; }
-.ec-legend li { display: flex; align-items: center; gap: 6px; }
-.ec-x { font: inherit; line-height: 1; color: var(--ink-faint); background: none; border: 1px solid var(--stone-edge); border-radius: 4px; width: 22px; height: 22px; cursor: pointer; }
-.ec-x:hover { color: var(--ink); border-color: var(--gold-dim); }
-.ec-plot { position: relative; }
-.ec-plot svg { display: block; width: 100%; height: auto; touch-action: pan-y; }
-.ec-grid { stroke: rgba(255,255,255,.07); stroke-width: 1; }
-.ec-base { stroke: var(--ink-faint); stroke-width: 1; stroke-dasharray: 3 4; opacity: .7; }
-.ec-tick { fill: var(--ink-faint); font-size: 12px; font-variant-numeric: tabular-nums; }
-.ec-line { fill: none; stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
-.ec-end { stroke: var(--stone); stroke-width: 2; }
-.ec-cross { stroke: var(--ink-dim); stroke-width: 1; }
-.ec-tip { position: absolute; top: 6px; transform: translateX(-50%); pointer-events: none; background: var(--field); border: 1px solid var(--gold-dim); border-radius: 6px; padding: 8px 10px; font-size: .85rem; min-width: 170px; box-shadow: var(--shadow); }
-.ec-tip b { display: block; color: var(--gold-2); margin-bottom: 4px; font-weight: 700; }
-.ec-tip div { display: flex; align-items: center; gap: 6px; }
-.ec-tip .ec-num { margin-left: auto; padding-left: 12px; font-weight: 700; }
-.ec-axis-note, .ec-empty { margin-top: 6px; }
+/* tables under charts */
 .ec-table { margin-top: 10px; }
 .ec-table summary { cursor: pointer; color: var(--gold-2); font-weight: 700; font-size: .92rem; }
 .ec-table .table-wrap { margin-top: 8px; }
@@ -835,6 +895,11 @@ html[data-underline] .tool-card .tool-title, html[data-underline] .nav-link .nav
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 html[data-calm] { scroll-behavior: auto; }
+/* the cross-fade between pages (client-side navigation) is animated on the page's own pseudo-elements */
+html[data-calm]::view-transition-group(*), html[data-calm]::view-transition-old(*), html[data-calm]::view-transition-new(*) { animation: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
 html[data-calm] *, html[data-calm] *::before, html[data-calm] *::after { transition: none !important; animation: none !important; }
 html[data-calm] body { background-image: none; }
 html[data-calm] .hero-frame::after { display: none; }
@@ -858,3 +923,49 @@ html[data-contrast] .btn, html[data-contrast] .btn-ghost { background: #000; col
 html[data-contrast] .chip input:checked + span, html[data-contrast] .seg input:checked + span, html[data-contrast] .seg-buttons button.active { background: #ffd257; color: #000; border-color: #fff; }
 html[data-contrast] h1, html[data-contrast] .hero-text h1 { text-shadow: none; }
 html[data-contrast] .ec-cell { background: #141414; border-color: #8a8a8a; }
+
+/* ---------- WoW game icons (src/lib/icons.ts WOW_ICONS) ----------
+   Blizzard's square icons, cropped a little like the game's action bars crop them,
+   with a dark bevel and a thin gold rim. */
+.wow-icon {
+  display: inline-block; flex-shrink: 0; vertical-align: middle; border-radius: 4px;
+  background-color: #000; background-position: center; background-size: 112%; background-repeat: no-repeat;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .85), inset 0 0 4px rgba(0, 0, 0, .6), 0 0 0 1px rgba(232, 189, 85, .35);
+}
+.nav-link .wow-icon { opacity: .85; filter: saturate(.85); transition: opacity .15s, filter .15s, box-shadow .15s; }
+.nav-link:hover .wow-icon, .nav-link.active .wow-icon { opacity: 1; filter: none; }
+.nav-link.active .wow-icon { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .85), 0 0 0 1px var(--gold), 0 0 8px rgba(232, 189, 85, .55); }
+.nav.open .nav-icon:has(.wow-icon) { background: none; border: 0; }
+.nav.open .nav-icon .wow-icon { width: 36px !important; height: 36px !important; }
+/* big framed icons fill their frame */
+.hero-emblem:has(.wow-icon) { overflow: hidden; }
+.hero-emblem .wow-icon { width: 100% !important; height: 100% !important; border-radius: 50%; background-size: 125%; box-shadow: inset 0 0 12px rgba(0, 0, 0, .8); }
+.tool-icon:has(.wow-icon) { overflow: hidden; background: #000; }
+.tool-icon .wow-icon { width: 100% !important; height: 100% !important; border-radius: 0; box-shadow: inset 0 0 8px rgba(0, 0, 0, .7); }
+.stat-icon > .wow-icon { padding: 0; width: 46px !important; height: 46px !important; border-radius: 6px; }
+.btn .wow-icon { border-radius: 3px; }
+/* market pickers: game icon instead of the colour dot */
+.chip > span:has(.wow-icon) { padding-left: 7px; }
+.chip input:checked + span .wow-icon { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .85), 0 0 0 1px #6b4a12; }
+/* Alliance vs Horde chart: faction crests as the price markers */
+.crest { background: #000 center / 120% no-repeat; color: transparent !important; font-size: 0 !important; width: 20px !important; height: 20px !important; }
+.crest-alliance { background-image: url("/img/wow/alliance.jpg"); border-color: var(--alliance) !important; }
+.crest-horde { background-image: url("/img/wow/horde.jpg"); border-color: var(--horde) !important; }
+
+/* "Copy name" button next to item names (CopyName.astro / CopyName.svelte, src/lib/copyname.ts) */
+.copy-name {
+  display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;
+  width: 26px; height: 26px; margin-left: 4px; padding: 0; cursor: pointer;
+  color: var(--ink-dim); background: transparent; border: 1px solid transparent; border-radius: 6px;
+  opacity: .7; transition: opacity .15s, color .15s, border-color .15s, background-color .15s;
+}
+.copy-name:hover, .copy-name:focus-visible { opacity: 1; color: var(--gold-2); border-color: var(--line-strong); background: var(--gold-tint); }
+.copy-name .icon { display: block; }
+.copy-name .copy-name-done { display: none; }
+.copy-name.copied { opacity: 1; color: var(--up); }
+.copy-name.copied .copy-name-idle { display: none; }
+.copy-name.copied .copy-name-done { display: inline-flex; }
+.copy-name-lg { width: 40px; height: 40px; margin-left: 0; border-color: var(--line-strong); opacity: 1; color: var(--gold-2); }
+@media (pointer: coarse) { .copy-name { width: 36px; height: 36px; } }
+/* Copying is for pasting into the game on a PC: on narrow screens the small buttons only crowd the tables */
+@media (max-width: 700px) { .copy-name:not(.copy-name-lg) { display: none; } }

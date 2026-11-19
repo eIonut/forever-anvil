@@ -21,7 +21,7 @@ const keys = Object.keys(groups).sort();
 const anchor = (k: string) => "letter-" + (k === "#" ? "num" : k);
 ---
 <BaseLayout
-  title="WoW: Forever Item Prices A–Z — Forever Tome"
+  title="WoW: Forever Item Prices A–Z | Forever Tome"
   description={`Auction House prices for ${num(sorted.length)} WoW: Forever items: market price, 30-day history, vendor price and crafting.`}
   page="items"
 >
@@ -35,7 +35,7 @@ const anchor = (k: string) => "letter-" + (k === "#" ? "num" : k);
     {keys.map((k) => (
       <Fragment>
         <h2 id={anchor(k)}>{k}</h2>
-        <ul>
+        <ul style={`--rows:${Math.ceil(groups[k].length / 3)}`}>
           {groups[k].map(([id, name]) => {
             const q = c.names[id][4];
             return <li><a class={q ? `q-${q}` : ""} href={itemUrl(id, name)} {...tooltipAttrs(id)}><ItemIcon id={id} />{name}</a></li>;

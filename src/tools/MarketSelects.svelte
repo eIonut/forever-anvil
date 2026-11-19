@@ -12,11 +12,14 @@
     ongroup: (v: string) => void;
     onfaction: (v: string) => void;
   }
+  import Icon from "./Icon.svelte";
+  import { rulesetIcon } from "../lib/icons";
+
   let { prefix, region, group, faction, groups, onregion, ongroup, onfaction }: Props = $props();
 
   const REGIONS = [
     { value: "eu", label: "Europe" },
-    { value: "us", label: "Americas & Oceania" },
+    // Americas ("us") is left out until it can be tested; the pipeline can still build it.
   ];
   const HOUSES = [
     { value: "alliance", label: "Alliance", hint: "" },
@@ -24,10 +27,10 @@
     { value: "neutral", label: "Blackwater", hint: "neutral, both factions" },
   ];
 
-  // "Group A — ruleset not confirmed yet" → chip "Group A", with the rest as a hint
+  // "Group A · ruleset not confirmed yet" → chip "Group A", with the rest as a hint
   const split = (label: string) => {
-    const [name, ...rest] = label.split(" — ");
-    return { name, hint: rest.join(" — ") };
+    const [name, ...rest] = label.split(" · ");
+    return { name, hint: rest.join(" · ") };
   };
 </script>
 
@@ -45,7 +48,8 @@
     <div class="chips">
       {#each groups as g (g.value)}
         {@const l = split(g.label)}
-        <label class="chip" title={l.hint || undefined}><input type="radio" name="{prefix}-group" value={g.value} checked={g.value === group} onchange={() => ongroup(g.value)} /><span>{l.name}{#if l.hint}<span class="sr-only"> ({l.hint})</span><sup class="chip-flag" aria-hidden="true">?</sup>{/if}</span></label>
+        {@const ri = rulesetIcon(l.name)}
+        <label class="chip" title={l.hint || undefined}><input type="radio" name="{prefix}-group" value={g.value} checked={g.value === group} onchange={() => ongroup(g.value)} /><span>{#if ri}<Icon name={ri} size={22} />{/if}{l.name}{#if l.hint}<span class="sr-only"> ({l.hint})</span><sup class="chip-flag" aria-hidden="true">?</sup>{/if}</span></label>
       {/each}
     </div>
   </fieldset>
@@ -53,7 +57,7 @@
     <legend>Auction house</legend>
     <div class="chips">
       {#each HOUSES as h (h.value)}
-        <label class="chip chip-{h.value}"><input type="radio" name="{prefix}-faction" value={h.value} checked={faction === h.value} onchange={() => onfaction(h.value)} /><span><i class="chip-dot" aria-hidden="true"></i>{h.label}{#if h.hint}<span class="sr-only"> ({h.hint})</span>{/if}</span></label>
+        <label class="chip chip-{h.value}"><input type="radio" name="{prefix}-faction" value={h.value} checked={faction === h.value} onchange={() => onfaction(h.value)} /><span><Icon name={h.value as "alliance" | "horde" | "neutral"} size={22} />{h.label}{#if h.hint}<span class="sr-only"> ({h.hint})</span>{/if}</span></label>
       {/each}
     </div>
   </fieldset>

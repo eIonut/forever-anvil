@@ -1,11 +1,11 @@
 <script lang="ts">
   // The Economy page: the state of one ruleset's auction houses at a glance. Headline numbers,
-  // the three houses, market indexes over time, the trade board, where the gold is, movers,
-  // Blackwater flips, Alliance vs Horde gaps, crown jewels and the bazaar.
-  // Everything except the indexes is worked out here from the price files the other tools use.
+  // the three houses, the trade board, where the gold is, movers, Blackwater flips,
+  // Alliance vs Horde gaps, crown jewels and the bazaar. Everything is worked out here from the
+  // price files the other tools use, except the trade board's 24-hour changes (econ_<region>.json).
   import type { Snippet } from "svelte";
   import { onMount, tick } from "svelte";
-  import { getJSON, groupLabel, localTime, noDataMessage, priceUrl } from "../lib/api";
+  import { getCachedJSON, getJSON, groupLabel, localTime, noDataMessage, priceUrl } from "../lib/api";
   import { getMarketPrefs, saveMarketPrefs } from "../lib/marketPrefs";
   import { setupWowhead } from "../lib/wowhead";
   import { houseSummary, goldByClass } from "../lib/econmath.js";
@@ -14,7 +14,6 @@
   import MarketSelects from "./MarketSelects.svelte";
   import Icon from "./Icon.svelte";
   import Movers from "./Movers.svelte";
-  import IndexChart from "./econ/IndexChart.svelte";
   import TradeBoard from "./econ/TradeBoard.svelte";
   import Treemap from "./econ/Treemap.svelte";
   import BlackwaterFlips from "./econ/BlackwaterFlips.svelte";
@@ -22,6 +21,7 @@
   import CrownJewels from "./econ/CrownJewels.svelte";
   import Bazaar from "./econ/Bazaar.svelte";
   import { FACTION_NAME, compact, goldText } from "./econ/shared";
+  import { salesBasis } from "./SoldPerDay.svelte";
 
   let { children }: { children?: Snippet } = $props();
 
@@ -65,7 +65,7 @@
   });
 
   const nextUpdate = $derived.by(() => {
-    if (!groupData) return { big: "—", small: "" };
+    if (!groupData) return { big: "-", small: "" };
     const at = new Date(groupData.updated).getTime() + 3600_000;
     const mins = Math.round((at - now) / 60000);
     const big = mins > 1 ? "in " + mins + " min" : mins > -15 ? "Any minute" : "Overdue";
@@ -76,7 +76,7 @@
     loading = true;
     const [meta, items, ec] = await Promise.all([
       getJSON<Meta>(priceUrl("meta", region)),
-      getJSON<Record<string, ItemInfo>>(priceUrl("items", region)),
+      getCachedJSON<Record<string, ItemInfo>>(priceUrl("items", region)),
       getJSON<Econ>(priceUrl("econ", region)),
     ]);
     useItems(region, items);
@@ -125,7 +125,7 @@
       onregion={(v) => { region = v; save(); loadRegion(); }}
       ongroup={(v) => { group = v; save(); loadGroup(); }}
       onfaction={(v) => { faction = v; save(); }} />
-    <p class="faint ec-scope">The numbers cover all three auction houses of the {ruleset || "chosen"} ruleset. The trade board, flips, gold map and bazaar follow the auction house you pick.</p>
+    <p class="faint ec-scope">The numbers cover all three auction houses of the {ruleset || "chosen"} ruleset. The trade board, flips, gold map and bazaar follow the auction house you pick. "Sold per day" is an estimate: we compare the auctions every hour and count the ones bought (a seller cancelling looks the same to us), averaged over the last 7 days.</p>
   </div>
 
   {#if loading && !groupData}
@@ -135,7 +135,7 @@
   {:else if groupData}
     <div class="ec-tiles">
       <div class="stat stat-icon"><Icon name="prices" size={30} /><div><span>Auctions up</span><b>{totals.listings.toLocaleString()}</b><span>{totals.units.toLocaleString()} items, counting stacks</span></div></div>
-      <div class="stat stat-icon"><Icon name="database" size={30} /><div><span>Gold listed</span><b>{compact(totals.gold / 10000)}</b><span>at typical prices; joke listings left out</span></div></div>
+      <div class="stat stat-icon"><Icon name="economy" size={30} /><div><span>Gold listed</span><b>{compact(totals.gold / 10000)}</b><span>at typical prices; joke listings left out</span></div></div>
       <div class="stat stat-icon"><Icon name="items" size={30} /><div><span>Different items</span><b>{totals.items.toLocaleString()}</b><span>for sale in this ruleset</span></div></div>
       <div class="stat stat-icon"><Icon name="clock" size={30} /><div><span>Next update</span><b>{nextUpdate.big}</b><span>{nextUpdate.small}</span></div></div>
     </div>
@@ -145,19 +145,18 @@
         {@const share = totals.listings ? h.listings / totals.listings : 0}
         <button type="button" class="panel ec-house ec-house-{h.faction}" class:mine={h.faction === faction} aria-pressed={h.faction === faction}
           onclick={() => { faction = h.faction; save(); }}>
-          <span class="ec-house-name">{FACTION_NAME[h.faction] || h.faction}{#if h.faction === faction}<span class="ec-mine-tag">Your house</span>{/if}</span>
+          <span class="ec-house-name"><Icon name={h.faction as "alliance" | "horde" | "neutral"} size={26} />{FACTION_NAME[h.faction] || h.faction}{#if h.faction === faction}<span class="ec-mine-tag">Your house</span>{/if}</span>
           <b>{h.listings.toLocaleString()}</b>
           <span class="ec-house-sub">auctions · {Math.round(share * 100)}% of the ruleset</span>
           <span class="ec-share" aria-hidden="true"><i style:width="{share * 100}%"></i></span>
           <span class="ec-house-sub">{goldText(h.gold)} · {h.items.toLocaleString()} items</span>
+          <span class="ec-house-sub" title={h.salesHours ? "Estimated " + salesBasis(h.salesHours) : "Sales are still being counted"}>{#if h.salesHours}About {compact(h.sold)} sold a day · {goldText(h.soldGold)} traded{:else}Sales per day: still counting{/if}</span>
         </button>
       {/each}
     </section>
 
-    <IndexChart {series} {region} {group} houseId={current?.id ?? null} houseItems={current?.house.items || {}} />
-
     {#if current}
-      <TradeBoard houseItems={current.house.items} changes={series?.board?.[current.id]} {houseName} />
+      <TradeBoard houseItems={current.house.items} changes={series?.board?.[current.id]} {houseName} salesHours={current.house.salesHours} />
 
       <section class="panel" aria-labelledby="ec-gold-title">
         <div class="section-head">
@@ -172,7 +171,7 @@
       </section>
     {/if}
 
-    <Movers {region} {group} houseId={current?.id ?? null} />
+    <Movers {region} {group} houseId={current?.id ?? null} house={current?.house} />
 
     <BlackwaterFlips group={groupData} {faction} />
     <FactionGaps group={groupData} />

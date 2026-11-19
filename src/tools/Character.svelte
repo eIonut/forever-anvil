@@ -25,7 +25,7 @@
   const ERR: Record<string, string> = {
     "not-found": "We couldn't find that character. Check the spelling (first and last name), and note that characters only appear after reaching level 10 and logging out once.",
     "bad-name": "Please enter a first and last name, like \"Thrallina Stormhoof\".",
-    "too-many": "Too many lookups in a short time — wait a minute and try again.",
+    "too-many": "Too many lookups in a short time. Wait a minute and try again.",
     "not-configured": "The character lookup isn't set up on this server yet (missing Blizzard API keys).",
     unavailable: "Blizzard's character service didn't answer. Please try again in a few minutes.",
   };
@@ -70,7 +70,7 @@
 
 <form class="panel ch-form" onsubmit={(e) => { e.preventDefault(); lookup(); }}>
   <div><label class="field-label" for="ch-region">Region</label>
-    <select class="input" id="ch-region" bind:value={region}><option value="eu">Europe</option><option value="us">Americas &amp; Oceania</option><option value="kr">Korea</option><option value="tw">Taiwan</option></select></div>
+    <select class="input" id="ch-region" bind:value={region}><option value="eu">Europe</option><option value="kr">Korea</option><option value="tw">Taiwan</option></select></div>
   <div class="ch-name"><label class="field-label" for="ch-name">Character name</label>
     <input class="input" id="ch-name" placeholder="Firstname Lastname" autocomplete="off" maxlength="40" aria-describedby="ch-hint" bind:value={name} bind:this={nameBox} /></div>
   <button class="btn" type="submit">Look up</button>
@@ -94,7 +94,7 @@
         </div>
         <button type="button" class="btn btn-ghost btn-sm" id="ch-share" onclick={() => share(d)}>{shareLabel}</button>
       </div>
-      <p class="note fresh">{#if d.blizzardUpdated}<b>Blizzard last updated this profile {ago(d.blizzardUpdated)}</b> ({localTime(d.blizzardUpdated)}).{" "}{/if}Profiles only refresh after the character logs out, and Blizzard can take several hours — sometimes until the next day — so very recent gear or skill changes may not show yet.{d.partial ? " Some sections aren't available yet." : ""}</p>
+      <p class="note fresh">{#if d.blizzardUpdated}<b>Blizzard last updated this profile {ago(d.blizzardUpdated)}</b> ({localTime(d.blizzardUpdated)}).{" "}{/if}Profiles only refresh after the character logs out, and Blizzard can take several hours (sometimes until the next day), so very recent gear or skill changes may not show yet.{d.partial ? " Some sections aren't available yet." : ""}</p>
       <div class="grid grid-2 ch-sections">
         <section>
           <h3>Equipped gear</h3>

@@ -5,11 +5,14 @@
   import type { GroupPrices } from "../types";
   import ItemLink from "../ItemLink.svelte";
   import Money from "../Money.svelte";
+  import SoldPerDay from "../SoldPerDay.svelte";
+  import { houseOf } from "../types";
   import { FACTION_NAME } from "./shared";
 
   let { group, faction }: { group: GroupPrices; faction: string } = $props();
   let shown = $state(10);
   const list = $derived(faction === "neutral" ? [] : blackwaterFlips(group, faction));
+  const home = $derived(houseOf(group, faction)?.house);
 </script>
 
 <section class="panel" aria-labelledby="ec-bw-title">
@@ -22,11 +25,11 @@
     {:else}
       <div class="table-wrap"><table class="prices">
         <caption class="sr-only">Items cheaper on Blackwater than on the {FACTION_NAME[faction]} auction house</caption>
-        <thead><tr><th scope="col">Item</th><th scope="col">Buy on Blackwater</th><th scope="col">Sell at home (after cut)</th><th scope="col">Profit each</th><th scope="col" class="col-hide-sm">On Blackwater</th></tr></thead>
+        <thead><tr><th scope="col">Item</th><th scope="col">Buy on Blackwater</th><th scope="col">Sell at home (after cut)</th><th scope="col">Profit each</th><th scope="col">Sells per day at home</th><th scope="col" class="col-hide-sm">On Blackwater</th></tr></thead>
         <tbody>
           {#each list.slice(0, shown) as f (f.id)}
-            <tr><th scope="row"><ItemLink id={f.id} name={itemName(f.id)} /></th><td><Money c={f.buy} /></td><td><Money c={f.sell} /></td>
-              <td><Money c={f.profit} /> <span class="pct up">+{f.pct}%</span></td><td class="col-hide-sm">{f.neutralQty.toLocaleString()} {f.neutralQty === 1 ? "unit" : "units"}</td></tr>
+            <tr><th scope="row"><ItemLink id={f.id} name={itemName(f.id)} copy /></th><td><Money c={f.buy} /></td><td><Money c={f.sell} /></td>
+              <td><Money c={f.profit} /> <span class="pct up">+{f.pct}%</span></td><td><SoldPerDay a={home?.items[f.id]} hours={home?.salesHours} /></td><td class="col-hide-sm">{f.neutralQty.toLocaleString()} {f.neutralQty === 1 ? "unit" : "units"}</td></tr>
           {/each}
         </tbody>
       </table></div>

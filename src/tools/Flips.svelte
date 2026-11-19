@@ -2,7 +2,7 @@
   // Vendor flips: items listed on the AH for less than a vendor pays (computed hourly by the price job).
   import type { Snippet } from "svelte";
   import { onMount } from "svelte";
-  import { getJSON, groupLabel, localTime, priceUrl } from "../lib/api";
+  import { getCachedJSON, getJSON, groupLabel, localTime, priceUrl } from "../lib/api";
   import { announce } from "../lib/announce";
   import { getMarketPrefs, saveMarketPrefs } from "../lib/marketPrefs";
   import { setupWowhead } from "../lib/wowhead";
@@ -25,7 +25,7 @@
 
   async function load() {
     loading = true;
-    const [meta, items] = await Promise.all([getJSON<Meta>(priceUrl("meta", region)), getJSON<Record<string, ItemInfo>>(priceUrl("items", region))]);
+    const [meta, items] = await Promise.all([getJSON<Meta>(priceUrl("meta", region)), getCachedJSON<Record<string, ItemInfo>>(priceUrl("items", region))]);
     useItems(region, items);
     if (!meta?.groups?.length) { empty = true; return; }
     empty = false;
@@ -62,7 +62,7 @@
       onfaction={(v) => { faction = v; save(); }} />
   </div>
   <p class="fl-summary" aria-live="polite">
-    {#if loading}Loading…{:else if flips.length}<b>{flips.length}</b> item{flips.length > 1 ? "s" : ""} listed below vendor price right now — about <Money c={total} /> profit if you bought them all. <span class="faint">Snapshot from {localTime(groupData!.updated)}.</span>{:else}No vendor flips on this auction house right now. Check back after the next hourly update.{/if}
+    {#if loading}Loading…{:else if flips.length}<b>{flips.length}</b> item{flips.length > 1 ? "s" : ""} listed below vendor price right now, about <Money c={total} /> profit if you bought them all. <span class="faint">Snapshot from {localTime(groupData!.updated)}.</span>{:else}No vendor flips on this auction house right now. Check back after the next hourly update.{/if}
   </p>
   <div class="table-wrap">
     <table class="prices">
@@ -71,7 +71,7 @@
       <tbody>
         {#if !loading}
           {#each flips as f (f[0])}
-            <tr><th scope="row"><ItemLink id={f[0]} name={itemSource.items[f[0]]?.[0]} /></th><td><Money c={f[3]} /></td><td><Money c={f[4]} /></td><td><span class="pct up">+<Money c={f[4] - f[3]} /></span></td><td>{f[1].toLocaleString()}</td><td><b><Money c={f[2]} /></b></td></tr>
+            <tr><th scope="row"><ItemLink id={f[0]} name={itemSource.items[f[0]]?.[0]} copy /></th><td><Money c={f[3]} /></td><td><Money c={f[4]} /></td><td><span class="pct up">+<Money c={f[4] - f[3]} /></span></td><td>{f[1].toLocaleString()}</td><td><b><Money c={f[2]} /></b></td></tr>
           {:else}
             <tr><td colspan="6" class="empty">Nothing to flip here right now.</td></tr>
           {/each}

@@ -1,4 +1,4 @@
-// Forever Tome — compare a few item prices across the five auction-house groups,
+// Forever Tome: compare a few item prices across the five auction-house groups,
 // so we can work out which group belongs to which ruleset (the API doesn't say).
 //
 // Run:  node tools/house-compare.js            (uses REGION from .env)
@@ -57,7 +57,7 @@ async function main() {
     return best;
   }
   const money = (c) => {
-    if (c == null) return "—";
+    if (c == null) return "-";
     c = Math.round(c);
     const g = Math.floor(c / 10000), s = Math.floor((c % 10000) / 100), cu = c % 100;
     return (g ? g + "g " : "") + (g || s ? s + "s " : "") + cu + "c";
@@ -66,7 +66,7 @@ async function main() {
   for (const [fi, faction] of [[0, "Alliance"], [1, "Horde"]]) {
     const res = {};
     for (const [g, houses] of Object.entries(GROUPS)) res[g] = await lowest(houses[fi]);
-    console.log(`\n${faction} — lowest price per unit (${REGION.toUpperCase()})`);
+    console.log(`\n${faction}: lowest price per unit (${REGION.toUpperCase()})`);
     console.log(["Item", ...Object.keys(GROUPS).map((g) => `Group ${g} (${GROUPS[g][fi]})`)].join(" | "));
     for (const id of ITEMS) console.log([names[id], ...Object.keys(GROUPS).map((g) => money(res[g][id]))].join(" | "));
   }

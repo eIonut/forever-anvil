@@ -21,17 +21,25 @@ const unitId = (config.adSlots as Record<string, string>)[name] || undefined;
 ) : null}
 
 <script>
-  // Load AdSense once, only on pages that show an ad, then fill each ad space.
-  const ads = document.querySelectorAll<HTMLElement>("ins.adsbygoogle");
-  if (ads.length) {
-    const s = document.createElement("script");
-    s.async = true;
-    s.crossOrigin = "anonymous";
-    s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + encodeURIComponent(ads[0].dataset.adClient || "");
-    document.head.appendChild(s);
+import { onPage } from "../lib/page";
+
+  // Load AdSense once, on the first page that shows an ad, then fill each new ad space
+  // (after a client-side navigation the new page brings new, empty ones).
+  let loaded = false;
+  onPage(() => {
+    const ads = [...document.querySelectorAll<HTMLElement>("ins.adsbygoogle:not([data-adsbygoogle-status])")];
+    if (!ads.length) return;
+    if (!loaded) {
+      loaded = true;
+      const s = document.createElement("script");
+      s.async = true;
+      s.crossOrigin = "anonymous";
+      s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + encodeURIComponent(ads[0].dataset.adClient || "");
+      document.head.appendChild(s);
+    }
     const w = window as unknown as { adsbygoogle?: object[] };
     ads.forEach(() => {
       try { (w.adsbygoogle = w.adsbygoogle || []).push({}); } catch { /* ad blocked */ }
     });
-  }
+  });
 </script>

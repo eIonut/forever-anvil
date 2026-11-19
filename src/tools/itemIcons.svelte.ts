@@ -1,7 +1,8 @@
 // Item info for icons in the tools. A tool that loads the item cache (items_<region>.json)
 // puts it here, and every <ItemIcon> / <ItemLink> on the page can show the right icon.
 
-export type ItemInfo = [string, number | null, number, number | null, string | null, string | null, number | null];
+/** [name, vendorSells, dayFetched, vendorBuys, quality, itemClass, iconFileId, source, itemSubclass, inventoryType, requiredLevel, itemLevel] (see pipeline/run.js) */
+export type ItemInfo = [string, number | null, number, number | null, string | null, string | null, number | null, (string | null)?, (string | null)?, (string | null)?, (number | null)?, (number | null)?];
 
 class ItemSource {
   region = $state("eu");

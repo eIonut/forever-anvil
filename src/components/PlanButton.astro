@@ -7,20 +7,24 @@ interface Props {
 
 const { recipeId } = Astro.props;
 ---
-<button type="button" class="btn plan-add" data-recipe={recipeId}>+ Add to my crafting plan</button>
+<button type="button" class="btn plan-add" data-plan-button data-recipe={recipeId}>+ Add to my crafting plan</button>
 
 <script>
-  import { addToPlan, updatePlanBadges } from "../lib/plan";
+import { addToPlan, updatePlanBadges } from "../lib/plan";
   import { announce } from "../lib/announce";
+  import { onPage } from "../lib/page";
 
-  updatePlanBadges();
-  for (const b of document.querySelectorAll<HTMLButtonElement>(".plan-add")) {
-    b.addEventListener("click", () => {
-      const n = addToPlan(b.dataset.recipe || "", 1);
-      const old = b.textContent;
-      b.textContent = `✓ Added (${n} in plan)`;
-      announce("Added to your crafting plan");
-      setTimeout(() => { b.textContent = old; }, 3000);
-    });
-  }
+  onPage((signal) => {
+    updatePlanBadges();
+    // only this component's buttons (data-plan-button); the Crafting tool has its own "+ Plan" buttons
+    for (const b of document.querySelectorAll<HTMLButtonElement>("button[data-plan-button]")) {
+      b.addEventListener("click", () => {
+        const n = addToPlan(b.dataset.recipe || "", 1);
+        const old = b.textContent;
+        b.textContent = `✓ Added (${n} in plan)`;
+        announce("Added to your crafting plan");
+        setTimeout(() => { b.textContent = old; }, 3000);
+      }, { signal });
+    }
+  });
 </script>

@@ -7,12 +7,14 @@
   import type { GroupPrices } from "../types";
   import ItemLink from "../ItemLink.svelte";
   import Money from "../Money.svelte";
+  import SoldPerDay from "../SoldPerDay.svelte";
   import { FACTION_NAME } from "./shared";
 
   let { group }: { group: GroupPrices } = $props();
   const list = $derived(crownJewels(group, 11));
   const podium = $derived([list[1], list[0], list[2]].filter(Boolean)); // 2nd, 1st, 3rd
   const quality = (id: number) => itemSource.items[id]?.[4] || "common";
+  const houseOfJewel = (j: { id: number; houseId: string }) => group.houses[j.houseId];
   const big = (id: number) => iconUrl(itemSource.items[id]?.[6], itemSource.region, 56);
 </script>
 
@@ -29,17 +31,17 @@
           {#if big(j.id)}<img class="ec-jewel-icon qb-{quality(j.id)}" src={big(j.id)} alt="" width="48" height="48" loading="lazy" />{/if}
           <a class="ec-jewel-name q-{quality(j.id)}" href={name ? itemUrl(j.id, name) : "https://www.wowhead.com/forever/item=" + j.id}>{name || "Item #" + j.id}</a>
           <b class="ec-jewel-price"><Money c={j.price} /></b>
-          <span class="faint">{j.qty} on sale · {FACTION_NAME[j.faction] || j.faction}</span>
+          <span class="faint">{j.qty} on sale · <SoldPerDay a={houseOfJewel(j).items[j.id]} hours={houseOfJewel(j).salesHours} suffix=" sold/day" /> · {FACTION_NAME[j.faction] || j.faction}</span>
         </li>
       {/each}
     </ol>
     {#if list.length > 3}
       <ol class="ec-jewels" start="4">
         {#each list.slice(3) as j (j.id)}
-          <li><ItemLink id={j.id} name={itemName(j.id)} class={"q-" + quality(j.id)} /> <Money c={j.price} /> <span class="faint">· {FACTION_NAME[j.faction] || j.faction}</span></li>
+          <li><ItemLink id={j.id} name={itemName(j.id)} class={"q-" + quality(j.id)} copy /> <Money c={j.price} /> <span class="faint">· <SoldPerDay a={houseOfJewel(j).items[j.id]} hours={houseOfJewel(j).salesHours} suffix=" sold/day" /> · {FACTION_NAME[j.faction] || j.faction}</span></li>
         {/each}
       </ol>
     {/if}
-    <p class="faint" style="margin-top:8px">Listing prices, not sales. Anything listed above 10,000g each is left out as a joke listing.</p>
+    <p class="faint" style="margin-top:8px">Listing prices, not sale prices; "sold/day" is our estimate of how many change hands. Anything listed above 10,000g each is left out as a joke listing.</p>
   {/if}
 </section>

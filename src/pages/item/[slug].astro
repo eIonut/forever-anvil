@@ -4,6 +4,7 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import AdSlot from "../../components/AdSlot.astro";
 import ItemLink from "../../components/ItemLink.astro";
+import CopyName from "../../components/CopyName.astro";
 import ItemTitleIcon from "../../components/ItemTitleIcon.astro";
 import Money from "../../components/Money.astro";
 import PriceChart from "../../components/PriceChart.astro";
@@ -33,7 +34,7 @@ const ph = c.primaryHouse;
 // "Sell on the AH or to a vendor?" (the AH keeps 5%)
 const verdict = main && sell
   ? main.market * 0.95 > sell * 1.15 ? "Selling on the Auction House pays more than a vendor, even after the 5% cut."
-  : main.market * 0.95 < sell ? "A vendor pays more than the Auction House does after its 5% cut — vendor it."
+  : main.market * 0.95 < sell ? "A vendor pays more than the Auction House does after its 5% cut, so vendor it."
   : ""
   : "";
 
@@ -53,10 +54,10 @@ const jsonld = {
   ],
 };
 ---
-<BaseLayout title={`${name} Price — WoW: Forever — Forever Tome`} description={description} page="items" jsonld={jsonld}>
+<BaseLayout title={`${name} Price, WoW: Forever | Forever Tome`} description={description} page="items" jsonld={jsonld}>
   <section class="page-hero page-hero-item"><div class="wrap"><div class="hero-frame">
     <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/item">Item prices</a> › {name}</nav>
-    <div class="item-title"><ItemTitleIcon id={id} /><h1 class={quality ? `q-${quality}` : ""}>{name}</h1></div>
+    <div class="item-title"><ItemTitleIcon id={id} /><h1 class={quality ? `q-${quality}` : ""}>{name}</h1><CopyName name={name} large /></div>
     <p class="item-sub">{[quality && capitalize(quality), itemClass, "WoW: Forever"].filter(Boolean).join(" · ")}</p>
     <p class="item-summary">
       {main
@@ -103,7 +104,7 @@ const jsonld = {
             const res = craftProfit({ q: r.q, item: r.item, r: r.mats }, priceAt);
             return (
               <li>
-                <b>{r.prof}</b> — <a href={recipeUrl(r.id, r.name)}>{r.name}</a>{r.q > 1 ? ` (makes ${r.q})` : null}<br />
+                <b>{r.prof}</b>: <a href={recipeUrl(r.id, r.name)}>{r.name}</a>{r.q > 1 ? ` (makes ${r.q})` : null}<br />
                 <span class="mats-inline">{r.mats.map((m, i) => <Fragment>{i > 0 && ", "}{m[1]}× <ItemLink id={m[0]} name={m[2]} /></Fragment>)}</span>
                 {res.costComplete && ph && (
                   <Fragment><br /><span class="faint">Materials cost about <Money c={res.cost} /> on {ph.label} Alliance{res.profit != null ? <Fragment>{` · profit ${res.profit >= 0 ? "+" : "−"}`}<Money c={Math.abs(res.profit)} /> after the AH cut</Fragment> : null}.</span></Fragment>

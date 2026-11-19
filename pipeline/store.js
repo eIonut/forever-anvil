@@ -1,6 +1,6 @@
 // Where the pipeline saves its results.
-//   local (default): JSON files in ./out — for testing on your own computer
-//   kv:              Cloudflare Workers KV — used in production (added in the deploy step)
+//   local (default): JSON files in ./out, for testing on your own computer
+//   kv:              Cloudflare Workers KV, used in production (added in the deploy step)
 // Both expose the same two functions, so run.js doesn't care which one is used.
 import fs from "node:fs";
 import path from "node:path";

@@ -7,11 +7,18 @@
 </button>
 
 <script>
-  const b = document.querySelector<HTMLButtonElement>(".to-top")!;
-  window.addEventListener("scroll", () => { b.hidden = window.scrollY < 700; }, { passive: true });
-  b.addEventListener("click", () => {
-    const calm = document.documentElement.hasAttribute("data-calm");
-    window.scrollTo({ top: 0, behavior: calm ? "auto" : "smooth" });
-    document.getElementById("main")?.focus({ preventScroll: true });
+import { onPage } from "../lib/page";
+
+  onPage((signal) => {
+    const b = document.querySelector<HTMLButtonElement>(".to-top");
+    if (!b) return;
+    const update = () => { b.hidden = window.scrollY < 700; };
+    update();
+    window.addEventListener("scroll", update, { passive: true, signal });
+    b.addEventListener("click", () => {
+      const calm = document.documentElement.hasAttribute("data-calm");
+      window.scrollTo({ top: 0, behavior: calm ? "auto" : "smooth" });
+      document.getElementById("main")?.focus({ preventScroll: true });
+    }, { signal });
   });
 </script>

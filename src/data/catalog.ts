@@ -10,6 +10,7 @@ import { GROUPS } from "../../pipeline/houses.js";
 import { REGION_NAMES } from "../lib/labels";
 import { dateText } from "../lib/format";
 import { itemUrl } from "../lib/urls";
+import type { RecipeInfo } from "../lib/recipeinfo";
 
 /** items_<region>.json entry: [name, vendorSells, dayFetched, vendorBuys, quality, itemClass, iconFileId] */
 export type ItemInfo = [string, number | null, number, number | null, string | null, string | null, number | null];
@@ -41,6 +42,8 @@ export interface Recipe {
   q: number;
   /** materials: [itemId, quantity, itemName] */
   mats: [number, number, string][];
+  /** skill + where it's learned, from the game files (src/lib/recipeinfo.ts); null if unknown */
+  info: RecipeInfo | null;
 }
 
 export interface House {
@@ -84,7 +87,7 @@ const readJSON = <T>(name: string): T | null => {
 
 interface Meta { groups?: string[]; rulesets?: Record<string, string> }
 interface PricesFile { updated: string; houses: Record<string, { faction: string; items: Record<string, [number, number, number, number]> }> }
-interface RecipesFile { professions: { name: string; recipes: [number, string, string | null, number | null, string | null, number, [number, number, string][]][] }[] }
+interface RecipesFile { professions: { name: string; recipes: [number, string, string | null, number | null, string | null, number, [number, number, string][], RecipeInfo?][] }[] }
 
 let cached: Catalog | null = null;
 
@@ -127,7 +130,7 @@ export function loadCatalog(): Catalog {
     if (rec && !recipesLoaded) {
       recipesLoaded = true;
       for (const p of rec.professions) for (const r of p.recipes) {
-        const entry: Recipe = { prof: p.name, id: r[0], name: r[1], cat: r[2], item: r[3], itemName: r[4], q: r[5], mats: r[6] };
+        const entry: Recipe = { prof: p.name, id: r[0], name: r[1], cat: r[2], item: r[3], itemName: r[4], q: r[5], mats: r[6], info: r[7] || null };
         if (r[6].length) recipes.push(entry);
         if (r[3]) (made[r[3]] ||= []).push(entry);
         for (const m of r[6]) (used[m[0]] ||= []).push(entry);

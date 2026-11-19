@@ -4,6 +4,7 @@
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import AdSlot from "../../components/AdSlot.astro";
 import ItemLink from "../../components/ItemLink.astro";
+import CopyName from "../../components/CopyName.astro";
 import ItemTitleIcon from "../../components/ItemTitleIcon.astro";
 import Money from "../../components/Money.astro";
 import PlanButton from "../../components/PlanButton.astro";
@@ -13,6 +14,7 @@ import { craftProfit } from "../../lib/pricemath.js";
 import { FACTIONS, REGION_NAMES } from "../../lib/labels";
 import { moneyText } from "../../lib/format";
 import { recipeSlug } from "../../lib/urls";
+import { skillLevels, skillSentence, wowheadItem, wowheadSpell } from "../../lib/recipeinfo";
 
 export function getStaticPaths() {
   return loadCatalog().recipes.map((r) => ({ params: { slug: recipeSlug(r.id, r.name) }, props: { r } }));
@@ -23,6 +25,9 @@ const c = loadCatalog();
 const ph = c.primaryHouse;
 const recipe = { q: r.q, item: r.item, r: r.mats };
 const res = ph ? craftProfit(recipe, primaryPrices(c)) : null;
+const sk = skillLevels(r.info);
+const teach = r.info && r.info[3] === "item" ? r.info[4] : 0;
+const teachName = teach ? ((c.names[teach] || [])[0] || "a recipe item") : null;
 const itemName = r.item ? (r.itemName || (c.names[r.item] || [])[0] || r.name) : null;
 
 // profit on every auction house that has prices for it
@@ -40,15 +45,15 @@ const jsonld = {
   ],
 };
 ---
-<BaseLayout title={`${r.name} — ${r.prof} Recipe, Cost & Profit — WoW: Forever — Forever Tome`} description={description} page="recipe" jsonld={jsonld}>
+<BaseLayout title={`${r.name}: ${r.prof} Recipe, Cost & Profit, WoW: Forever | Forever Tome`} description={description} page="recipe" jsonld={jsonld}>
   <section class="page-hero page-hero-item"><div class="wrap"><div class="hero-frame">
     <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/recipe">Recipes</a> › {r.prof} › {r.name}</nav>
     <div class="item-title">{r.item && <ItemTitleIcon id={r.item} />}<h1>{r.name}</h1></div>
-    <p class="item-sub">{[r.prof, r.cat, "WoW: Forever recipe"].filter(Boolean).join(" · ")}</p>
+    <p class="item-sub">{[r.prof, r.cat, sk ? (sk.req != null ? `needs ${r.prof} ${sk.req}` : `trainer, skill ≤ ${sk.yellow}`) : null, "WoW: Forever recipe"].filter(Boolean).join(" · ")}</p>
     <p class="item-summary">
       {r.name} is a {r.prof} recipe{r.cat ? ` (${r.cat})` : ""}{r.item ? <Fragment> that makes {r.q > 1 ? `${r.q}× ` : ""}<ItemLink id={r.item} name={itemName!} />.</Fragment> : "."}{res && res.costComplete && ph && (
         <Fragment> On {ph.label} Alliance ({REGION_NAMES[ph.region]}) the materials cost about <b><Money c={res.cost} /></b>{res.profit != null
-          ? <Fragment> and the result sells for <Money c={res.sellAh} /> — {res.profit >= 0 ? <Fragment>a <b>profit</b> of </Fragment> : <Fragment>a <b>loss</b> of </Fragment>}<b><Money c={Math.abs(res.profit)} /></b> after the 5% AH cut.</Fragment>
+          ? <Fragment> and the result sells for <Money c={res.sellAh} />, {res.profit >= 0 ? <Fragment>a <b>profit</b> of </Fragment> : <Fragment>a <b>loss</b> of </Fragment>}<b><Money c={Math.abs(res.profit)} /></b> after the 5% AH cut.</Fragment>
           : "."}</Fragment>
       )} Prices as of {c.asOf}.
     </p>
@@ -61,6 +66,18 @@ const jsonld = {
   </div></div></section>
 
   <div class="wrap section grid">
+    {r.info && (
+      <section class="panel">
+        <h2>How to learn it</h2>
+        {r.info[3] === "auto" && <p>Learned automatically when you pick up {r.prof}.</p>}
+        {teach > 0 && <p>From <a class="wh" href={wowheadItem(teach)} target="_blank" rel="noopener nofollow" data-wh-rename-link="false">{teachName}</a>{sk && sk.req != null && `, which needs ${r.prof} ${sk.req}`}. Wowhead shows where it drops and who sells it.</p>}
+        {r.info[3] === "trainer" && <p>Taught by {r.prof} trainers once your skill is high enough{sk && ` (at most ${sk.yellow})`}. <a class="wh" href={wowheadSpell(r.info[5])} target="_blank" rel="noopener nofollow" data-wh-rename-link="false">See which trainers on Wowhead</a>.</p>}
+        {sk && (
+          <p>Skill: <span class="sk sk-o">{sk.req != null ? sk.req : "≤" + sk.yellow}</span> <span class="sk sk-y">{sk.yellow}</span> <span class="sk sk-g">{sk.green}</span> <span class="sk sk-x">{sk.grey}</span>: <span class="faint">{skillSentence(sk, r.prof)}</span></p>
+        )}
+        <p><a class="wh" href={wowheadSpell(r.info[5])} target="_blank" rel="noopener nofollow" data-wh-rename-link="false">This recipe on Wowhead</a></p>
+      </section>
+    )}
     <section class="panel">
       <h2>Materials</h2>
       <div class="table-wrap">
@@ -72,20 +89,20 @@ const jsonld = {
               const p = res?.parts[i];
               return p ? (
                 <tr>
-                  <th scope="row"><ItemLink id={m[0]} name={m[2]} /></th><td>{m[1]}</td>
+                  <th scope="row"><ItemLink id={m[0]} name={m[2]} /><CopyName name={m[2]} /></th><td>{m[1]}</td>
                   <td>{p.unit != null ? <Money c={p.unit} /> : <span class="faint">no price</span>}</td>
-                  <td class="dim">{p.source === "ah" ? "Auction House" : p.source === "vendor" ? "Vendor (estimate)" : "—"}</td>
-                  <td>{p.unit != null ? <Money c={p.unit * m[1]} /> : "—"}</td>
+                  <td class="dim">{p.source === "ah" ? "Auction House" : p.source === "vendor" ? "Vendor (estimate)" : "-"}</td>
+                  <td>{p.unit != null ? <Money c={p.unit * m[1]} /> : "-"}</td>
                 </tr>
               ) : (
-                <tr><th scope="row"><ItemLink id={m[0]} name={m[2]} /></th><td>{m[1]}</td><td colspan="3" class="dim">—</td></tr>
+                <tr><th scope="row"><ItemLink id={m[0]} name={m[2]} /><CopyName name={m[2]} /></th><td>{m[1]}</td><td colspan="3" class="dim">-</td></tr>
               );
             })}
           </tbody>
           {res && res.costComplete && <tfoot><tr><th scope="row" colspan="4">Total materials</th><td><b><Money c={res.cost} /></b></td></tr></tfoot>}
         </table>
       </div>
-      <p class="faint" style="margin-top:8px">Prices from {ph ? `${ph.label} Alliance, ${REGION_NAMES[ph.region]}` : "the Auction House"}. "Vendor (estimate)" means the material isn't on the AH, so we use Blizzard's vendor price — check a trade vendor sells it.</p>
+      <p class="faint" style="margin-top:8px">Prices from {ph ? `${ph.label} Alliance, ${REGION_NAMES[ph.region]}` : "the Auction House"}. "Vendor (estimate)" means the material isn't on the AH, so we use Blizzard's vendor price. Check a trade vendor sells it.</p>
     </section>
 
     {houseRows.length > 0 && (
@@ -99,8 +116,8 @@ const jsonld = {
               {houseRows.map(({ h, x }) => (
                 <tr>
                   <td>{REGION_NAMES[h.region]}</td><td class={h.confirmed ? undefined : "dim"}>{h.label}</td><td>{FACTIONS[h.faction]}</td>
-                  <td>{x.costComplete ? <Money c={x.cost} /> : "—"}</td><td><Money c={x.sellAh} /></td>
-                  <td>{x.profit != null ? <Fragment><span class={`pct ${x.profit >= 0 ? "up" : "down"}`}>{x.profit >= 0 ? "+" : "−"}</span> <Money c={Math.abs(x.profit)} /></Fragment> : "—"}</td>
+                  <td>{x.costComplete ? <Money c={x.cost} /> : "-"}</td><td><Money c={x.sellAh} /></td>
+                  <td>{x.profit != null ? <Fragment><span class={`pct ${x.profit >= 0 ? "up" : "down"}`}>{x.profit >= 0 ? "+" : "−"}</span> <Money c={Math.abs(x.profit)} /></Fragment> : "-"}</td>
                 </tr>
               ))}
             </tbody>
