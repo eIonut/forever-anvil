@@ -9,6 +9,7 @@ import { SHARDS } from "../lib/pricemath.js";
 import { GROUPS } from "../../pipeline/houses.js";
 import { REGION_NAMES } from "../lib/labels";
 import { dateText } from "../lib/format";
+import { itemUrl } from "../lib/urls";
 
 /** items_<region>.json entry: [name, vendorSells, dayFetched, vendorBuys, quality, itemClass, iconFileId] */
 export type ItemInfo = [string, number | null, number, number | null, string | null, string | null, number | null];
@@ -157,6 +158,14 @@ export function loadCatalog(): Catalog {
     asOf: updated ? dateText(updated) : "",
   };
   return cached;
+}
+
+/**
+ * Address of an item's own page. Always built from the item data's name, which the page itself uses:
+ * recipe data sometimes spells an item differently ("Vestments" / "Vestaments").
+ */
+export function itemPageUrl(c: Catalog, id: number | string): string {
+  return itemUrl(id, c.names[id][0]);
 }
 
 /** Prices on one auction house: market price there, with Blizzard's vendor prices as fallback */

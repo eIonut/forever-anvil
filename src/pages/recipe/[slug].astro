@@ -8,11 +8,11 @@ import ItemTitleIcon from "../../components/ItemTitleIcon.astro";
 import Money from "../../components/Money.astro";
 import PlanButton from "../../components/PlanButton.astro";
 import Wowhead from "../../components/Wowhead.astro";
-import { loadCatalog, priceOn, primaryPrices } from "../../data/catalog";
+import { itemPageUrl, loadCatalog, priceOn, primaryPrices } from "../../data/catalog";
 import { craftProfit } from "../../lib/pricemath.js";
 import { FACTIONS, REGION_NAMES } from "../../lib/labels";
 import { moneyText } from "../../lib/format";
-import { itemUrl, recipeSlug } from "../../lib/urls";
+import { recipeSlug } from "../../lib/urls";
 
 export function getStaticPaths() {
   return loadCatalog().recipes.map((r) => ({ params: { slug: recipeSlug(r.id, r.name) }, props: { r } }));
@@ -56,7 +56,7 @@ const jsonld = {
       <PlanButton recipeId={r.id} />
       <a class="btn btn-ghost" href="/planner">View my plan <span class="plan-count" data-plan-count hidden></span></a>
       <a class="btn btn-ghost" href={`/crafting?q=${encodeURIComponent(itemName || r.name)}`}>Compare with other recipes</a>
-      {r.item && c.hasPage.has(String(r.item)) && <a class="btn btn-ghost" href={itemUrl(r.item, itemName!)}>{itemName} prices</a>}
+      {r.item && c.hasPage.has(String(r.item)) && <a class="btn btn-ghost" href={itemPageUrl(c, r.item)}>{itemName} prices</a>}
     </div>
   </div></section>
 

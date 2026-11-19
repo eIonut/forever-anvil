@@ -246,7 +246,29 @@ Original plan:
 - Rewrite the README's "Run it locally" and "Where things live" sections for the new layout.
 - **Done when:** a fresh clone runs with `npm install` and `npm run dev`, every page works, and nothing references the old files.
 
-### Step 6: Final check
+### Step 6: Final check (checks done 2026-11-19; merge waiting for approval)
+
+- **Links:** all 372,046 internal links on 10,738 built pages resolve, and so do all in-page anchors.
+  - Fixed along the way: 3 items whose recipe data spells the name differently from the item data (e.g. "Vestments" / "Vestaments"). Links to them led to pages that don't exist; the old site had the same bug. Links to item pages are now built with `itemPageUrl()`, from the page's own name.
+- **Click-through on the built site** (`npm run preview`, with real data): all 14 page types tested at 1024px and 375px. No horizontal scroll, broken images or console errors, and every tool loads. Item and recipe pages load no framework code.
+- **Display settings:** with large text, high contrast, underlined links and reduced motion all on, Prices, Talents and an item page have identical computed styles and layout to the old site.
+- **Lighthouse 13.6.0** (phone mode, run with Edge; old site served from `main`):
+
+| Page | Performance (old → new) | Accessibility | Best practices | SEO | Script loaded (old → new) |
+|---|---|---|---|---|---|
+| Home | 83 → 92 | 100 → 100 | 100 → 100 | 100 → 100 | 79 KB → 4 KB |
+| Prices | 65 → 83 | 99 → 99 | 100 → 100 | 100 → 100 | 154 KB → 101 KB |
+| Item page | 72 → 84 | 99 → 99 | 96 → 96 | 100 → 100 | 154 KB → 70 KB (mostly Wowhead tooltips) |
+| Talents | 62 → 70 | 99 → 99 | 100 → 100 | 100 → 100 | 84 KB → 31 KB |
+
+- **Remaining Lighthouse warnings** are the same on both sites, so they came from the old pages:
+  - "heading order" on four pages
+  - "label doesn't match visible text" on talent buttons
+  - layout shift on Talents while the trees load
+
+  These are follow-ups, not regressions.
+
+Original plan:
 - `npm run build` with real `out/` data, then `npm run preview`. Click through every page at desktop and phone width, light and high-contrast settings.
 - Lighthouse on Home, Prices, one item page and the talent calculator. SEO and accessibility scores should be at least today's, and item pages should load no framework JavaScript.
 - **Done when:** all of the above pass. Then merge the branch.
