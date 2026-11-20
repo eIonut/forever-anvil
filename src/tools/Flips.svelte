@@ -1,6 +1,8 @@
 <script lang="ts">
   // Vendor flips: items listed on the AH for less than a vendor pays (computed hourly by the price job).
   import type { Snippet } from "svelte";
+  import Loading from "./Loading.svelte";
+  import SkeletonRows from "./SkeletonRows.svelte";
   import { onMount } from "svelte";
   import { getCachedJSON, getJSON, groupLabel, localTime, priceUrl } from "../lib/api";
   import { announce } from "../lib/announce";
@@ -62,14 +64,14 @@
       onfaction={(v) => { faction = v; save(); }} />
   </div>
   <p class="fl-summary" aria-live="polite">
-    {#if loading}Loading…{:else if flips.length}<b>{flips.length}</b> item{flips.length > 1 ? "s" : ""} listed below vendor price right now, about <Money c={total} /> profit if you bought them all. <span class="faint">Snapshot from {localTime(groupData!.updated)}.</span>{:else}No vendor flips on this auction house right now. Check back after the next hourly update.{/if}
+    {#if loading}<Loading text="Loading vendor flips…" />{:else if flips.length}<b>{flips.length}</b> item{flips.length > 1 ? "s" : ""} listed below vendor price right now, about <Money c={total} /> profit if you bought them all. <span class="faint">Snapshot from {localTime(groupData!.updated)}.</span>{:else}No vendor flips on this auction house right now. Check back after the next hourly update.{/if}
   </p>
   <div class="table-wrap">
     <table class="prices">
       <caption class="sr-only">Items listed below vendor price</caption>
       <thead><tr><th scope="col">Item</th><th scope="col">Cheapest on AH</th><th scope="col">Vendor pays</th><th scope="col">Profit each</th><th scope="col">Units below vendor price</th><th scope="col">Total profit</th></tr></thead>
       <tbody>
-        {#if !loading}
+        {#if loading}<SkeletonRows rows={6} cols={6} />{:else}
           {#each flips as f (f[0])}
             <tr><th scope="row"><ItemLink id={f[0]} name={itemSource.items[f[0]]?.[0]} copy /></th><td><Money c={f[3]} /></td><td><Money c={f[4]} /></td><td><span class="pct up">+<Money c={f[4] - f[3]} /></span></td><td>{f[1].toLocaleString()}</td><td><b><Money c={f[2]} /></b></td></tr>
           {:else}

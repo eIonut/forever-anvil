@@ -4,10 +4,13 @@
   // after the AH cut. Every column header sorts; click again to flip the order.
   // /crafting?q=Copper Bar (from an item page) searches it, in the profession that makes or uses it.
   import type { Snippet } from "svelte";
+  import Loading from "./Loading.svelte";
+  import SkeletonRows from "./SkeletonRows.svelte";
   import { onMount, tick } from "svelte";
   import { craftProfit } from "../lib/pricemath.js";
   import { getCachedJSON, getJSON, groupLabel, localTime, noDataMessage, priceUrl } from "../lib/api";
   import { announce } from "../lib/announce";
+  import { notify } from "../lib/notify";
   import { getMarketPrefs, saveMarketPrefs } from "../lib/marketPrefs";
   import { addToPlan } from "../lib/plan";
   import { load, save as saveStore } from "../lib/store";
@@ -146,7 +149,7 @@
 
   function plan(id: number) {
     added[id] = addToPlan(id, 1);
-    announce("Added to your crafting plan");
+    notify("Added to your crafting plan");
     setTimeout(() => delete added[id], 3000);
   }
 
@@ -220,7 +223,7 @@
 
   <div class="section-head" style="margin-top:18px">
     <p class="faint" style="margin:0">{#if ready && groupData}Prices from {localTime(groupData.updated)} · {profession?.name || ""}: {rows.length} recipes{/if}</p>
-    <p class="faint" style="margin:0">{status}</p>
+    <p class="faint" style="margin:0">{#if ready}{status}{:else if !emptyMsg}<Loading text="Loading recipes and prices…" />{/if}</p>
   </div>
   <p class="faint cr-legend"><span class="cr-legend-sort">Click a column heading to sort by it, again to flip the order.</span>{" "}Skill: <span class="sk sk-o">needed</span> <span class="sk sk-y">yellow</span> <span class="sk sk-g">green</span> <span class="sk sk-x">grey</span>: the skill to learn it, then where it gets less likely to give skill points. "≤" means the trainer sets the exact skill, at most that.</p>
   <div class="table-wrap">
@@ -231,7 +234,7 @@
         <th scope="col"><span class="sr-only">Recipe details</span></th>
       </tr></thead>
       <tbody class="v-body" bind:this={v.body}>
-        {#if ready}
+        {#if !ready}{#if !emptyMsg}<SkeletonRows cols={8} />{/if}{:else}
           {#if v.padTop}<tr class="v-pad" aria-hidden="true"><td colspan="8" style:height="{v.padTop}px"></td></tr>{/if}
           {#each v.slice as r (r.id)}
             {@const res = r.res}

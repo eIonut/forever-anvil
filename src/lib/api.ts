@@ -1,5 +1,6 @@
 // Loading live data in the browser, and small helpers the tools share.
 import config from "../config.js";
+import { notify } from "./notify";
 
 /**
  * Where a price-job file comes from: the Cloudflare Worker in production (config.pricesApi),
@@ -104,7 +105,12 @@ export async function copyText(text: string, promptLabel: string): Promise<boole
     await navigator.clipboard.writeText(text);
     return true;
   } catch {
-    prompt(promptLabel, text);
+    try {
+      prompt(promptLabel, text);
+    } catch {
+      // no clipboard and no prompt (some embedded browsers): say so instead of failing silently
+      notify("Couldn't copy: your browser blocked the clipboard.", "error");
+    }
     return false;
   }
 }

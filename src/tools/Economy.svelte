@@ -4,6 +4,7 @@
   // Alliance vs Horde gaps, crown jewels and the bazaar. Everything is worked out here from the
   // price files the other tools use, except the trade board's 24-hour changes (econ_<region>.json).
   import type { Snippet } from "svelte";
+  import Loading from "./Loading.svelte";
   import { onMount, tick } from "svelte";
   import { getCachedJSON, getJSON, groupLabel, localTime, noDataMessage, priceUrl } from "../lib/api";
   import { getMarketPrefs, saveMarketPrefs } from "../lib/marketPrefs";
@@ -129,7 +130,7 @@
   </div>
 
   {#if loading && !groupData}
-    <p class="faint">Loading the market…</p>
+    <Loading text="Loading the market…" block />
   {:else if loadFailed}
     <div class="panel"><p>Couldn't load this ruleset's prices. Please try again in a moment.</p></div>
   {:else if groupData}

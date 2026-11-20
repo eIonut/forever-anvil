@@ -3,7 +3,7 @@
 // such button, on static pages and inside the Svelte tools alike.
 // (Registered once: this module is loaded on every page through the header's script.)
 import { copyText } from "./api";
-import { announce } from "./announce";
+import { notify } from "./notify";
 
 const timers = new WeakMap<HTMLElement, ReturnType<typeof setTimeout>>();
 
@@ -15,7 +15,7 @@ document.addEventListener("click", async (e) => {
   const name = btn.dataset.copyName || "";
   if (!name) return;
   if (!(await copyText(name, "Copy this item name:"))) return;
-  announce(`Copied "${name}"`);
+  notify(`Copied "${name}"`);
   btn.classList.add("copied");
   const tip = btn.getAttribute("title");
   btn.setAttribute("title", "Copied!");

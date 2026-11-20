@@ -11,7 +11,7 @@ const { recipeId } = Astro.props;
 
 <script>
 import { addToPlan, updatePlanBadges } from "../lib/plan";
-  import { announce } from "../lib/announce";
+  import { notify } from "../lib/notify";
   import { onPage } from "../lib/page";
 
   onPage((signal) => {
@@ -22,7 +22,7 @@ import { addToPlan, updatePlanBadges } from "../lib/plan";
         const n = addToPlan(b.dataset.recipe || "", 1);
         const old = b.textContent;
         b.textContent = `✓ Added (${n} in plan)`;
-        announce("Added to your crafting plan");
+        notify("Added to your crafting plan");
         setTimeout(() => { b.textContent = old; }, 3000);
       }, { signal });
     }

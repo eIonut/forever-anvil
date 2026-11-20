@@ -2,10 +2,11 @@
   // Crafting planner: pick recipes and how many times to craft them, get one combined shopping list
   // with live AH and vendor prices. The plan is saved in the browser (src/lib/plan.ts).
   import type { Snippet } from "svelte";
+  import Loading from "./Loading.svelte";
   import { onMount, tick } from "svelte";
   import { planShoppingList } from "../lib/pricemath.js";
   import { copyText, getCachedJSON, getJSON, groupLabel, localTime, priceUrl } from "../lib/api";
-  import { announce } from "../lib/announce";
+  import { notify } from "../lib/notify";
   import { getMarketPrefs, saveMarketPrefs } from "../lib/marketPrefs";
   import { addToPlan, getPlan, setPlan, type Plan } from "../lib/plan";
   import { recipeUrl } from "../lib/urls";
@@ -73,7 +74,7 @@
     plan = getPlan();
     search = "";
     addBox.focus();
-    announce("Recipe added");
+    notify("Recipe added");
   }
   // number boxes: keep the value in range, and show the corrected number
   function setCrafts(id: number, input: HTMLInputElement) {
@@ -86,7 +87,7 @@
     const p = getPlan();
     p.list = p.list.filter((x) => x.r !== id);
     update(p);
-    announce("Recipe removed");
+    notify("Recipe removed", "info");
     addBox.focus();
   }
   function setHave(id: number, input: HTMLInputElement) {
@@ -98,12 +99,12 @@
   function clear() {
     if (!confirm("Remove every recipe from your plan?")) return;
     update({ list: [], have: {} });
-    announce("Plan cleared");
+    notify("Plan cleared", "info");
   }
   async function copy() {
     const lines = toBuy.map((m) => m.buy + "x " + (itemName(m.id) || "Item #" + m.id) + (m.source === "vendor" ? " (vendor)" : ""));
     if (await copyText("Shopping list (Forever Tome):\n" + lines.join("\n"), "Copy this list:")) {
-      announce("Shopping list copied");
+      notify("Shopping list copied");
       copyLabel = "Copied!";
       setTimeout(() => (copyLabel = "Copy shopping list"), 2500);
     }
@@ -144,7 +145,7 @@
           </ul>
         </div>
         <ul class="pl-list">
-          {#if ready}
+          {#if !ready}{#if !empty}<li class="empty"><Loading text="Loading your plan…" /></li>{/if}{:else}
             {#each rows as x (x.recipe.id)}
               {@const r = x.recipe}
               <li><div class="pl-rec"><a href={recipeUrl(r.id, r.name)} {...tooltipAttrs(r.item)}><ItemIcon id={r.item} />{r.name}</a> <span class="faint">{r.prof}</span></div>

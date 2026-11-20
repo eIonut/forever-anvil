@@ -2,6 +2,7 @@
   // Line chart of an item's daily market price, drawn in the browser.
   // points: [[dayNumber, market, ...], ...]; null while loading.
   import Money from "./Money.svelte";
+  import Loading from "./Loading.svelte";
 
   let { points, loading }: { points: number[][] | null | undefined; loading: boolean } = $props();
 
@@ -25,4 +26,4 @@
   });
 </script>
 
-{#if loading}Loading history…{:else if !points || !points.length}<p class="faint">No history yet.</p>{:else if !chart}<p class="faint">History starts building today. The chart appears after the second day of data (<Money c={points[0][1]} /> today).</p>{:else}<svg viewBox="0 0 {W} {H}" role="img" aria-label="Market price from {label(chart.x0)} to {label(chart.x1)}: {chart.change >= 0 ? 'up ' : 'down '}{Math.abs(chart.change)}%"><line x1={P} y1={H - P + 6} x2={W - P} y2={H - P + 6} class="axis" /><path d={chart.line} class="pline" />{#each chart.dots as [cx, cy]}<circle {cx} {cy} r="3" class="pdot" />{/each}<text x={P} y={H - 6} class="plabel">{label(chart.x0)}</text><text x={W - P} y={H - 6} class="plabel" text-anchor="end">{label(chart.x1)}</text></svg><p class="faint">{chart.change >= 0 ? "Up " : "Down "}{Math.abs(chart.change)}% over {chart.x1 - chart.x0} days.</p>{/if}
+{#if loading}<Loading text="Loading history…" block />{:else if !points || !points.length}<p class="faint">No history yet.</p>{:else if !chart}<p class="faint">History starts building today. The chart appears after the second day of data (<Money c={points[0][1]} /> today).</p>{:else}<svg viewBox="0 0 {W} {H}" role="img" aria-label="Market price from {label(chart.x0)} to {label(chart.x1)}: {chart.change >= 0 ? 'up ' : 'down '}{Math.abs(chart.change)}%"><line x1={P} y1={H - P + 6} x2={W - P} y2={H - P + 6} class="axis" /><path d={chart.line} class="pline" />{#each chart.dots as [cx, cy]}<circle {cx} {cy} r="3" class="pdot" />{/each}<text x={P} y={H - 6} class="plabel">{label(chart.x0)}</text><text x={W - P} y={H - 6} class="plabel" text-anchor="end">{label(chart.x1)}</text></svg><p class="faint">{chart.change >= 0 ? "Up " : "Down "}{Math.abs(chart.change)}% over {chart.x1 - chart.x0} days.</p>{/if}

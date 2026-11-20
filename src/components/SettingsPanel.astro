@@ -29,7 +29,7 @@ const sizes = [
 
 <script>
 import { getPrefs, setPrefs, type Prefs } from "../lib/prefs";
-  import { announce } from "../lib/announce";
+  import { notify } from "../lib/notify";
   import { onPage } from "../lib/page";
 
   onPage((signal) => {
@@ -61,7 +61,7 @@ import { getPrefs, setPrefs, type Prefs } from "../lib/prefs";
       prefs = {};
       setPrefs(prefs);
       showPrefs();
-      announce("Display settings reset");
+      notify("Display settings reset", "info");
     }, { signal });
     panel.addEventListener("change", (e) => {
       const i = e.target as HTMLInputElement;

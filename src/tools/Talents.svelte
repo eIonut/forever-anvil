@@ -6,6 +6,7 @@
   import * as TM from "../lib/talentmath.js";
   import { copyText, getJSON, priceUrl } from "../lib/api";
   import { announce } from "../lib/announce";
+  import { notify } from "../lib/notify";
   import { load, save } from "../lib/store";
 
   let { children }: { children?: Snippet } = $props();
@@ -126,7 +127,7 @@
 
   async function share() {
     if (await copyText(location.href, "Copy this link:")) {
-      announce("Build link copied");
+      notify("Build link copied");
       shareLabel = "Link copied!";
       setTimeout(() => (shareLabel = "Copy build link"), 2500);
     }
@@ -185,7 +186,7 @@
     <div class="tc-left-box"><b class:over={spent > available}>{cls ? available - spent : 51}</b><span>points left</span></div>
     <div class="tc-progress"><div class="progress" aria-hidden="true"><i style="width:{Math.min(100, available ? spent / available * 100 : 0)}%"></i></div><span class="faint">{cls ? spent + " / " + available + " spent" : ""}</span></div>
     <div class="tc-actions">
-      <button type="button" class="btn btn-ghost btn-sm" onclick={() => { build = {}; selected = null; announce("All talents reset"); }}>Reset all</button>
+      <button type="button" class="btn btn-ghost btn-sm" onclick={() => { build = {}; selected = null; notify("All talents reset", "info"); }}>Reset all</button>
       <button type="button" class="btn btn-sm" onclick={share}>{shareLabel}</button>
     </div>
   </div>

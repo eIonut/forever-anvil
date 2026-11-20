@@ -1,6 +1,7 @@
 <script lang="ts">
   // Rising / falling / deals for one auction house (computed once a day by the price job).
   import { tick } from "svelte";
+  import Loading from "./Loading.svelte";
   import { getJSON, priceUrl } from "../lib/api";
   import { setupWowhead } from "../lib/wowhead";
   import { itemName } from "./itemIcons.svelte";
@@ -41,7 +42,7 @@
     </div>
   </div>
   <div>
-    {#if data === undefined || !houseId}<p class="faint">Loading…</p>
+    {#if data === undefined || !houseId}<Loading text="Loading price changes…" block />
     {:else if !house}<p class="faint">Price changes will appear after the first daily update.</p>
     {:else if house.days < 2}<p class="faint">We have {house.days} day of price history so far. Rising and falling prices appear from the second day, and deals once there are a few days to compare against.</p>
     {:else if !list.length}<p class="faint">Nothing notable here right now.</p>

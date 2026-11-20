@@ -3,6 +3,8 @@
   // price changes & deals, and a details panel with the 30-day chart.
   // /prices?item=2770 (from an item page) searches for that item and opens its details.
   import type { Snippet } from "svelte";
+  import Loading from "./Loading.svelte";
+  import SkeletonRows from "./SkeletonRows.svelte";
   import { onMount, tick } from "svelte";
   import { getCachedJSON, getJSON, groupLabel, localTime, noDataMessage, priceUrl, verdict } from "../lib/api";
   import { announce } from "../lib/announce";
@@ -333,7 +335,7 @@
 
   <div class="section-head" style="margin-top:18px">
     <p class="faint" style="margin:0">{#if current && !loading}Updated <time datetime={groupData!.updated}>{localTime(groupData!.updated)}</time> · {current.house.listings.toLocaleString()} listings · {rows.length.toLocaleString()} different items{/if}</p>
-    <p class="faint" style="margin:0">{status}</p>
+    <p class="faint" style="margin:0">{#if loading}<Loading text="Loading prices…" />{:else}{status}{/if}</p>
   </div>
   <div class="table-wrap">
     <table class="prices" aria-rowcount={list.length + 1}>
@@ -343,7 +345,7 @@
         {@render head("listings", "Listings", "col-hide-sm")}{@render head("vendor", "Vendor", "col-hide-sm")}{@render head("ahgain", "Sell where?")}<th scope="col"><span class="sr-only">Details</span></th>
       </tr></thead>
       <tbody class="v-body" bind:this={v.body}>
-        {#if !loading && !loadFailed}
+        {#if loading}<SkeletonRows cols={10} />{:else if !loadFailed}
           {#if v.padTop}<tr class="v-pad" aria-hidden="true"><td colspan="10" style:height="{v.padTop}px"></td></tr>{/if}
           {#each v.slice as r, i (r.id)}
             {@const vd = verdict(r.market, r.vendor)}
