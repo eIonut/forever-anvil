@@ -71,11 +71,11 @@
   <div class="table-wrap">
     <table class="prices">
       <caption class="sr-only">Items listed below vendor price</caption>
-      <thead><tr><th scope="col">Item</th><th scope="col">Cheapest on AH</th><th scope="col">Vendor pays</th><th scope="col">Profit each</th><th scope="col">Units below vendor price</th><th scope="col">Total profit</th></tr></thead>
+      <thead><tr><th scope="col">Item</th><th scope="col" class="num">Cheapest on AH</th><th scope="col" class="num">Vendor pays</th><th scope="col" class="num">Profit each</th><th scope="col" class="num">Units below vendor price</th><th scope="col" class="num">Total profit</th></tr></thead>
       <tbody>
         {#if loading}<SkeletonRows rows={6} cols={6} />{:else}
           {#each flips as f (f[0])}
-            <tr><th scope="row"><ItemLink id={f[0]} name={itemSource.items[f[0]]?.[0]} copy watch /></th><td><Money c={f[3]} /></td><td><Money c={f[4]} /></td><td><span class="pct up">+<Money c={f[4] - f[3]} /></span></td><td>{f[1].toLocaleString()}</td><td><b><Money c={f[2]} /></b></td></tr>
+            <tr><th scope="row"><ItemLink id={f[0]} name={itemSource.items[f[0]]?.[0]} copy watch /></th><td class="num"><Money c={f[3]} /></td><td class="num"><Money c={f[4]} /></td><td class="num"><span class="pct up">+<Money c={f[4] - f[3]} /></span></td><td class="num">{f[1].toLocaleString()}</td><td class="num"><b><Money c={f[2]} /></b></td></tr>
           {:else}
             <tr><td colspan="6" class="empty">Nothing to flip here right now.</td></tr>
           {/each}

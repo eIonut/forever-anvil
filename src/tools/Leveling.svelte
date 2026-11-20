@@ -205,7 +205,7 @@
         <div class="table-wrap">
           <table class="prices crafting lv-steps">
             <caption class="sr-only">Which recipe to craft at each skill, how many times and what it costs</caption>
-            <thead><tr><th scope="col">Skill</th><th scope="col">Craft</th><th scope="col">Times</th><th scope="col">Each</th><th scope="col">Cost</th></tr></thead>
+            <thead><tr><th scope="col">Skill</th><th scope="col">Craft</th><th scope="col" class="num">Times</th><th scope="col" class="num">Each</th><th scope="col" class="num">Cost</th></tr></thead>
             <tbody>
               {#each plan.steps as s (s.from)}
                 {@const r = s.recipe}
@@ -215,9 +215,9 @@
                     {#if r[3]}<a class="item-link" href={recipeUrl(r[0], r[1])} {...tooltipAttrs(r[3])}><ItemIcon id={r[3]} />{r[4] || r[1]}</a>{:else}<a class="item-link" href={recipeUrl(r[0], r[1])}><ItemIcon id={null} />{r[1]}</a>{/if}
                     <span class="cat"><span class="tag lv-src-{sourceTag(r)}">{sourceTag(r)}</span>yellow {r[7]?.[1]}, grey {r[7]?.[2]}</span>
                   </th>
-                  <td data-label="Times">{s.crafts.toLocaleString()}</td>
-                  <td data-label="Each"><Money c={s.costEach} /></td>
-                  <td data-label="Cost"><b><Money c={s.cost} short /></b></td>
+                  <td class="num" data-label="Times">{s.crafts.toLocaleString()}</td>
+                  <td class="num" data-label="Each"><Money c={s.costEach} /></td>
+                  <td class="num" data-label="Cost"><b><Money c={s.cost} short /></b></td>
                 </tr>
               {:else}
                 <tr><td colspan="5" class="empty">Nothing to craft between these skills.</td></tr>
@@ -232,14 +232,14 @@
         <div class="table-wrap">
           <table class="prices crafting lv-shop">
             <caption class="sr-only">Every material for the whole route, where it's cheapest and what it costs</caption>
-            <thead><tr><th scope="col">Material</th><th scope="col">Need</th><th scope="col">Buy at</th><th scope="col">Total</th></tr></thead>
+            <thead><tr><th scope="col">Material</th><th scope="col" class="num">Need</th><th scope="col">Buy at</th><th scope="col" class="num">Total</th></tr></thead>
             <tbody>
               {#each plan.shopping as m (m.id)}
                 <tr>
                   <th scope="row"><ItemLink id={m.id} name={itemSource.items[m.id]?.[0] || m.name} copy /></th>
-                  <td data-label="Need">{m.qty.toLocaleString()}{#if m.source === "ah" && m.listed != null && m.qty > m.listed}<span class="cat thin" title="Fewer listed than you need: buying them all will push the price up">only {m.listed.toLocaleString()} listed</span>{/if}</td>
+                  <td class="num" data-label="Need">{m.qty.toLocaleString()}{#if m.source === "ah" && m.listed != null && m.qty > m.listed}<span class="cat thin" title="Fewer listed than you need: buying them all will push the price up">only {m.listed.toLocaleString()} listed</span>{/if}</td>
                   <td data-label="Buy at">{m.source === "ah" ? HOUSE_NAMES[m.house || ""] || "AH" : "Vendor"}<span class="cat"><Money c={m.unit} /> each{m.source === "vendor" ? " (estimate)" : ""}</span></td>
-                  <td data-label="Total"><b><Money c={m.cost} short /></b></td>
+                  <td class="num" data-label="Total"><b><Money c={m.cost} short /></b></td>
                 </tr>
               {/each}
             </tbody>

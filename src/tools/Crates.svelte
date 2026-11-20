@@ -187,9 +187,9 @@
     <table class="prices crafting crates">
       <caption class="sr-only">Waylaid Crates ranked by gold per Merchant's Favor, with the cheapest bundle to fill each one</caption>
       <thead><tr>
-        <th scope="col">Crate</th><th scope="col">Favor</th><th scope="col">Cheapest bundle</th><th scope="col">Fill cost</th>
-        <th scope="col" aria-sort={rankBy === "fill" ? "ascending" : undefined}>Per Favor</th><th scope="col">Crate on AH</th>
-        <th scope="col" aria-sort={rankBy === "buy" ? "ascending" : undefined}>Buy + fill, per Favor</th>
+        <th scope="col">Crate</th><th scope="col" class="num">Favor</th><th scope="col">Cheapest bundle</th><th scope="col" class="num">Fill cost</th>
+        <th scope="col" class="num" aria-sort={rankBy === "fill" ? "ascending" : undefined}>Per Favor</th><th scope="col" class="num">Crate on AH</th>
+        <th scope="col" class="num" aria-sort={rankBy === "buy" ? "ascending" : undefined}>Buy + fill, per Favor</th>
         <th scope="col"><span class="sr-only">Other bundles</span></th>
       </tr></thead>
       <tbody>
@@ -197,12 +197,12 @@
           {#each rows as r (r.id)}
             <tr class:wc-best={r === top}>
               <th scope="row"><a class="item-link" href={itemUrl(r.id, r.name)} {...tooltipAttrs(r.id)}><ItemIcon id={r.id} />{r.label}</a><span class="cat">{r.kind === "crafted" ? "Crafted goods" : "Gathered goods"} · level {r.level}</span></th>
-              <td data-label="Favor">{fmtFavor(r.favor)}{#if !r.confirmed}<span class="cat" title="Nobody has confirmed how much Favor Artisan crates give; this follows the pattern of the other tiers">expected</span>{/if}</td>
+              <td class="num" data-label="Favor">{fmtFavor(r.favor)}{#if !r.confirmed}<span class="cat" title="Nobody has confirmed how much Favor Artisan crates give; this follows the pattern of the other tiers">expected</span>{/if}</td>
               <td data-label="Cheapest bundle">{#if r.best}{@render bundle(r.best)}<span class="cat">{houseName(r.best.faction)} · {r.best.listed.toLocaleString()} listed</span>{:else}<span class="faint">Not enough on sale</span>{/if}</td>
-              <td data-label="Fill cost"><Money c={r.best?.cost} /></td>
-              <td data-label="Per Favor">{#if r.perFavor != null}<b class:wc-rank={rankBy === "fill"}><Money c={Math.round(r.perFavor)} /></b>{:else}<span class="faint">-</span>{/if}</td>
-              <td data-label="Crate on AH">{#if r.crate}<Money c={r.crate.cost} /><span class="cat">{houseName(r.crate.faction)}</span>{:else}<span class="faint">None listed</span>{/if}</td>
-              <td data-label="Buy + fill, per Favor">{#if r.buyAndFillPerFavor != null}<b class:wc-rank={rankBy === "buy"}><Money c={Math.round(r.buyAndFillPerFavor)} /></b>{:else}<span class="faint">-</span>{/if}</td>
+              <td class="num" data-label="Fill cost"><Money c={r.best?.cost} /></td>
+              <td class="num" data-label="Per Favor">{#if r.perFavor != null}<b class:wc-rank={rankBy === "fill"}><Money c={Math.round(r.perFavor)} /></b>{:else}<span class="faint">-</span>{/if}</td>
+              <td class="num" data-label="Crate on AH">{#if r.crate}<Money c={r.crate.cost} /><span class="cat">{houseName(r.crate.faction)}</span>{:else}<span class="faint">None listed</span>{/if}</td>
+              <td class="num" data-label="Buy + fill, per Favor">{#if r.buyAndFillPerFavor != null}<b class:wc-rank={rankBy === "buy"}><Money c={Math.round(r.buyAndFillPerFavor)} /></b>{:else}<span class="faint">-</span>{/if}</td>
               <td class="cr-actions">{#if r.fills.length > 1}<button type="button" class="btn btn-ghost btn-sm" aria-expanded={!!open[r.id]} onclick={() => (open[r.id] = !open[r.id])}>{r.fills.length - 1} other{r.fills.length > 2 ? "s" : ""}<span class="sr-only"> way{r.fills.length > 2 ? "s" : ""} to fill {r.label}</span></button>{/if}</td>
             </tr>
             {#if open[r.id]}

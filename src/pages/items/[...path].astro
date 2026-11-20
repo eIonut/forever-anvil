@@ -72,7 +72,7 @@ const jsonld = {
     <div class="table-wrap">
       <table class="prices">
         <caption class="sr-only">{name} items and their prices{pageNote}</caption>
-        <thead><tr><th scope="col">Item</th><th scope="col">Quality</th><th scope="col">Market price</th><th scope="col">Listed</th><th scope="col">Vendor pays</th></tr></thead>
+        <thead><tr><th scope="col">Item</th><th scope="col">Quality</th><th scope="col" class="num">Market price</th><th scope="col" class="num">Listed</th><th scope="col" class="num">Vendor pays</th></tr></thead>
         <tbody>
           {ids.map((id) => {
             const [itemName, sell, , , quality] = c.names[id];
@@ -81,9 +81,9 @@ const jsonld = {
               <tr>
                 <th scope="row" class={quality ? `q-${quality}` : undefined}><ItemLink id={id} name={itemName} /></th>
                 <td class="dim">{quality ? capitalize(quality) : "-"}</td>
-                <td>{row ? <Money c={row.market} /> : <span class="faint">not listed</span>}</td>
-                <td>{row ? num(row.qty) : "-"}</td>
-                <td><Money c={sell} /></td>
+                <td class="num">{row ? <Money c={row.market} /> : <span class="faint">not listed</span>}</td>
+                <td class="num">{row ? num(row.qty) : "-"}</td>
+                <td class="num"><Money c={sell} /></td>
               </tr>
             );
           })}

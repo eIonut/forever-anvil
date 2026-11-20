@@ -83,7 +83,14 @@ body {
   display: flex;
   flex-direction: column;
   -webkit-font-smoothing: antialiased;
+  /* Alegreya Sans defaults to old-style figures (0 looks like "o", 3/4/5/7/9 drop below the line).
+     Lining figures read far better in a site full of prices. font-variant-numeric doesn't switch them
+     in Chromium with this font, so the OpenType features are set directly. */
+  font-feature-settings: "lnum" 1;
 }
+input, select, textarea, button { font-feature-settings: "lnum" 1; }
+/* numbers in columns: every digit the same width too, so they line up */
+.num, .money, .pct, .sk, .sold, .stat b, .ch-skill-num, .ec-num, .lv-skill, .mi-part .input, input[type="number"] { font-feature-settings: "lnum" 1, "tnum" 1; }
 
 a { color: var(--gold-2); text-decoration: none; text-underline-offset: 3px; }
 a:hover { color: #fff; text-decoration: underline; }
@@ -458,6 +465,7 @@ tbody tr:last-child > * { border-bottom: 0; }
 tbody tr:nth-child(even) { background: rgba(255, 255, 255, .018); }
 tbody tr:hover { background: rgba(232, 189, 85, .06); }
 tbody th[scope="row"] { font-weight: 700; color: var(--ink); }
+th.num, td.num { text-align: right; }
 @media (max-width: 640px) { th, td { padding: 9px 10px; white-space: normal; } }
 
 /* ---------- Stat tiles ---------- */
@@ -559,6 +567,9 @@ a.wh::after { content: none; }
 /* Amounts read like the in-game money frame: "34 (gold) 52 (silver) 15 (copper)". */
 .coin { font-weight: 700; color: var(--ink); }
 .coin + .coin { margin-left: .35em; }
+.coin.g ~ .coin { color: var(--ink-dim); font-weight: 500; }
+/* in table columns, silver and copper always take two digits' room so the coins line up row to row */
+@media (min-width: 981px) { td.num .coin.s, td.num .coin.c { display: inline-block; min-width: calc(2ch + 1em); text-align: right; } }
 .coin::after {
   content: ""; display: inline-block; width: .8em; height: .8em; margin-left: .2em;
   vertical-align: -.06em; border-radius: 50%;
@@ -660,6 +671,7 @@ html[data-contrast] .btn-danger { background: #000; color: #ff9b85; border: 2px 
   table.pr-table td.pr-more { position: absolute; top: 9px; right: 10px; }
   table.pr-table td[data-label]::before { content: attr(data-label); display: block; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 1px; }
   table.pr-table td.empty { display: block; }
+  table.pr-table td.num { text-align: left; }
   table.pr-table tbody tr.v-pad, table.pr-table tbody tr.v-pad > td { display: block; padding: 0; border: 0; }
 }
 
@@ -873,6 +885,7 @@ table.crafting td .cat { white-space: normal; }
   table.crafting tbody tr:not(.cr-detail) { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; padding: 12px 4px 14px; border-bottom: 1px solid var(--line, rgba(255,255,255,.1)); }
   table.crafting tbody tr:not(.cr-detail) > * { display: block; padding: 0; border: 0; white-space: normal; }
   table.crafting tbody th[scope="row"], table.crafting td.cr-actions { grid-column: 1 / -1; }
+  table.crafting td.num { text-align: left; }
   table.crafting td[data-label]::before { content: attr(data-label); display: block; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 1px; }
   table.crafting tbody tr:not(.cr-detail) > td.cr-actions { display: flex; gap: 8px; }
   .cr-legend-sort { display: none; }

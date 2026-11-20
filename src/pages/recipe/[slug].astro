@@ -105,23 +105,23 @@ const nearby = profRecipes
       <div class="table-wrap">
         <table class="prices">
           <caption class="sr-only">Materials for {r.name}</caption>
-          <thead><tr><th scope="col">Material</th><th scope="col">Qty</th><th scope="col">Price each</th><th scope="col">From</th><th scope="col">Cost</th></tr></thead>
+          <thead><tr><th scope="col">Material</th><th scope="col" class="num">Qty</th><th scope="col" class="num">Price each</th><th scope="col">From</th><th scope="col" class="num">Cost</th></tr></thead>
           <tbody>
             {r.mats.map((m, i) => {
               const p = res?.parts[i];
               return p ? (
                 <tr>
-                  <th scope="row"><ItemLink id={m[0]} name={m[2]} /><CopyName name={m[2]} /></th><td>{m[1]}</td>
-                  <td>{p.unit != null ? <Money c={p.unit} /> : <span class="faint">no price</span>}</td>
+                  <th scope="row"><ItemLink id={m[0]} name={m[2]} /><CopyName name={m[2]} /></th><td class="num">{m[1]}</td>
+                  <td class="num">{p.unit != null ? <Money c={p.unit} /> : <span class="faint">no price</span>}</td>
                   <td class="dim">{p.source === "ah" ? "Auction House" : p.source === "vendor" ? "Vendor (estimate)" : "-"}</td>
-                  <td>{p.unit != null ? <Money c={p.unit * m[1]} /> : "-"}</td>
+                  <td class="num">{p.unit != null ? <Money c={p.unit * m[1]} /> : "-"}</td>
                 </tr>
               ) : (
-                <tr><th scope="row"><ItemLink id={m[0]} name={m[2]} /><CopyName name={m[2]} /></th><td>{m[1]}</td><td colspan="3" class="dim">-</td></tr>
+                <tr><th scope="row"><ItemLink id={m[0]} name={m[2]} /><CopyName name={m[2]} /></th><td class="num">{m[1]}</td><td colspan="3" class="dim">-</td></tr>
               );
             })}
           </tbody>
-          {res && res.costComplete && <tfoot><tr><th scope="row" colspan="4">Total materials</th><td><b><Money c={res.cost} /></b></td></tr></tfoot>}
+          {res && res.costComplete && <tfoot><tr><th scope="row" colspan="4">Total materials</th><td class="num"><b><Money c={res.cost} /></b></td></tr></tfoot>}
         </table>
       </div>
       <p class="faint" style="margin-top:8px">Prices from {ph ? `${ph.label} Alliance, ${REGION_NAMES[ph.region]}` : "the Auction House"}. "Vendor (estimate)" means the material isn't on the AH, so we use Blizzard's vendor price. Check a trade vendor sells it.</p>
@@ -133,13 +133,13 @@ const nearby = profRecipes
         <div class="table-wrap">
           <table class="prices">
             <caption class="sr-only">Crafting profit for {r.name} by auction house</caption>
-            <thead><tr><th scope="col">Region</th><th scope="col">Ruleset</th><th scope="col">Auction House</th><th scope="col">Materials</th><th scope="col">Sells for</th><th scope="col">Profit</th></tr></thead>
+            <thead><tr><th scope="col">Region</th><th scope="col">Ruleset</th><th scope="col">Auction House</th><th scope="col" class="num">Materials</th><th scope="col" class="num">Sells for</th><th scope="col" class="num">Profit</th></tr></thead>
             <tbody>
               {houseRows.map(({ h, x }) => (
                 <tr>
                   <td>{REGION_NAMES[h.region]}</td><td class={h.confirmed ? undefined : "dim"}>{h.label}</td><td>{FACTIONS[h.faction]}</td>
-                  <td>{x.costComplete ? <Money c={x.cost} /> : "-"}</td><td><Money c={x.sellAh} /></td>
-                  <td>{x.profit != null ? <Fragment><span class={`pct ${x.profit >= 0 ? "up" : "down"}`}>{x.profit >= 0 ? "+" : "−"}</span> <Money c={Math.abs(x.profit)} /></Fragment> : "-"}</td>
+                  <td class="num">{x.costComplete ? <Money c={x.cost} /> : "-"}</td><td class="num"><Money c={x.sellAh} /></td>
+                  <td class="num">{x.profit != null ? <Fragment><span class={`pct ${x.profit >= 0 ? "up" : "down"}`}>{x.profit >= 0 ? "+" : "−"}</span> <Money c={Math.abs(x.profit)} /></Fragment> : "-"}</td>
                 </tr>
               ))}
             </tbody>

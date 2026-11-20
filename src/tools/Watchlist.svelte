@@ -226,18 +226,18 @@
       <table class="prices pr-table wl-table">
         <caption class="sr-only">Watched items with this hour's prices</caption>
         <thead><tr>
-          <th scope="col">Item</th><th scope="col">Lowest</th><th scope="col">Market</th><th scope="col">7 days</th><th scope="col" class="col-hide-md">Listed</th><th scope="col">Sold/day</th><th scope="col">Cheaper elsewhere</th>{#if !shared}<th scope="col">Flag at or below</th>{/if}
+          <th scope="col">Item</th><th scope="col" class="num">Lowest</th><th scope="col" class="num">Market</th><th scope="col" class="num">7 days</th><th scope="col" class="num col-hide-md">Listed</th><th scope="col" class="num">Sold/day</th><th scope="col">Cheaper elsewhere</th>{#if !shared}<th scope="col">Flag at or below</th>{/if}
         </tr></thead>
         <tbody>
           {#if loading && !groupData}<SkeletonRows rows={Math.min(Math.max(source.length, 3), 8)} cols={shared ? 7 : 8} />{:else}
             {#each rows as r (r.id)}
               <tr class:wl-hit={r.hit}>
                 <th scope="row"><ItemLink id={r.id} name={r.name} copy watch />{#if r.hit}<span class="wl-flag">At your target</span>{/if}</th>
-                <td data-label="Lowest">{#if r.a}<Money c={r.a[0]} />{:else}<span class="faint">Not listed</span>{/if}</td>
-                <td data-label="Market"><Money c={r.a?.[1]} /></td>
-                <td data-label="7 days">{#if r.change}<span class="pct {r.change.pct > 0 ? 'up' : r.change.pct < 0 ? 'down' : ''}" title="Market price now compared with {r.change.days} day{r.change.days === 1 ? '' : 's'} ago">{r.change.pct > 0 ? "▲ +" : r.change.pct < 0 ? "▼ " : ""}{r.change.pct}%</span>{:else if r.a && !r.histKnown}<span class="faint">…</span>{:else}<span class="faint">-</span>{/if}</td>
-                <td class="col-hide-md" data-label="Listed">{r.a ? r.a[2].toLocaleString() : "0"}</td>
-                <td data-label="Sold/day"><SoldPerDay a={r.a} hours={current?.house.salesHours} suffix="" /></td>
+                <td class="num" data-label="Lowest">{#if r.a}<Money c={r.a[0]} />{:else}<span class="faint">Not listed</span>{/if}</td>
+                <td class="num" data-label="Market"><Money c={r.a?.[1]} /></td>
+                <td class="num" data-label="7 days">{#if r.change}<span class="pct {r.change.pct > 0 ? 'up' : r.change.pct < 0 ? 'down' : ''}" title="Market price now compared with {r.change.days} day{r.change.days === 1 ? '' : 's'} ago">{r.change.pct > 0 ? "▲ +" : r.change.pct < 0 ? "▼ " : ""}{r.change.pct}%</span>{:else if r.a && !r.histKnown}<span class="faint">…</span>{:else}<span class="faint">-</span>{/if}</td>
+                <td class="num col-hide-md" data-label="Listed">{r.a ? r.a[2].toLocaleString() : "0"}</td>
+                <td class="num" data-label="Sold/day"><SoldPerDay a={r.a} hours={current?.house.salesHours} suffix="" /></td>
                 <td data-label="Cheaper elsewhere" class:wl-none={!r.elsewhere}>{#if r.elsewhere}<Money c={r.elsewhere.market} /> <span class="faint wl-where">on {FACTIONS[r.elsewhere.faction] || r.elsewhere.faction}</span>{:else}<span class="faint">-</span>{/if}</td>
                 {#if !shared}
                   <td data-label="Flag at or below" class="wl-target-cell">

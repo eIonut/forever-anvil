@@ -80,13 +80,13 @@ const bestText = best.length ? ` Most profitable today: ${best.slice(0, 2).map((
         <div class="table-wrap">
           <table class="prices">
             <caption class="sr-only">The {best.length} most profitable {lower} recipes today</caption>
-            <thead><tr><th scope="col">Recipe</th><th scope="col">Materials</th><th scope="col">Sells for</th><th scope="col">Profit</th></tr></thead>
+            <thead><tr><th scope="col">Recipe</th><th scope="col" class="num">Materials</th><th scope="col" class="num">Sells for</th><th scope="col" class="num">Profit</th></tr></thead>
             <tbody>
               {best.map(({ r, x }) => (
                 <tr>
                   <th scope="row"><a href={recipeUrl(r.id, r.name)} {...tooltipAttrs(r.item)}><ItemIcon id={r.item} />{r.name}</a></th>
-                  <td><Money c={x.cost} /></td><td><Money c={x.sellAh} /></td>
-                  <td><span class="pct up">+</span> <Money c={x.profit} /></td>
+                  <td class="num"><Money c={x.cost} /></td><td class="num"><Money c={x.sellAh} /></td>
+                  <td class="num"><span class="pct up">+</span> <Money c={x.profit} /></td>
                 </tr>
               ))}
             </tbody>
@@ -101,15 +101,15 @@ const bestText = best.length ? ` Most profitable today: ${best.slice(0, 2).map((
       <div class="table-wrap">
         <table class="prices">
           <caption class="sr-only">Every {lower} recipe, lowest skill first</caption>
-          <thead><tr><th scope="col">Skill</th><th scope="col">Recipe</th><th scope="col">Learned</th><th scope="col">Materials</th><th scope="col">Profit</th></tr></thead>
+          <thead><tr><th scope="col">Skill</th><th scope="col">Recipe</th><th scope="col">Learned</th><th scope="col" class="num">Materials</th><th scope="col" class="num">Profit</th></tr></thead>
           <tbody>
             {rows.map(({ r, x, skill }) => (
               <tr>
                 <td>{skill ?? "-"}</td>
                 <th scope="row"><a href={recipeUrl(r.id, r.name)} {...tooltipAttrs(r.item)}><ItemIcon id={r.item} />{r.name}</a></th>
                 <td class="dim">{sourceLabel(r.info) || "-"}</td>
-                <td>{x.costComplete ? <Money c={x.cost} /> : "-"}</td>
-                <td>{x.profit != null ? <Fragment><span class={`pct ${x.profit >= 0 ? "up" : "down"}`}>{x.profit >= 0 ? "+" : "−"}</span> <Money c={Math.abs(x.profit)} /></Fragment> : "-"}</td>
+                <td class="num">{x.costComplete ? <Money c={x.cost} /> : "-"}</td>
+                <td class="num">{x.profit != null ? <Fragment><span class={`pct ${x.profit >= 0 ? "up" : "down"}`}>{x.profit >= 0 ? "+" : "−"}</span> <Money c={Math.abs(x.profit)} /></Fragment> : "-"}</td>
               </tr>
             ))}
           </tbody>

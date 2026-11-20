@@ -88,7 +88,7 @@
       <div class="table-wrap">
         <table class="prices crafting up-table">
           <caption class="sr-only">Auction House upgrades by slot: what's worn now, the upgrade, its price and where to buy it</caption>
-          <thead><tr><th scope="col">Slot</th><th scope="col">Wearing</th><th scope="col">Upgrade</th><th scope="col">Price</th><th scope="col">Buy at</th></tr></thead>
+          <thead><tr><th scope="col">Slot</th><th scope="col">Wearing</th><th scope="col">Upgrade</th><th scope="col" class="num">Price</th><th scope="col">Buy at</th></tr></thead>
           <tbody>
             {#each slots as s (s.slot)}
               {#each s.options as o, i (o.id)}
@@ -96,7 +96,7 @@
                   <td data-label="Slot" class="up-slot" class:up-blank={i > 0}>{i === 0 ? SLOT_NAMES[s.slot] : ""}</td>
                   <td data-label="Wearing" class:up-blank={i > 0}>{#if i === 0}{#if s.wearing}<span class="up-worn">{wornName(s.wearing.id)}</span><span class="cat">item level {s.wearing.level ?? "?"}</span>{:else}<span class="faint">Nothing</span>{/if}{/if}</td>
                   <th scope="row"><ItemLink id={o.id} name={itemSource.items[o.id]?.[0]} copy /><span class="cat"><span class="pct up">+{o.gain}</span> item level {o.level}{o.reqLevel ? " · needs level " + o.reqLevel : ""}</span></th>
-                  <td data-label="Price"><b><Money c={o.price} short /></b></td>
+                  <td class="num" data-label="Price"><b><Money c={o.price} short /></b></td>
                   <td data-label="Buy at">{HOUSE_NAMES[o.house] || o.house}</td>
                 </tr>
               {/each}

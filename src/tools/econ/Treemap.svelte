@@ -31,7 +31,7 @@
   <summary>Show the numbers</summary>
   <div class="table-wrap"><table class="prices">
     <caption class="sr-only">Gold listed by item class, {scopeLabel}</caption>
-    <thead><tr><th scope="col">Class</th><th scope="col">Share</th><th scope="col">Gold listed</th></tr></thead>
-    <tbody>{#each values as [k, v] (k)}<tr><th scope="row">{k}</th><td>{pct(total ? v / total : 0)}</td><td>{goldText(v)}</td></tr>{/each}</tbody>
+    <thead><tr><th scope="col">Class</th><th scope="col" class="num">Share</th><th scope="col" class="num">Gold listed</th></tr></thead>
+    <tbody>{#each values as [k, v] (k)}<tr><th scope="row">{k}</th><td class="num">{pct(total ? v / total : 0)}</td><td class="num">{goldText(v)}</td></tr>{/each}</tbody>
   </table></div>
 </details>

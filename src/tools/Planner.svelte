@@ -170,13 +170,13 @@
         <div class="table-wrap">
           <table class="prices">
             <caption class="sr-only">Materials needed for your plan</caption>
-            <thead><tr><th scope="col">Material</th><th scope="col">Need</th><th scope="col">Have</th><th scope="col">Buy</th><th scope="col">Price each</th><th scope="col">Cost</th></tr></thead>
+            <thead><tr><th scope="col">Material</th><th scope="col" class="num">Need</th><th scope="col" class="num">Have</th><th scope="col" class="num">Buy</th><th scope="col" class="num">Price each</th><th scope="col" class="num">Cost</th></tr></thead>
             <tbody>
               {#if ready}
                 {#each mats as m (m.id)}
-                  <tr><th scope="row"><ItemLink id={m.id} name={itemName(m.id)} copy /></th><td>{m.need}</td>
-                    <td><label><span class="sr-only">Already have {itemName(m.id) || "Item #" + m.id}</span><input class="input pl-have" type="number" min="0" value={m.have} onchange={(e) => setHave(m.id, e.currentTarget)} /></label></td>
-                    <td><b>{m.buy}</b></td><td>{#if m.unit != null}<Money c={m.unit} />{:else}<span class="faint">no price</span>{/if} <span class="faint">{m.source === "ah" ? "AH" : m.source === "vendor" ? "vendor" : ""}</span></td><td>{#if m.cost != null}<Money c={m.cost} />{:else}-{/if}</td></tr>
+                  <tr><th scope="row"><ItemLink id={m.id} name={itemName(m.id)} copy /></th><td class="num">{m.need}</td>
+                    <td class="num"><label><span class="sr-only">Already have {itemName(m.id) || "Item #" + m.id}</span><input class="input pl-have" type="number" min="0" value={m.have} onchange={(e) => setHave(m.id, e.currentTarget)} /></label></td>
+                    <td class="num"><b>{m.buy}</b></td><td class="num">{#if m.unit != null}<Money c={m.unit} />{:else}<span class="faint">no price</span>{/if} <span class="faint">{m.source === "ah" ? "AH" : m.source === "vendor" ? "vendor" : ""}</span></td><td class="num">{#if m.cost != null}<Money c={m.cost} />{:else}-{/if}</td></tr>
                 {:else}
                   <tr><td colspan="6" class="empty">Materials appear here once you add recipes.</td></tr>
                 {/each}

@@ -233,7 +233,7 @@
     <table class="prices crafting">
       <caption class="sr-only">Recipes with skill needed, material cost, sale price, sales per day and profit. Column headings sort the table.</caption>
       <thead><tr>
-        {@render head("name", "Recipe")}{@render head("skill", "Skill")}{@render head("cost", "Materials")}{@render head("sell", "Sells for")}{@render head("sold", "Sold/day")}{@render head("profit", "Profit")}{@render head("margin", "Margin")}
+        {@render head("name", "Recipe")}{@render head("skill", "Skill")}{@render head("cost", "Materials", "num")}{@render head("sell", "Sells for", "num")}{@render head("sold", "Sold/day", "num")}{@render head("profit", "Profit", "num")}{@render head("margin", "Margin", "num")}
         <th scope="col"><span class="sr-only">Recipe details</span></th>
       </tr></thead>
       <tbody class="v-body" bind:this={v.body}>
@@ -249,11 +249,11 @@
                 <span class="cat">{r.cat}{#if r.info}{" · "}{#if r.info[3] === "auto"}learned with {profession?.name}{:else if teach}from {@render whLink(wowheadItem(teach), itemNameOf(teach) || "a recipe item")}{:else}{@render whLink(wowheadSpell(r.info[5]), "trainer")}{/if}{/if}</span>
               </th>
               <td class="cr-skill" data-label="Skill">{#if sk}<span title={skillSentence(sk, profession?.name || "")}><span class="sk sk-o">{sk.req != null ? sk.req : "≤" + sk.yellow}</span> <span class="sk sk-y">{sk.yellow}</span> <span class="sk sk-g">{sk.green}</span> <span class="sk sk-x">{sk.grey}</span></span>{:else}<span class="faint">-</span>{/if}</td>
-              <td data-label="Materials">{#if res.costComplete}<Money c={res.cost} />{:else}<span class="faint" title="A material has no price">?</span>{/if}</td>
-              <td data-label="Sells for">{#if r.item}<Money c={res.sellAh} />{#if res.sellAh != null}<span class="cat">{r.listed} listed{#if r.listed < 3}{" · "}<span class="thin" title="Very few on sale, so this asking price may not be what it really sells for">⚠ thin market</span>{/if}</span>{/if}{:else}<span class="faint">-</span>{/if}</td>
-              <td class="cr-opt" data-label="Sold/day">{#if r.item}<SoldPerDay a={r.made} hours={salesHours} suffix="" />{:else}<span class="faint">-</span>{/if}</td>
-              <td data-label="Profit">{#if res.profit == null}<span class="faint">-</span>{:else}<span class="pct {res.profit >= 0 ? 'up' : 'down'}">{res.profit < 0 ? "−" : "+"}</span> <Money c={Math.abs(res.profit)} />{/if}</td>
-              <td class="cr-opt" data-label="Margin">{#if res.margin != null}{res.margin}%{:else}<span class="faint">-</span>{/if}</td>
+              <td class="num" data-label="Materials">{#if res.costComplete}<Money c={res.cost} />{:else}<span class="faint" title="A material has no price">?</span>{/if}</td>
+              <td class="num" data-label="Sells for">{#if r.item}<Money c={res.sellAh} />{#if res.sellAh != null}<span class="cat">{r.listed} listed{#if r.listed < 3}{" · "}<span class="thin" title="Very few on sale, so this asking price may not be what it really sells for">⚠ thin market</span>{/if}</span>{/if}{:else}<span class="faint">-</span>{/if}</td>
+              <td class="num cr-opt" data-label="Sold/day">{#if r.item}<SoldPerDay a={r.made} hours={salesHours} suffix="" />{:else}<span class="faint">-</span>{/if}</td>
+              <td class="num" data-label="Profit">{#if res.profit == null}<span class="faint">-</span>{:else}<span class="pct {res.profit >= 0 ? 'up' : 'down'}">{res.profit < 0 ? "−" : "+"}</span> <Money c={Math.abs(res.profit)} />{/if}</td>
+              <td class="num cr-opt" data-label="Margin">{#if res.margin != null}{res.margin}%{:else}<span class="faint">-</span>{/if}</td>
               <td class="cr-actions"><button type="button" class="btn btn-ghost btn-sm cr-toggle" data-id={r.id} aria-expanded={!!open[r.id]} onclick={(e) => { open[r.id] = !open[r.id]; e.currentTarget.focus(); }}>Recipe<span class="sr-only">{" details for " + r.name}</span></button><button type="button" class="btn btn-sm plan-add" data-recipe={r.id} title="Add to my crafting plan" onclick={() => plan(r.id)}>{#if added[r.id]}✓ Added<span class="sr-only">{" (" + added[r.id] + " in your plan)"}</span>{:else}+ Plan<span class="sr-only">{" " + r.name}</span>{/if}</button></td>
             </tr>
             {#if open[r.id]}

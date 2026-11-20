@@ -91,10 +91,10 @@ const similar = similarItems(c, String(id));
         <div class="table-wrap">
           <table class="prices">
             <caption class="sr-only">{name} prices by auction house</caption>
-            <thead><tr><th scope="col">Region</th><th scope="col">Ruleset</th><th scope="col">Auction House</th><th scope="col">Market price</th><th scope="col">Lowest</th><th scope="col">Listed</th></tr></thead>
+            <thead><tr><th scope="col">Region</th><th scope="col">Ruleset</th><th scope="col">Auction House</th><th scope="col" class="num">Market price</th><th scope="col" class="num">Lowest</th><th scope="col" class="num">Listed</th></tr></thead>
             <tbody>
               {rows.map((r) => (
-                <tr><td>{REGION_NAMES[r.region]}</td><td class={r.confirmed ? undefined : "dim"}>{r.label}</td><td>{FACTIONS[r.faction]}</td><td><Money c={r.market} /></td><td><Money c={r.min} /></td><td>{num(r.qty)}</td></tr>
+                <tr><td>{REGION_NAMES[r.region]}</td><td class={r.confirmed ? undefined : "dim"}>{r.label}</td><td>{FACTIONS[r.faction]}</td><td class="num"><Money c={r.market} /></td><td class="num"><Money c={r.min} /></td><td class="num">{num(r.qty)}</td></tr>
               ))}
             </tbody>
           </table>

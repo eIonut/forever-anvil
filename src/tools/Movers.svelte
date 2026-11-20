@@ -49,15 +49,15 @@
     {:else}
       <div class="table-wrap"><table class="prices"><caption class="sr-only">{tab} items</caption>
         <thead>
-          {#if tab === "deals"}<tr><th scope="col">Item</th><th scope="col">Cheapest now</th><th scope="col">Usual price</th><th scope="col">Saving</th><th scope="col">Listed</th><th scope="col">Sold per day</th></tr>
-          {:else}<tr><th scope="col">Item</th><th scope="col">Change</th><th scope="col">Market now</th><th scope="col">Before</th><th scope="col">Sold per day</th></tr>{/if}
+          {#if tab === "deals"}<tr><th scope="col">Item</th><th scope="col" class="num">Cheapest now</th><th scope="col" class="num">Usual price</th><th scope="col" class="num">Saving</th><th scope="col" class="num">Listed</th><th scope="col" class="num">Sold per day</th></tr>
+          {:else}<tr><th scope="col">Item</th><th scope="col" class="num">Change</th><th scope="col" class="num">Market now</th><th scope="col" class="num">Before</th><th scope="col" class="num">Sold per day</th></tr>{/if}
         </thead>
         <tbody>
           {#each list as x (x[0])}
             {#if tab === "deals"}
-              <tr><th scope="row"><ItemLink id={x[0]} name={itemName(x[0])} copy watch /></th><td><Money c={x[1]} /></td><td><Money c={x[2]} /></td><td><span class="pct up">{Math.round((1 - x[1] / x[2]) * 100)}% off</span></td><td>{x[3].toLocaleString()}</td><td><SoldPerDay a={live?.items[x[0]]} hours={live?.salesHours} suffix="" /></td></tr>
+              <tr><th scope="row"><ItemLink id={x[0]} name={itemName(x[0])} copy watch /></th><td class="num"><Money c={x[1]} /></td><td class="num"><Money c={x[2]} /></td><td class="num"><span class="pct up">{Math.round((1 - x[1] / x[2]) * 100)}% off</span></td><td class="num">{x[3].toLocaleString()}</td><td class="num"><SoldPerDay a={live?.items[x[0]]} hours={live?.salesHours} suffix="" /></td></tr>
             {:else}
-              <tr><th scope="row"><ItemLink id={x[0]} name={itemName(x[0])} copy watch /></th><td><span class="pct {x[1] > 0 ? 'up' : 'down'}">{x[1] > 0 ? "▲ +" : "▼ "}{x[1]}%</span></td><td><Money c={x[2]} /></td><td><Money c={x[3]} /></td><td><SoldPerDay a={live?.items[x[0]]} hours={live?.salesHours} suffix="" /></td></tr>
+              <tr><th scope="row"><ItemLink id={x[0]} name={itemName(x[0])} copy watch /></th><td class="num"><span class="pct {x[1] > 0 ? 'up' : 'down'}">{x[1] > 0 ? "▲ +" : "▼ "}{x[1]}%</span></td><td class="num"><Money c={x[2]} /></td><td class="num"><Money c={x[3]} /></td><td class="num"><SoldPerDay a={live?.items[x[0]]} hours={live?.salesHours} suffix="" /></td></tr>
             {/if}
           {/each}
         </tbody>

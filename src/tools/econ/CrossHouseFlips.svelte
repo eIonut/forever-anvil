@@ -25,11 +25,11 @@
     {:else}
       <div class="table-wrap"><table class="prices">
         <caption class="sr-only">Items cheaper on Blackwater than on the {FACTION_NAME[faction]} auction house</caption>
-        <thead><tr><th scope="col">Item</th><th scope="col">Buy on Blackwater</th><th scope="col">Sell at home (after cut)</th><th scope="col">Profit each</th><th scope="col">Sells per day at home</th><th scope="col" class="col-hide-sm">On Blackwater</th></tr></thead>
+        <thead><tr><th scope="col">Item</th><th scope="col" class="num">Buy on Blackwater</th><th scope="col" class="num">Sell at home (after cut)</th><th scope="col" class="num">Profit each</th><th scope="col" class="num">Sells per day at home</th><th scope="col" class="num col-hide-sm">On Blackwater</th></tr></thead>
         <tbody>
           {#each list.slice(0, shown) as f (f.id)}
-            <tr><th scope="row"><ItemLink id={f.id} name={itemName(f.id)} copy /></th><td><Money c={f.buy} /></td><td><Money c={f.sell} /></td>
-              <td><Money c={f.profit} /> <span class="pct up">+{f.pct}%</span></td><td><SoldPerDay a={home?.items[f.id]} hours={home?.salesHours} /></td><td class="col-hide-sm">{f.neutralQty.toLocaleString()} {f.neutralQty === 1 ? "unit" : "units"}</td></tr>
+            <tr><th scope="row"><ItemLink id={f.id} name={itemName(f.id)} copy /></th><td class="num"><Money c={f.buy} /></td><td class="num"><Money c={f.sell} /></td>
+              <td class="num"><Money c={f.profit} /> <span class="pct up">+{f.pct}%</span></td><td class="num"><SoldPerDay a={home?.items[f.id]} hours={home?.salesHours} /></td><td class="num col-hide-sm">{f.neutralQty.toLocaleString()} {f.neutralQty === 1 ? "unit" : "units"}</td></tr>
           {/each}
         </tbody>
       </table></div>
