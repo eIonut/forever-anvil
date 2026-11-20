@@ -1,4 +1,4 @@
-// Forever Tome talent rules, shared by the talent calculator (browser) and its tests (Node) as an ES module.
+// Forever Anvil talent rules, shared by the talent calculator (browser) and its tests (Node) as an ES module.
 // Classic-style rules: 1 point per level from 10 (51 at level 60); each row needs 5 more
 // points spent in that tree; a talent with a prerequisite needs that talent maxed first.
 //

@@ -1,4 +1,4 @@
-// Forever Tome: compare a few item prices across the five auction-house groups,
+// Forever Anvil: compare a few item prices across the five auction-house groups,
 // so we can work out which group belongs to which ruleset (the API doesn't say).
 //
 // Run:  node tools/house-compare.js            (uses REGION from .env)

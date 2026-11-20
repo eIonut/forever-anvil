@@ -47,7 +47,7 @@ Why this split: the heavy work (9 MB auction files) runs in GitHub Actions, wher
 |---|---|
 | Keep data max 30 days (2(s)) | History is a rolling 30 days; older days are deleted every run |
 | Credit Blizzard, no implied endorsement (2(m)) | "Data provided by Blizzard Entertainment" on every API page |
-| No Blizzard trademarks in site title or URL (2(m)) | Domain like forevertome.com; never "wow" or "warcraft" |
+| No Blizzard trademarks in site title or URL (2(m)) | Domain like foreveranvil.com; never "wow" or "warcraft" |
 | No paywall, no ad-gated or donation-gated features (2(b)) | Everything free; donate button never blocks anything |
 | Data never in ads or sent to ad networks (2(h)) | Ads are plain page ads; no API data passed to them |
 | Privacy policy; delete on request (2(p), 11(3)) | Add a privacy page; character opt-out list; no profiles stored |
@@ -114,7 +114,7 @@ Why this split: the heavy work (9 MB auction files) runs in GitHub Actions, wher
 | GitHub cron runs late (5–15 min) | Fine for hourly data; show the real timestamp |
 
 ## 5. What I need from you, in order
-1. A domain name without "WoW" or "Warcraft" in it (e.g. forevertome.com), so I can prepare M0.
+1. A domain name without "WoW" or "Warcraft" in it (e.g. foreveranvil.com), so I can prepare M0.
 2. Free GitHub and Cloudflare accounts. You create these; I'll guide each click.
 3. A Battle.net developer client (for M1). You create it and keep the secret local.
 4. Optional: send the legal@blizzard.com email asking about ads beside API data.

@@ -2,4 +2,4 @@ User-agent: *
 Allow: /
 Disallow: /api/
 
-Sitemap: https://forevertome.com/sitemap-index.xml
+Sitemap: https://foreveranvil.com/sitemap-index.xml

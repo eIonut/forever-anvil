@@ -103,7 +103,7 @@
   }
   async function copy() {
     const lines = toBuy.map((m) => m.buy + "x " + (itemName(m.id) || "Item #" + m.id) + (m.source === "vendor" ? " (vendor)" : ""));
-    if (await copyText("Shopping list (Forever Tome):\n" + lines.join("\n"), "Copy this list:")) {
+    if (await copyText("Shopping list (Forever Anvil):\n" + lines.join("\n"), "Copy this list:")) {
       notify("Shopping list copied");
       copyLabel = "Copied!";
       setTimeout(() => (copyLabel = "Copy shopping list"), 2500);
@@ -195,5 +195,5 @@
       {@render sidebar?.()}
     </aside>
   </div>
-  <p class="faint" style="margin-top:16px">Data provided by Blizzard Entertainment. Forever Tome is not affiliated with or endorsed by Blizzard.</p>
+  <p class="faint" style="margin-top:16px">Data provided by Blizzard Entertainment. Forever Anvil is not affiliated with or endorsed by Blizzard.</p>
 </div>

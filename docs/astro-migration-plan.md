@@ -1,6 +1,6 @@
 # Astro migration plan
 
-Goal: move Forever Tome from hand-written HTML and one large script to an Astro project. The new code should be split into small, clearly named parts, so a change touches one file instead of hunting through `js/site.js`. Every page and tool should keep working exactly as today, and the SEO should be at least as good as now.
+Goal: move Forever Anvil from hand-written HTML and one large script to an Astro project. The new code should be split into small, clearly named parts, so a change touches one file instead of hunting through `js/site.js`. Every page and tool should keep working exactly as today, and the SEO should be at least as good as now.
 
 Hosting stays as planned in [phase2-plan.md](phase2-plan.md): Cloudflare Pages (free) for the site, a Cloudflare Worker for `/api`, GitHub Actions for the price job. Astro builds plain static files, so no server or paid plan is needed.
 

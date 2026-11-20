@@ -1,4 +1,4 @@
-// Forever Tome: Blizzard API probe for WoW: Forever (Phase 2, milestone M1)
+// Forever Anvil: Blizzard API probe for WoW: Forever (Phase 2, milestone M1)
 //
 // What it does: asks Blizzard's API which WoW: Forever data exists and writes a
 // readable report to tools/probe-report.md. It changes nothing anywhere.

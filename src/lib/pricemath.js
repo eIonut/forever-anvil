@@ -1,4 +1,4 @@
-// Forever Tome price math, shared by the price job (Node) and the website (browser) as an ES module.
+// Forever Anvil price math, shared by the price job (Node) and the website (browser) as an ES module.
 // Pure functions only (no network, no files). Tests: pipeline/aggregate.test.js
 
 const DAY_MS = 86400000;

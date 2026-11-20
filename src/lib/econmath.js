@@ -1,4 +1,4 @@
-// Forever Tome economy math, shared by the price job (Node) and the Economy page (browser).
+// Forever Anvil economy math, shared by the price job (Node) and the Economy page (browser).
 // Pure functions only (no network, no files). Tests: pipeline/econmath.test.js
 //
 // Prices come from the group files the price job writes:

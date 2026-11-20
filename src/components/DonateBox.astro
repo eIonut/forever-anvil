@@ -1,5 +1,5 @@
 ---
-// "Keep the Tome running" box. Shows nothing until donateUrl is set in src/config.js.
+// "Keep Forever Anvil running" box. Shows nothing until donateUrl is set in src/config.js.
 // standalone: put it in its own page section (when it isn't inside a grid).
 import config from "../config.js";
 import DonateButton from "./DonateButton.astro";
@@ -14,7 +14,7 @@ const Wrap = standalone ? "div" : Fragment;
 {config.donateUrl && (
   <Wrap {...(standalone ? { class: "wrap section" } : {})}>
     <div class="panel donate-box">
-      <h3>Keep the Tome running</h3>
+      <h3>Keep Forever Anvil running</h3>
       <p>This site is free and made by one fan. If it saved you time, a small tip pays for hosting and keeps updates coming.</p>
       <DonateButton />
     </div>

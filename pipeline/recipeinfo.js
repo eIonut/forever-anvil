@@ -11,7 +11,7 @@
 // Result, per recipe id: [required|null, yellow, grey, source, teachItemId|0, spellId]
 //   source: "auto" (learned with the profession), "item" (from a pattern/plan…), "trainer"
 const WAGO = "https://wago.tools";
-const UA = { "User-Agent": "ForeverTome-price-job" };
+const UA = { "User-Agent": "ForeverAnvil-price-job" };
 
 async function latestBuild() {
   const r = await fetch(WAGO + "/api/builds", { headers: UA });

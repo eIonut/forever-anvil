@@ -5,18 +5,18 @@ import DonateBox from "../components/DonateBox.astro";
 import config from "../config.js";
 ---
 <BaseLayout
-  title="About & Credits | Forever Tome"
-  description="About Forever Tome, an unofficial WoW: Forever fan site. Credits, sources and legal notices."
+  title="About & Credits | Forever Anvil"
+  description="About Forever Anvil, an unofficial WoW: Forever fan site. Credits, sources and legal notices."
   page="about"
 >
-  <PageHero icon="about" eyebrow="About" title="About the Tome">
+  <PageHero icon="about" eyebrow="About" title="About Forever Anvil">
     Fan-made tools for World of Warcraft: Forever.
   </PageHero>
 
   <div class="wrap section grid grid-2">
     <div class="panel">
       <h2>What this site is</h2>
-      <p>Forever Tome is a small set of free tools for WoW: Forever: auction house prices, vendor flips, crafting profits and a crafting planner, a talent calculator and a character lookup.</p>
+      <p>Forever Anvil is a small set of free tools for WoW: Forever: auction house prices, vendor flips, crafting profits and a crafting planner, a talent calculator and a character lookup.</p>
       <p>Prices, recipes, talents and character profiles come from the official Blizzard API and are refreshed automatically.</p>
       {config.contactEmail && (
         <p id="contact">Spotted a mistake or want your guide listed? Email <a href={`mailto:${config.contactEmail}`}>{config.contactEmail}</a>.</p>

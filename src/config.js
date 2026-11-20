@@ -3,13 +3,13 @@
    Used by the new Astro pages and (until the move is done) the old ones.
    ------------------------------------------------------------------ */
 const config = {
-  siteName: "Forever Tome",
+  siteName: "Forever Anvil",
   tagline: "Unofficial WoW: Forever tools",
 
   // Your donation page (Ko-fi, Buy Me a Coffee, Patreon, PayPal.me ...).
   // Leave empty "" to hide all donate buttons.
   donateUrl: "",
-  donateLabel: "Support the Tome",
+  donateLabel: "Support Forever Anvil",
 
   // Google AdSense publisher id, e.g. "ca-pub-1234567890123456".
   // Leave empty until your AdSense account is approved; ad slots stay hidden.

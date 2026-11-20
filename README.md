@@ -1,4 +1,4 @@
-# Forever Tome: unofficial WoW: Forever tools
+# Forever Anvil: unofficial WoW: Forever tools
 
 A static website with tools for WoW: Forever: auction prices, an economy overview (trade board, where the gold is, Blackwater flips), vendor flips, crafting profits and planner, a talent calculator and a character lookup. Built with [Astro](https://astro.build); the interactive tools are [Svelte](https://svelte.dev) components. See [docs/astro-migration-plan.md](docs/astro-migration-plan.md) for how the site moved to Astro.
 

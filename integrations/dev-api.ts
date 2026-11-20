@@ -9,7 +9,7 @@ import { createCharacterApi } from "../pipeline/character-api.js";
 
 export default function devApi(): AstroIntegration {
   return {
-    name: "forever-tome-dev-api",
+    name: "forever-anvil-dev-api",
     hooks: {
       "astro:server:setup": ({ server }) => {
         const root = process.cwd();
