@@ -97,7 +97,7 @@ jobs:
 
       - name: Deploy to Cloudflare
         if: steps.due.outputs.due == 'true'
-        run: npx wrangler deploy && date +%s > out/_deployed
+        run: npx wrangler deploy && npx wrangler deploy -c wrangler.www.jsonc && date +%s > out/_deployed
 
       - name: Save ./out for the next run
         if: always() && steps.restore.outcome == 'success'

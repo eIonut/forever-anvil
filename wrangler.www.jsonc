@@ -1,0 +1,11 @@
+// Redirects www.foreveranvil.com to foreveranvil.com (worker/www.js).
+// Deployed by .github/workflows/site.yml with `npx wrangler deploy -c wrangler.www.jsonc`.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "forever-anvil-www",
+  "main": "worker/www.js",
+  "compatibility_date": "2026-11-15",
+  "routes": [{ "pattern": "www.foreveranvil.com", "custom_domain": true }],
+  "workers_dev": false,
+  "preview_urls": false
+}
