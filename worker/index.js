@@ -27,18 +27,30 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
-    if (request.method !== "GET" && request.method !== "HEAD") return json(405, { error: "method" }, "no-store");
-    try {
-      if (url.pathname === "/api/character") return await character(request, url, env, ctx);
-      const route = dataRoute(url.pathname);
-      if (route) return await dataFile(request, url, route, env, ctx);
-      return json(404, { error: "not-found" }, "public, max-age=3600");
-    } catch (e) {
-      console.error("API error", url.pathname, e && e.message);
-      return json(502, { error: "unavailable" }, "no-store");
-    }
+    return noindex(await api(request, url, env, ctx));
   }
 };
+
+async function api(request, url, env, ctx) {
+  if (request.method !== "GET" && request.method !== "HEAD") return json(405, { error: "method" }, "no-store");
+  try {
+    if (url.pathname === "/api/character") return await character(request, url, env, ctx);
+    const route = dataRoute(url.pathname);
+    if (route) return await dataFile(request, url, route, env, ctx);
+    return json(404, { error: "not-found" }, "public, max-age=3600");
+  } catch (e) {
+    console.error("API error", url.pathname, e && e.message);
+    return json(502, { error: "unavailable" }, "no-store");
+  }
+}
+
+// Search engines may fetch /api (robots.txt allows it, so pages render with their data when
+// Google looks at them), but the JSON files themselves never appear in search results.
+function noindex(res) {
+  const out = new Response(res.body, res); // cached responses are read-only: copy before changing headers
+  out.headers.set("X-Robots-Tag", "noindex");
+  return out;
+}
 
 /* ---------- price-job files ---------- */
 

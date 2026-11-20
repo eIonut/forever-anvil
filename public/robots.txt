@@ -1,6 +1,8 @@
 User-agent: *
 Allow: /
-Disallow: /api/
+# /api/ stays crawlable: the tool pages load their data from it, and Google needs that data to see
+# the page as it is (blocked, it saw "no data" and called the pages empty). The API answers carry
+# X-Robots-Tag: noindex, so they never show up in results themselves.
 # Tool states in the address (?item=, ?q=) are the same page as without them (the canonical link
 # says so); keep crawlers on the ~11,000 real pages instead of endless variants.
 Disallow: /*?
