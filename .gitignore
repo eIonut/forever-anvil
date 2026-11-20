@@ -18,3 +18,7 @@ Thumbs.db
 # Astro build output and cache
 dist/
 .astro/
+
+# Cloudflare Wrangler local state and local Worker secrets
+.wrangler/
+.dev.vars*

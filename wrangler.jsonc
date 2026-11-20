@@ -1,0 +1,32 @@
+// Cloudflare settings for the live site: one Worker that serves the built site (./dist)
+// and the /api addresses (worker/index.js). Deployed by .github/workflows/site.yml.
+// Nothing here is secret: the Blizzard keys are Worker secrets (`npx wrangler secret put`).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "forever-anvil",
+  "main": "worker/index.js",
+  "compatibility_date": "2026-11-15",
+
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    // /prices serves prices.html, and /prices.html redirects to /prices
+    "html_handling": "auto-trailing-slash",
+    "not_found_handling": "404-page",
+    // only /api requests run the Worker; everything else is served directly (free, unlimited)
+    "run_worker_first": ["/api/*"]
+  },
+
+  // The price job's files. Create the namespace once with
+  //   npx wrangler kv namespace create DATA
+  // and put the id it prints here.
+  "kv_namespaces": [{ "binding": "DATA", "id": "b23864ca363f4f0fa3a85965f10e0825" }],
+
+  // The site lives only at the real domain (no extra *.workers.dev copy for search engines to find)
+  "routes": [{ "pattern": "foreveranvil.com", "custom_domain": true }],
+  "workers_dev": false,
+  "preview_urls": false,
+
+  // Logs and errors in the Cloudflare dashboard (Workers → forever-anvil → Logs)
+  "observability": { "enabled": true }
+}

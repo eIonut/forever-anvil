@@ -33,7 +33,13 @@ Needs a Battle.net API client. Copy `.env.example` to `.env` and fill it in; `.e
 | `node tools/house-compare.js` | Prices of common items per auction-house group (to identify rulesets) |
 | `node tools/optout.js eu "Firstname Lastname"` | Hide a character from the character lookup (stores a fingerprint, not the name) |
 
-With `npm run dev` running and `.env` filled in, every tool works on localhost, including the character lookup. Once the site is online, a Cloudflare Worker will provide the price data and `/api/character` (set `pricesApi` in `src/config.js`).
+With `npm run dev` running and `.env` filled in, every tool works on localhost, including the character lookup.
+
+## The live site (Cloudflare)
+
+One Cloudflare Worker (`worker/index.js`, settings in `wrangler.jsonc`) serves the built site, the price data at `/api/...` from Workers KV, and `/api/character`. A GitHub workflow (`.github/workflows/site.yml`) runs the price job every hour, uploads changed files to KV (`node tools/kv-sync.js push`), and rebuilds and deploys the site daily and on every push to `main`. Setup steps and day-to-day notes: [docs/launch-checklist.md](docs/launch-checklist.md).
+
+To try the Worker locally: `npm run build`, then `npx wrangler dev` (it reads the Blizzard keys from `.env`; load price data into its local KV with `npx wrangler kv bulk put <file> --binding DATA --local`).
 
 `out/` holds Blizzard API data and is git-ignored. Blizzard's API terms allow keeping that data for at most **30 days**; the job prunes it automatically each time it runs. Delete `out/` if you stop running it. The built item and recipe pages contain that data too, so the live site must be rebuilt at least every 30 days (the plan is daily). See [docs/phase2-plan.md](docs/phase2-plan.md) for the data plan.
 
@@ -51,9 +57,11 @@ With `npm run dev` running and `.env` filled in, every tool works on localhost, 
 | `src/data/catalog.ts` | Reads `out/` at build time for the item and recipe pages |
 | `src/styles/global.css` | The WoW-style theme |
 | `public/` | Files served as-is: favicon, images, robots.txt |
-| `integrations/dev-api.ts` | `npm run dev` only: serves `out/` and `/api/character` |
+| `integrations/dev-api.ts` | `npm run dev` only: answers `/api/...` from `out/`, and `/api/character` |
+| `worker/` | The live site's Cloudflare Worker (`index.js`) and which `/api` addresses serve which files (`routes.js`) |
+| `.github/workflows/site.yml` | Hourly price job, KV upload, daily deploy |
 | `pipeline/` | The price job, the Blizzard API client and the character lookup. `pipeline/economy.js` adds the trade board's 24-hour price changes (`out/econ_<region>.json`) |
-| `tools/` | One-off scripts: API probe, ruleset check, character opt-out |
+| `tools/` | Scripts: KV upload/download (`kv-sync.js`), API probe, ruleset check, character opt-out |
 
 ## How to change things
 

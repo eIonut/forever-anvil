@@ -1,4 +1,4 @@
-// Minimal Blizzard API client for WoW: Forever (Node 18+, no dependencies).
+// Minimal Blizzard API client for WoW: Forever (Node 18+ or a Cloudflare Worker, no dependencies).
 // Credentials come from environment variables (GitHub Secrets in production, .env locally).
 // The secret and access token are never logged.
 
@@ -14,7 +14,7 @@ function createClient({ clientId, clientSecret, region }) {
     const res = await fetch("https://oauth.battle.net/token", {
       method: "POST",
       headers: {
-        Authorization: "Basic " + Buffer.from(`${clientId}:${clientSecret}`).toString("base64"),
+        Authorization: "Basic " + btoa(`${clientId}:${clientSecret}`),
         "Content-Type": "application/x-www-form-urlencoded"
       },
       body: "grant_type=client_credentials"

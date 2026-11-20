@@ -16,7 +16,7 @@ export function priceUrl(kind: string, region: string, part?: string | number): 
 /** Fetch JSON, or null on any error (the tools show a friendly message instead). */
 export async function getJSON<T = any>(url: string): Promise<T | null> {
   try {
-    const r = await fetch(url, { cache: "no-cache" });
+    const r = await fetch(url); // the Worker says how long a copy stays fresh (Cache-Control)
     return r.ok ? ((await r.json()) as T) : null;
   } catch {
     return null;
@@ -44,7 +44,7 @@ export function getCachedJSON<T = any>(url: string, maxAgeMs = 30 * 60 * 1000): 
   if (inFlight.has(url)) return inFlight.get(url) as Promise<T | null>;
   const job = (async () => {
     try {
-      const r = await fetch(url, { cache: "no-cache" });
+      const r = await fetch(url); // the Worker says how long a copy stays fresh (Cache-Control)
       if (!r.ok) return null;
       const text = await r.text();
       try {
@@ -68,7 +68,7 @@ export function getCachedJSON<T = any>(url: string, maxAgeMs = 30 * 60 * 1000): 
 }
 
 /** Message when the data files can't be loaded: different on the live site and on your computer. */
-export const noDataMessage = (live: string, local: string) => (config.pricesApi ? live : local);
+export const noDataMessage = (live: string, local: string) => (import.meta.env.DEV ? local : live);
 
 /** "PvP" once confirmed by an in-game check, otherwise "Group B, ruleset not confirmed yet" */
 export function groupLabel(rulesets: Record<string, string> | undefined, g: string): string {
