@@ -1,0 +1,132 @@
+---
+// One page per profession (/profession/tailoring): every recipe in skill order with its material
+// cost and profit today, the most profitable crafts right now, and the materials it uses most.
+// Ranks for "wow forever <profession> recipes / leveling / profit" and links to every recipe page.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+import ItemLink from "../../components/ItemLink.astro";
+import Money from "../../components/Money.astro";
+import AdSlot from "../../components/AdSlot.astro";
+import Wowhead from "../../components/Wowhead.astro";
+import { loadCatalog, primaryPrices, professions, MIN_PROFESSION_RECIPES, type Recipe } from "../../data/catalog";
+import { craftProfit } from "../../lib/pricemath.js";
+import { REGION_NAMES } from "../../lib/labels";
+import { moneyText, num } from "../../lib/format";
+import { professionUrl, recipeUrl } from "../../lib/urls";
+import { slugify } from "../../lib/pricemath.js";
+import { skillSortKey, sourceLabel } from "../../lib/recipeinfo";
+import { tooltipAttrs } from "../../lib/wowhead";
+import ItemIcon from "../../components/ItemIcon.astro";
+
+export function getStaticPaths() {
+  const all = professions(loadCatalog()).filter((p) => p.recipes.length >= MIN_PROFESSION_RECIPES);
+  return all.map((p) => ({ params: { slug: slugify(p.name) }, props: { name: p.name, recipes: p.recipes, others: all.map((x) => x.name) } }));
+}
+
+const { name, recipes, others } = Astro.props as { name: string; recipes: Recipe[]; others: string[] };
+const c = loadCatalog();
+const ph = c.primaryHouse;
+const price = primaryPrices(c);
+
+const rows = recipes
+  .map((r) => ({ r, x: craftProfit({ q: r.q, item: r.item, r: r.mats }, price), skill: skillSortKey(r.info) }))
+  .sort((a, b) => (a.skill ?? 999) - (b.skill ?? 999) || a.r.name.localeCompare(b.r.name));
+const best = rows.filter((x) => x.x.profit != null && x.x.profit > 0).sort((a, b) => b.x.profit! - a.x.profit!).slice(0, 10);
+const maxSkill = Math.max(0, ...rows.map((x) => x.skill ?? 0));
+const cats = [...new Set(recipes.map((r) => r.cat).filter((x): x is string => !!x && x !== x.toUpperCase()))];
+
+// materials the profession uses most (by number of recipes)
+const matCount = new Map<number, { name: string; n: number }>();
+for (const r of recipes) for (const m of r.mats) {
+  const e = matCount.get(m[0]) || { name: m[2], n: 0 };
+  e.n++;
+  matCount.set(m[0], e);
+}
+const topMats = [...matCount.entries()].sort((a, b) => b[1].n - a[1].n).slice(0, 18);
+
+const lower = name.toLowerCase();
+const site = Astro.site!.href.replace(/\/$/, "");
+const jsonld = {
+  "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: site + "/" },
+    { "@type": "ListItem", position: 2, name: "Recipes", item: site + "/recipe" },
+    { "@type": "ListItem", position: 3, name, item: site + professionUrl(name) },
+  ],
+};
+const bestText = best.length ? ` Most profitable today: ${best.slice(0, 2).map((b) => `${b.r.name} (+${moneyText(b.x.profit)})`).join(", ")}.` : "";
+---
+<BaseLayout
+  title={`WoW: Forever ${name}: All ${num(recipes.length)} Recipes, Costs & Profit | Forever Anvil`}
+  description={`Every WoW: Forever ${lower} recipe in skill order with live material costs and profit after the AH cut.${bestText}`}
+  page="recipe" image="recipes" jsonld={jsonld}
+>
+  <PageHero icon="recipes" eyebrow="Professions" title={`${name} recipes`} facts={[{ icon: "recipes", text: `${num(recipes.length)} recipes, skill 1–${maxSkill || 300}` }, { icon: "prices", text: "Cost and profit from live prices" }, { icon: "clock", text: `Prices as of ${c.asOf}` }]}>
+    <Fragment slot="before"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/recipe">Recipes</a> › {name}</nav></Fragment>
+    {`All ${num(recipes.length)} ${lower} recipes`} in WoW: Forever, in the order you can learn them, with what the materials cost and what the result sells for today{cats.length ? `: ${cats.slice(0, 6).join(", ").toLowerCase()} and more` : ""}.
+  </PageHero>
+
+  <div class="wrap section grid">
+    <nav class="az" aria-label="Professions">
+      {others.map((p) => p === name ? <a href={professionUrl(p)} aria-current="page"><b>{p}</b></a> : <a href={professionUrl(p)}>{p}</a>)}
+    </nav>
+
+    {best.length > 0 && (
+      <section class="panel">
+        <h2>Most profitable {lower} crafts right now</h2>
+        <div class="table-wrap">
+          <table class="prices">
+            <caption class="sr-only">The {best.length} most profitable {lower} recipes today</caption>
+            <thead><tr><th scope="col">Recipe</th><th scope="col">Materials</th><th scope="col">Sells for</th><th scope="col">Profit</th></tr></thead>
+            <tbody>
+              {best.map(({ r, x }) => (
+                <tr>
+                  <th scope="row"><a href={recipeUrl(r.id, r.name)} {...tooltipAttrs(r.item)}><ItemIcon id={r.item} />{r.name}</a></th>
+                  <td><Money c={x.cost} /></td><td><Money c={x.sellAh} /></td>
+                  <td><span class="pct up">+</span> <Money c={x.profit} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p class="faint" style="margin-top:8px">Profit after the Auction House's 5% cut{ph ? `, on ${REGION_NAMES[ph.region]} ${ph.label} Alliance` : ""}. It ignores deposits and whether the item sells. See the <a href={`/crafting`}>craft profit calculator</a> for your own auction house.</p>
+      </section>
+    )}
+
+    <section class="panel">
+      <h2>All {lower} recipes by skill</h2>
+      <div class="table-wrap">
+        <table class="prices">
+          <caption class="sr-only">Every {lower} recipe, lowest skill first</caption>
+          <thead><tr><th scope="col">Skill</th><th scope="col">Recipe</th><th scope="col">Learned</th><th scope="col">Materials</th><th scope="col">Profit</th></tr></thead>
+          <tbody>
+            {rows.map(({ r, x, skill }) => (
+              <tr>
+                <td>{skill ?? "-"}</td>
+                <th scope="row"><a href={recipeUrl(r.id, r.name)} {...tooltipAttrs(r.item)}><ItemIcon id={r.item} />{r.name}</a></th>
+                <td class="dim">{sourceLabel(r.info) || "-"}</td>
+                <td>{x.costComplete ? <Money c={x.cost} /> : "-"}</td>
+                <td>{x.profit != null ? <Fragment><span class={`pct ${x.profit >= 0 ? "up" : "down"}`}>{x.profit >= 0 ? "+" : "−"}</span> <Money c={Math.abs(x.profit)} /></Fragment> : "-"}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {topMats.length > 0 && (
+      <section class="panel">
+        <h2>Materials {lower} uses most</h2>
+        <ul class="recipe-list" style="columns: 2 260px">
+          {topMats.map(([id, m]) => {
+            const p = price(id);
+            return <li><ItemLink id={id} name={m.name} /> <span class="faint">({m.n} recipes{p.ah != null ? `, ${moneyText(p.ah)} each` : ""})</span></li>;
+          })}
+        </ul>
+      </section>
+    )}
+
+    <p class="faint">Data provided by Blizzard Entertainment. Forever Anvil is not affiliated with or endorsed by Blizzard.</p>
+  </div>
+  <div class="wrap"><AdSlot name="bottom" /></div>
+  <Wowhead />
+</BaseLayout>

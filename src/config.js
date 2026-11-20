@@ -19,6 +19,12 @@ const config = {
   // Show dashed placeholders where ads will go (handy while designing).
   showAdPlaceholders: false,
 
+  // Search-console ownership codes (the "content" value of the meta tag they give you).
+  // Google: https://search.google.com/search-console  ·  Bing: https://www.bing.com/webmasters
+  // Leave empty if you verify by DNS instead (recommended with Cloudflare).
+  googleSiteVerification: "",
+  bingSiteVerification: "",
+
   // Contact email shown on the About page (optional).
   contactEmail: "",
 

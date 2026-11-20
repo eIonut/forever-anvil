@@ -5,9 +5,9 @@ import PageHero from "../../components/PageHero.astro";
 import IndexSearch from "../../components/IndexSearch.astro";
 import ItemIcon from "../../components/ItemIcon.astro";
 import Wowhead from "../../components/Wowhead.astro";
-import { loadCatalog } from "../../data/catalog";
+import { itemCategories, loadCatalog } from "../../data/catalog";
 import { num } from "../../lib/format";
-import { itemUrl } from "../../lib/urls";
+import { categoryUrl, itemUrl } from "../../lib/urls";
 import { tooltipAttrs } from "../../lib/wowhead";
 
 const c = loadCatalog();
@@ -23,13 +23,14 @@ const anchor = (k: string) => "letter-" + (k === "#" ? "num" : k);
 <BaseLayout
   title="WoW: Forever Item Prices A–Z | Forever Anvil"
   description={`Auction House prices for ${num(sorted.length)} WoW: Forever items: market price, 30-day history, vendor price and crafting.`}
-  page="items"
+  page="items" image="items"
 >
   <PageHero icon="items" eyebrow="Gold & auction house" title="WoW: Forever item prices" facts={[{ icon: "items", text: "One page per traded item" }, { icon: "clock", text: "Pages updated daily, live prices hourly" }]}>
     {num(sorted.length)} items with Auction House prices, 30-day history, vendor prices and crafting info. Updated daily (live prices hourly).
   </PageHero>
 
   <div class="wrap section item-index">
+    <nav class="az" aria-label="Item categories">{itemCategories(c).map((cat) => <a href={categoryUrl(cat.name)}>{cat.name} <span class="faint">({num(cat.ids.length)})</span></a>)}</nav>
     <IndexSearch label="Find an item" placeholder="e.g. Copper Ore" />
     <nav class="az" aria-label="Jump to letter">{keys.map((k) => <a href={`#${anchor(k)}`}>{k}</a>)}</nav>
     {keys.map((k) => (

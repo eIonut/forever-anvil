@@ -4,6 +4,24 @@ import AdSlot from "../components/AdSlot.astro";
 import DonateBox from "../components/DonateBox.astro";
 import Icon from "../components/Icon.astro";
 import type { IconName } from "../lib/icons";
+import config from "../config.js";
+import { itemCategories, loadCatalog, loadTalents, professions, MIN_PROFESSION_RECIPES } from "../data/catalog";
+import { categoryUrl, professionUrl, talentClassUrl } from "../lib/urls";
+
+// "Browse" links to the hub pages, so every item, recipe and class is a few clicks from here
+const cat = loadCatalog();
+const BROWSE = [
+  { title: "Professions", links: professions(cat).filter((p) => p.recipes.length >= MIN_PROFESSION_RECIPES).map((p) => ({ href: professionUrl(p.name), label: p.name })) },
+  { title: "Item prices by category", links: itemCategories(cat).map((x) => ({ href: categoryUrl(x.name), label: x.name })) },
+  { title: "Talents by class", links: loadTalents().map((x) => ({ href: talentClassUrl(x.name), label: x.name })) },
+].filter((b) => b.links.length);
+
+// Site name and logo for search results (WebSite + Organization)
+const site = Astro.site!.href.replace(/\/$/, "");
+const jsonld = [
+  { "@context": "https://schema.org", "@type": "WebSite", "@id": site + "/#website", name: config.siteName, alternateName: "Forever Anvil: WoW: Forever tools", url: site + "/", inLanguage: "en", publisher: { "@id": site + "/#org" } },
+  { "@context": "https://schema.org", "@type": "Organization", "@id": site + "/#org", name: config.siteName, url: site + "/", logo: site + "/og/default.png" },
+];
 
 interface Tool {
   href: string;
@@ -60,6 +78,7 @@ const STEPS: { icon: IconName; title: string; text: string }[] = [
   title="Forever Anvil | WoW: Forever auction prices, crafting & talent tools"
   description="Free tools for World of Warcraft: Forever: live auction house prices, vendor flips, crafting profits and planner, a talent calculator and character lookup."
   page="home"
+  jsonld={jsonld}
 >
   <section class="page-hero home-hero">
     <div class="wrap">
@@ -114,6 +133,20 @@ const STEPS: { icon: IconName; title: string; text: string }[] = [
       </ul>
     </section>
   ))}
+
+  {BROWSE.length > 0 && (
+    <section class="wrap section" aria-labelledby="browse-title">
+      <div class="group-head"><h2 id="browse-title">Browse</h2><p>Jump straight to a profession, a kind of item or a class.</p></div>
+      <div class="grid grid-2">
+        {BROWSE.map((b) => (
+          <nav class="panel" aria-label={b.title}>
+            <h3>{b.title}</h3>
+            <p class="az">{b.links.map((l) => <a href={l.href}>{l.label}</a>)}</p>
+          </nav>
+        ))}
+      </div>
+    </section>
+  )}
 
   <div class="wrap"><AdSlot name="bottom" /></div>
   <DonateBox standalone />

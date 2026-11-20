@@ -19,5 +19,6 @@ export default defineConfig({
   prefetch: { prefetchAll: true, defaultStrategy: "hover" },
   // lastmod = build day: generated pages are rebuilt daily with fresh prices
   // devApi: /out/* and /api/character during `npm run dev` only
-  integrations: [svelte(), sitemap({ lastmod: new Date() }), devApi()],
+  // The sitemap leaves out the 404 page (it's noindex).
+  integrations: [svelte(), sitemap({ lastmod: new Date(), filter: (page) => !/\/404\/?$/.test(page) }), devApi()],
 });

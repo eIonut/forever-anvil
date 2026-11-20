@@ -9,7 +9,8 @@
   import { notify } from "../lib/notify";
   import { load, save } from "../lib/store";
 
-  let { children }: { children?: Snippet } = $props();
+  // initialClass: the class to open on a class page (/talents/mage) when the address has no build
+  let { children, initialClass }: { children?: Snippet; initialClass?: string } = $props();
 
   /** [nodeId, row, col, name, icon, [rank descriptions], [required node ids]] */
   type Node = [number, number, number, string, string | null, string[], number[]];
@@ -140,7 +141,7 @@
       if (!d?.classes) { empty = true; return; }
       data = d;
       const h = readHash(), saved = load<{ c?: string; b?: string; l?: number }>(SAVE_KEY) || {};
-      const pick = h.c || saved.c || "warrior";
+      const pick = h.c || initialClass || saved.c || "warrior";
       level = h.l || saved.l || 60;
       selectClass(pick, h.c ? h.b : pick === saved.c ? saved.b || null : null);
     });

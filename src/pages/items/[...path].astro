@@ -1,0 +1,104 @@
+---
+// One page per item category (/items/trade-goods, /items/armor/2 …): every item of that kind with
+// its market price, most valuable first, 100 per page. These hubs give each item page links from a
+// page about its own kind of item, and rank for searches like "wow forever trade goods prices".
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+import ItemLink from "../../components/ItemLink.astro";
+import Money from "../../components/Money.astro";
+import AdSlot from "../../components/AdSlot.astro";
+import Wowhead from "../../components/Wowhead.astro";
+import { CATEGORY_PAGE_SIZE, itemCategories, loadCatalog, primaryRow, type Catalog } from "../../data/catalog";
+import { FACTIONS, REGION_NAMES } from "../../lib/labels";
+import { capitalize, num } from "../../lib/format";
+import { categoryUrl } from "../../lib/urls";
+import { slugify } from "../../lib/pricemath.js";
+
+
+
+export function getStaticPaths() {
+  const c = loadCatalog();
+  const cats = itemCategories(c);
+  // most valuable first (market price on the main auction house), then unlisted items A–Z
+  // (inside getStaticPaths: Astro runs it apart from the rest of the file)
+  const sortByValue = (c: Catalog, ids: string[]) => {
+    const value = (id: string) => primaryRow(c.prices[id])?.market ?? -1;
+    return ids.slice().sort((a, b) => value(b) - value(a) || c.names[a][0].localeCompare(c.names[b][0]));
+  };
+  return cats.flatMap((cat) => {
+    const ids = sortByValue(c, cat.ids);
+    const pages = Math.ceil(ids.length / CATEGORY_PAGE_SIZE);
+    return Array.from({ length: pages }, (_, i) => ({
+      params: { path: slugify(cat.name) + (i ? "/" + (i + 1) : "") },
+      props: { name: cat.name, ids: ids.slice(i * CATEGORY_PAGE_SIZE, (i + 1) * CATEGORY_PAGE_SIZE), page: i + 1, pages, total: ids.length, all: cats.map((x) => ({ name: x.name, count: x.ids.length })) },
+    }));
+  });
+}
+
+const { name, ids, page, pages, total, all } = Astro.props;
+const c = loadCatalog();
+const ph = c.primaryHouse;
+const lower = name.toLowerCase();
+const pageNote = page > 1 ? ` (page ${page} of ${pages})` : "";
+const site = Astro.site!.href.replace(/\/$/, "");
+const top = ids.slice(0, 3).map((id) => c.names[id][0]);
+
+const jsonld = {
+  "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: site + "/" },
+    { "@type": "ListItem", position: 2, name: "Item prices", item: site + "/item" },
+    { "@type": "ListItem", position: 3, name, item: site + categoryUrl(name) },
+    ...(page > 1 ? [{ "@type": "ListItem", position: 4, name: `Page ${page}`, item: site + categoryUrl(name, page) }] : []),
+  ],
+};
+---
+<BaseLayout
+  title={`WoW: Forever ${name} Prices${pageNote} | Forever Anvil`}
+  description={`Auction House prices for ${num(total)} WoW: Forever ${lower} items${pageNote}, most valuable first${top.length ? `: ${top.join(", ")} and more` : ""}. Market price, quantity listed and vendor price.`}
+  page="items" image="items" jsonld={jsonld}
+>
+  <PageHero icon="items" eyebrow="Item prices" title={`${name} prices${pageNote}`} facts={[{ icon: "items", text: `${num(total)} ${lower} items` }, { icon: "clock", text: `Prices as of ${c.asOf}` }]}>
+    <Fragment slot="before"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/item">Item prices</a> › {page > 1 ? <a href={categoryUrl(name)}>{name}</a> : name}{page > 1 && ` › Page ${page}`}</nav></Fragment>
+    Every {lower} item traded in WoW: Forever, most valuable first{ph ? `, with prices from the ${REGION_NAMES[ph.region]} ${ph.label} Alliance Auction House` : ""}. Open an item for prices on every auction house and its 30-day history.
+  </PageHero>
+
+  <div class="wrap section grid">
+    <nav class="az" aria-label="Item categories">
+      {all.map((x) => x.name === name ? <a href={categoryUrl(x.name)} aria-current="page"><b>{x.name}</b></a> : <a href={categoryUrl(x.name)}>{x.name} <span class="faint">({num(x.count)})</span></a>)}
+    </nav>
+
+    <div class="table-wrap">
+      <table class="prices">
+        <caption class="sr-only">{name} items and their prices{pageNote}</caption>
+        <thead><tr><th scope="col">Item</th><th scope="col">Quality</th><th scope="col">Market price</th><th scope="col">Listed</th><th scope="col">Vendor pays</th></tr></thead>
+        <tbody>
+          {ids.map((id) => {
+            const [itemName, sell, , , quality] = c.names[id];
+            const row = primaryRow(c.prices[id]);
+            return (
+              <tr>
+                <th scope="row" class={quality ? `q-${quality}` : undefined}><ItemLink id={id} name={itemName} /></th>
+                <td class="dim">{quality ? capitalize(quality) : "-"}</td>
+                <td>{row ? <Money c={row.market} /> : <span class="faint">not listed</span>}</td>
+                <td>{row ? num(row.qty) : "-"}</td>
+                <td><Money c={sell} /></td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+
+    {pages > 1 && (
+      <nav class="az" aria-label="Pages">
+        {page > 1 && <a href={categoryUrl(name, page - 1)} rel="prev">‹ Previous</a>}
+        {Array.from({ length: pages }, (_, i) => i + 1).map((p) => p === page ? <a href={categoryUrl(name, p)} aria-current="page"><b>{p}</b></a> : <a href={categoryUrl(name, p)}>{p}</a>)}
+        {page < pages && <a href={categoryUrl(name, page + 1)} rel="next">Next ›</a>}
+      </nav>
+    )}
+
+    <p class="faint">Market price = average of the cheapest 10% of units listed{ph ? `, on ${REGION_NAMES[ph.region]} ${ph.label} ${FACTIONS.alliance}` : ""}. Data provided by Blizzard Entertainment; snapshot from {c.asOf}. Forever Anvil is not affiliated with Blizzard.</p>
+  </div>
+  <div class="wrap"><AdSlot name="bottom" /></div>
+  <Wowhead />
+</BaseLayout>

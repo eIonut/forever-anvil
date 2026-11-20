@@ -1,0 +1,72 @@
+---
+// One page per class (/talents/mage): the talent calculator opened on that class, plus every talent
+// of its three trees written out as text, so search engines (and people skimming) can read them.
+// Ranks for "wow forever mage talents" and similar searches.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+import AdSlot from "../../components/AdSlot.astro";
+import Talents from "../../tools/Talents.svelte";
+import { loadTalents, type TalentClass } from "../../data/catalog";
+import { talentClassUrl } from "../../lib/urls";
+import { slugify } from "../../lib/pricemath.js";
+
+export function getStaticPaths() {
+  const all = loadTalents();
+  return all.map((cls) => ({ params: { cls: slugify(cls.name) }, props: { cls, others: all.map((x) => x.name) } }));
+}
+
+const { cls, others } = Astro.props as { cls: TalentClass; others: string[] };
+const specNames = cls.specs.map((s) => s.name);
+const count = cls.specs.reduce((n, s) => n + s.nodes.length, 0);
+const site = Astro.site!.href.replace(/\/$/, "");
+const jsonld = [
+  {
+    "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Home", item: site + "/" },
+      { "@type": "ListItem", position: 2, name: "Talent calculator", item: site + "/talents" },
+      { "@type": "ListItem", position: 3, name: `${cls.name} talents`, item: site + talentClassUrl(cls.name) },
+    ],
+  },
+  {
+    "@context": "https://schema.org", "@type": "WebApplication", name: `WoW: Forever ${cls.name} Talent Calculator`,
+    url: site + talentClassUrl(cls.name), applicationCategory: "GameApplication", operatingSystem: "Any",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+  },
+];
+const nameOf = (spec: TalentClass["specs"][number], id: number) => spec.nodes.find((n) => n[0] === id)?.[3];
+---
+<BaseLayout
+  title={`WoW: Forever ${cls.name} Talent Calculator: ${specNames.join(", ")} | Forever Anvil`}
+  description={`Plan a WoW: Forever ${cls.name} build with the real Forever talent trees: all ${count} ${specNames.join(", ")} talents with every rank, prerequisites and a shareable build link.`}
+  page="talents" image="talents" jsonld={jsonld}
+>
+  <PageHero icon="talents" eyebrow="Talent calculator" title={`${cls.name} talents`} facts={[{ icon: "talents", text: `${specNames.join(" · ")}` }, { icon: "link", text: "Share a build with one link" }, { icon: "lock", text: "No sign-up" }]}>
+    <Fragment slot="before"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/talents">Talent calculator</a> › {cls.name}</nav></Fragment>
+    Plan your WoW: Forever {cls.name} talents with the real Forever trees, then share your build with one link. Every {cls.name} talent is listed below the calculator.
+  </PageHero>
+
+  <Talents client:load initialClass={cls.name.toLowerCase()} />
+
+  <div class="wrap section grid">
+    <nav class="az" aria-label="Talents by class">
+      {others.map((o) => o === cls.name ? <a href={talentClassUrl(o)} aria-current="page"><b>{o}</b></a> : <a href={talentClassUrl(o)}>{o}</a>)}
+    </nav>
+    <div class="grid grid-2">
+      {cls.specs.map((spec) => (
+        <section class="panel">
+          <h2>{spec.name} talents</h2>
+          <ul class="recipe-list">
+            {spec.nodes.slice().sort((a, b) => a[1] - b[1] || a[2] - b[2]).map((n) => (
+              <li>
+                <b>{n[3]}</b> <span class="faint">(tier {n[1]}, {n[5].length} rank{n[5].length > 1 ? "s" : ""}{n[1] > 1 ? `, needs ${(n[1] - 1) * 5} points in ${spec.name}` : ""}{n[6].length ? `, requires ${n[6].map((id) => nameOf(spec, id)).filter(Boolean).join(", ")}` : ""})</span><br />
+                <span class="mats-inline">{n[5][n[5].length - 1]}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+    <p class="faint">Talent trees and descriptions are provided by Blizzard Entertainment for WoW: Forever; descriptions show the highest rank. Forever Anvil is not affiliated with or endorsed by Blizzard.</p>
+  </div>
+  <div class="wrap"><AdSlot name="bottom" /></div>
+</BaseLayout>

@@ -7,7 +7,8 @@ import ItemIcon from "../../components/ItemIcon.astro";
 import Wowhead from "../../components/Wowhead.astro";
 import { loadCatalog, type Recipe } from "../../data/catalog";
 import { num } from "../../lib/format";
-import { professionAnchor, recipeUrl } from "../../lib/urls";
+import { professionAnchor, professionUrl, recipeUrl } from "../../lib/urls";
+import { MIN_PROFESSION_RECIPES } from "../../data/catalog";
 import { tooltipAttrs } from "../../lib/wowhead";
 
 const c = loadCatalog();
@@ -18,7 +19,7 @@ const profs = Object.keys(byProf).sort();
 <BaseLayout
   title="WoW: Forever Recipes: Costs & Profit for Every Profession | Forever Anvil"
   description={`All ${num(c.recipes.length)} WoW: Forever crafting recipes with live material costs and profit on every auction house.`}
-  page="recipes"
+  page="recipes" image="recipes"
 >
   <PageHero icon="recipes" eyebrow="Crafting" title="WoW: Forever recipes" facts={[{ icon: "recipes", text: "One page per recipe" }, { icon: "prices", text: "Cost and profit on every Auction House" }]}>
     {num(c.recipes.length)} recipes across {profs.length} professions, each with today's material cost and profit on every Auction House.
@@ -29,7 +30,7 @@ const profs = Object.keys(byProf).sort();
     <nav class="az" aria-label="Jump to profession">{profs.map((p) => <a href={`#${professionAnchor(p)}`}>{p}</a>)}</nav>
     {profs.map((p) => (
       <Fragment>
-        <h2 id={professionAnchor(p)}>{p}{" "}<span class="faint">({byProf[p].length})</span></h2>
+        <h2 id={professionAnchor(p)}>{byProf[p].length >= MIN_PROFESSION_RECIPES ? <a href={professionUrl(p)}>{p} recipes</a> : p}{" "}<span class="faint">({byProf[p].length})</span></h2>
         <ul style={`--rows:${Math.ceil(byProf[p].length / 3)}`}>
           {byProf[p].slice().sort((a, b) => a.name.localeCompare(b.name)).map((r) => (
             <li><a href={recipeUrl(r.id, r.name)} {...tooltipAttrs(r.item)}><ItemIcon id={r.item} />{r.name}</a></li>

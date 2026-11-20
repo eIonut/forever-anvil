@@ -20,3 +20,12 @@ export const professionAnchor = (profession: string) => "prof-" + slugify(profes
 
 /** Wowhead page for an item (used where we have no page of our own) */
 export const wowheadItemUrl = (id: number | string) => `https://www.wowhead.com/forever/item=${Number(id)}`;
+
+// Hub pages that group the item, recipe and talent pages, so every page is a few links from the
+// home page and each group can rank for its own searches ("wow forever tailoring recipes").
+/** Item category page, e.g. "Trade Goods" → /items/trade-goods (page 2: /items/trade-goods/2) */
+export const categoryUrl = (itemClass: string, page = 1) => "/items/" + slugify(itemClass) + (page > 1 ? "/" + page : "");
+/** Profession page, e.g. "First Aid" → /profession/first-aid */
+export const professionUrl = (profession: string) => "/profession/" + slugify(profession);
+/** One class's talent trees, e.g. "Warrior" → /talents/warrior */
+export const talentClassUrl = (className: string) => "/talents/" + slugify(className);

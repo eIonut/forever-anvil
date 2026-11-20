@@ -191,3 +191,81 @@ export function primaryRow(rows: PriceRow[] | undefined): PriceRow | null {
   if (!rows || !rows.length) return null;
   return rows.find((r) => r.confirmed && r.faction === "alliance") || rows.find((r) => r.confirmed) || rows.find((r) => r.faction === "alliance") || rows[0];
 }
+
+/** Item categories (Blizzard's item class: "Trade Goods", "Armor", …) with the ids of their item pages */
+export function itemCategories(c: Catalog): { name: string; ids: string[] }[] {
+  const by: Record<string, string[]> = {};
+  for (const id of c.pageIds) {
+    const cls = c.names[id][5];
+    if (cls) (by[cls] ||= []).push(id);
+  }
+  return Object.entries(by).map(([name, ids]) => ({ name, ids })).sort((a, b) => b.ids.length - a.ids.length);
+}
+
+/** Recipes grouped by profession, professions A–Z */
+export function professions(c: Catalog): { name: string; recipes: Recipe[] }[] {
+  const by: Record<string, Recipe[]> = {};
+  for (const r of c.recipes) (by[r.prof] ||= []).push(r);
+  return Object.keys(by).sort().map((name) => ({ name, recipes: by[name] }));
+}
+
+/** Professions with too few recipes for a page of their own (gathering skills: a few camping recipes) */
+export const MIN_PROFESSION_RECIPES = 10;
+
+/** Skill-line ids, for the profession icons in public/img/wow/prof-<id>.jpg */
+export const PROFESSION_IDS: Record<string, number> = {
+  Alchemy: 171, Blacksmithing: 164, Cooking: 185, Enchanting: 333, Engineering: 202, "First Aid": 129,
+  Fishing: 356, Herbalism: 182, Leatherworking: 165, Mining: 186, Skinning: 393, Tailoring: 197,
+};
+
+/** talents_<region>.json: [nodeId, row, col, name, icon, [rank descriptions], [required node ids]] per talent */
+export type TalentNode = [number, number, number, string, string | null, string[], number[]];
+export interface TalentClass { id: number; name: string; icon: string | null; specs: { id: number; name: string; icon: string | null; nodes: TalentNode[] }[] }
+
+/** The talent trees for the class pages (/talents/warrior); empty without data in ./out */
+export function loadTalents(): TalentClass[] {
+  for (const region of Object.keys(REGION_NAMES)) {
+    const t = readJSON<{ classes?: TalentClass[] }>(`talents_${region}.json`);
+    if (t?.classes?.length) return t.classes;
+  }
+  return [];
+}
+
+// Per category: priced items cheapest first, and every item A–Z. Built once for all item pages.
+let neighbourIndex: Map<string, { priced: string[]; value: Map<string, number>; az: string[] }> | null = null;
+
+/**
+ * Up to n other items of the same category: those closest in market price, or for an item that
+ * isn't listed, its A–Z neighbours. Used for "Similar items" on the item pages (internal links).
+ */
+export function similarItems(c: Catalog, id: string, n = 12): string[] {
+  if (!neighbourIndex) {
+    neighbourIndex = new Map();
+    for (const cat of itemCategories(c)) {
+      const value = new Map<string, number>();
+      for (const x of cat.ids) { const r = primaryRow(c.prices[x]); if (r) value.set(x, r.market); }
+      const priced = [...value.keys()].sort((a, b) => value.get(a)! - value.get(b)!);
+      const az = cat.ids.slice().sort((a, b) => c.names[a][0].localeCompare(c.names[b][0]));
+      neighbourIndex.set(cat.name, { priced, value, az });
+    }
+  }
+  const idx = neighbourIndex.get(c.names[id]?.[5] || "");
+  if (!idx) return [];
+  const list = idx.value.has(id) ? idx.priced : idx.az;
+  const at = list.indexOf(id);
+  const start = Math.max(0, Math.min(at - Math.floor(n / 2), list.length - n - 1));
+  return list.slice(start, start + n + 1).filter((x) => x !== id).slice(0, n);
+}
+
+/** Items per page on the category pages (/items/armor, /items/armor/2 …) */
+export const CATEGORY_PAGE_SIZE = 100;
+
+let nameCount: Map<string, number> | null = null;
+/** True when another item page has the same name ("Thug Pants" exists twice): titles then add the id */
+export function nameIsShared(c: Catalog, id: string): boolean {
+  if (!nameCount) {
+    nameCount = new Map();
+    for (const x of c.pageIds) nameCount.set(c.names[x][0], (nameCount.get(c.names[x][0]) || 0) + 1);
+  }
+  return (nameCount.get(c.names[id][0]) || 0) > 1;
+}

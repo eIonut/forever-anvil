@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
 Disallow: /api/
+# Tool states in the address (?item=, ?q=) are the same page as without them (the canonical link
+# says so); keep crawlers on the ~11,000 real pages instead of endless variants.
+Disallow: /*?
 
 Sitemap: https://foreveranvil.com/sitemap-index.xml

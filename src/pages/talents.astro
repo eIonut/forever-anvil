@@ -3,16 +3,22 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import PageHero from "../components/PageHero.astro";
 import AdSlot from "../components/AdSlot.astro";
 import Talents from "../tools/Talents.svelte";
+import { loadTalents } from "../data/catalog";
+import { talentClassUrl } from "../lib/urls";
+const classes = loadTalents().map((c) => c.name);
 ---
 <BaseLayout
   title="WoW: Forever Talent Calculator: All Classes | Forever Anvil"
   description="Free WoW: Forever talent calculator for every class: the real Forever talent trees with icons, rank descriptions and prerequisites. Plan your build and share it with one link."
-  page="talents"
+  page="talents" image="talents"
 >
   <PageHero icon="talents" eyebrow="Characters" title="Talent calculator" facts={[{ icon: "talents", text: "Every class, the real Forever trees" }, { icon: "link", text: "Share a build with one link" }, { icon: "lock", text: "No sign-up" }]}>
     Plan your WoW: Forever talents with the real Forever trees, then share your build with one link.
   </PageHero>
 
+  {classes.length > 0 && (
+    <div class="wrap"><nav class="az" aria-label="Talent trees by class">{classes.map((n) => <a href={talentClassUrl(n)}>{n} talents</a>)}</nav></div>
+  )}
   <Talents client:load>
     <p class="faint" style="margin-top:16px">Talent trees, descriptions and icons are provided by Blizzard Entertainment for WoW: Forever. Forever Anvil is not affiliated with or endorsed by Blizzard.</p>
   </Talents>

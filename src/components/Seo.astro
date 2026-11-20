@@ -1,6 +1,7 @@
 ---
-// Search and social tags for the page <head>: title, description, canonical link, Open Graph,
-// and optional structured data (JSON-LD). Used by BaseLayout; pages pass their values through it.
+// Search and social tags for the page <head>: title, description, canonical link, Open Graph /
+// Twitter cards with a share picture, search-console verification, and optional structured data
+// (JSON-LD). Used by BaseLayout; pages pass their values through it.
 import config from "../config.js";
 
 interface Props {
@@ -10,24 +11,40 @@ interface Props {
   jsonld?: object | object[];
   /** keep this page out of search results */
   noindex?: boolean;
+  /** share picture in public/og/ (without ".png"), drawn by tools/og-images.js */
+  image?: string;
 }
 
-const { title, description, jsonld, noindex = false } = Astro.props;
+const { title, description, jsonld, noindex = false, image = "default" } = Astro.props;
 
 // The page's clean address on the live site: /about.html → /about, /index → /
 const path = Astro.url.pathname.replace(/\.html$/, "").replace(/\/index$/, "/") || "/";
 const canonical = new URL(path, Astro.site).href;
+const imageUrl = new URL(`/og/${image}.png`, Astro.site).href;
+// Descriptions over ~160 characters get cut off in results: trim at a word boundary.
+const desc = description.length > 160 ? description.slice(0, 157).replace(/\s+\S*$/, "") + "…" : description;
 // "<" escaped so text inside the data can never close the <script> tag
 const ld = jsonld && JSON.stringify(jsonld).replace(/</g, "\\u003c");
 ---
 <title>{title}</title>
-<meta name="description" content={description} />
-<link rel="canonical" href={canonical} />
-{noindex && <meta name="robots" content="noindex" />}
+<meta name="description" content={desc} />
+{noindex ? <meta name="robots" content="noindex, follow" /> : <link rel="canonical" href={canonical} />}
+{!noindex && <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />}
+<meta name="theme-color" content="#0b0a08" />
 <meta property="og:site_name" content={config.siteName} />
+<meta property="og:locale" content="en_GB" />
 <meta property="og:title" content={title} />
-<meta property="og:description" content={description} />
+<meta property="og:description" content={desc} />
 <meta property="og:type" content="website" />
 <meta property="og:url" content={canonical} />
-<meta name="twitter:card" content="summary" />
+<meta property="og:image" content={imageUrl} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content={`${config.siteName}: ${title}`} />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={desc} />
+<meta name="twitter:image" content={imageUrl} />
+{config.googleSiteVerification && <meta name="google-site-verification" content={config.googleSiteVerification} />}
+{config.bingSiteVerification && <meta name="msvalidate.01" content={config.bingSiteVerification} />}
 {ld && <script type="application/ld+json" set:html={ld} />}

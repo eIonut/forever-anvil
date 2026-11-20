@@ -42,7 +42,8 @@ With `npm run dev` running and `.env` filled in, every tool works on localhost, 
 | File | What it holds |
 |---|---|
 | `src/config.js` | **Your settings**: site name, donate link, AdSense id, where live prices come from |
-| `src/pages/` | One file per page. `item/[slug].astro` and `recipe/[slug].astro` build a page for every item and recipe |
+| `src/pages/` | One file per page. `item/[slug].astro` and `recipe/[slug].astro` build a page for every item and recipe; `items/[...path].astro` (item categories), `profession/[slug].astro` and `talents/[cls].astro` (one per class) build the hub pages that link them together |
+| `public/og/` | Share pictures for links posted on Discord, Reddit, X… Redraw with `node tools/og-images.js` |
 | `src/layouts/BaseLayout.astro` | The frame of every page: `<head>`, header, footer |
 | `src/components/` | Header, footer, settings panel, the framed page banner (`PageHero.astro`), icons (`Icon.astro`, drawn in `src/lib/icons.ts`), SEO tags, ad space, donate box, and pieces of the item and recipe pages |
 | `src/tools/` | The six interactive tools (Svelte) and the pieces they share: pickers, prices, item links, charts |
@@ -69,6 +70,14 @@ Run `npm run check` and `npm run build` before publishing.
 - Display settings (sliders icon in the header): text size, high contrast, underlined links, reduced motion. Each visitor's choice is saved in their browser.
 - Skip-to-content link, visible keyboard focus, screen-reader labels and announcements, proper table headers, and respect for the system "reduce motion" setting.
 - When you change a page, keep link text descriptive (not "click here") and don't use colour alone to show meaning.
+
+## Search engines
+
+Every page gets a title, description, canonical link, share picture and breadcrumb data automatically, and the sitemap lists every page. After the site is live:
+
+1. Add the domain in [Google Search Console](https://search.google.com/search-console) and [Bing Webmaster Tools](https://www.bing.com/webmasters) (verify by DNS in Cloudflare, or put the meta-tag code in `googleSiteVerification` / `bingSiteVerification` in `src/config.js`).
+2. Submit `https://foreveranvil.com/sitemap-index.xml` in both.
+3. See [docs/seo-report.md](docs/seo-report.md) for what's in place and what to do next.
 
 ## Turn on donations
 

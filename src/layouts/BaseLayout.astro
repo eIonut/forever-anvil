@@ -33,18 +33,21 @@ interface Props {
   page?: string;
   jsonld?: object | object[];
   noindex?: boolean;
+  /** share picture in public/og/, e.g. "prices" (see Seo.astro) */
+  image?: string;
 }
 
-const { title, description, page, jsonld, noindex } = Astro.props;
+const { title, description, page, jsonld, noindex, image } = Astro.props;
 ---
 <!doctype html>
 <html lang="en" data-text="md">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <Seo title={title} description={description} jsonld={jsonld} noindex={noindex} />
+    <Seo title={title} description={description} jsonld={jsonld} noindex={noindex} image={image} />
     {preloadFonts.map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="sitemap" type="application/xml" href="/sitemap-index.xml" />
     <script is:inline>
       // Apply saved display settings before the page paints, so it doesn't flash.
       // Same as applyPrefs() in src/lib/prefs.ts, which can't be bundled into an inline script.

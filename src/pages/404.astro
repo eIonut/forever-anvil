@@ -1,0 +1,15 @@
+---
+// Shown for addresses that don't exist (Cloudflare Pages serves 404.html with a 404 status).
+// Kept out of search results and the sitemap; points people to the main tools instead.
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import { FOOTER_TOOLS } from "../lib/nav";
+---
+<BaseLayout title="Page not found | Forever Anvil" description="This page doesn't exist. Try the auction prices, crafting or talent tools." noindex>
+  <PageHero icon="items" eyebrow="404" title="Page not found">
+    That page doesn't exist, or an item dropped out of the latest price data. Try one of the tools instead.
+  </PageHero>
+  <div class="wrap section">
+    <nav class="az" aria-label="Tools">{FOOTER_TOOLS.map((n) => <a href={n.href}>{n.label}</a>)}</nav>
+  </div>
+</BaseLayout>

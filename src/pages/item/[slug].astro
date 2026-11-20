@@ -9,11 +9,11 @@ import ItemTitleIcon from "../../components/ItemTitleIcon.astro";
 import Money from "../../components/Money.astro";
 import PriceChart from "../../components/PriceChart.astro";
 import Wowhead from "../../components/Wowhead.astro";
-import { loadCatalog, primaryPrices, primaryRow } from "../../data/catalog";
+import { loadCatalog, nameIsShared, primaryPrices, primaryRow, similarItems } from "../../data/catalog";
 import { craftProfit } from "../../lib/pricemath.js";
 import { FACTIONS, REGION_NAMES } from "../../lib/labels";
 import { capitalize, moneyText, num } from "../../lib/format";
-import { itemSlug, recipeUrl } from "../../lib/urls";
+import { categoryUrl, itemSlug, recipeUrl } from "../../lib/urls";
 
 export function getStaticPaths() {
   const c = loadCatalog();
@@ -39,24 +39,34 @@ const verdict = main && sell
   : "";
 
 const craftInfo = [made.length ? ", how to craft it" : "", used.length ? " and recipes that use it" : ""].join("");
+// Two items can share a name (an old and a new "Crusader's Boots"): the id keeps titles unique
+const titleName = nameIsShared(c, String(id)) ? `${name} (ID ${id})` : name;
+const kind = [quality && capitalize(quality), itemClass].filter(Boolean).join(" ");
 const description = main
-  ? `${name} price in WoW: Forever: about ${moneyText(main.market)} on the ${REGION_NAMES[main.region]} ${main.label} ${FACTIONS[main.faction]} AH (${c.asOf}). 30-day price history, vendor price${craftInfo}.`
-  : `${name} in WoW: Forever: vendor price${craftInfo}.`;
+  ? `${titleName} price in WoW: Forever: about ${moneyText(main.market)} on the ${REGION_NAMES[main.region]} ${main.label} ${FACTIONS[main.faction]} AH (${c.asOf}). 30-day price history, vendor price${craftInfo}.`
+  : `${titleName}${kind ? ` (${kind.toLowerCase()})` : ""} in WoW: Forever: not on the Auction House right now.${sell ? ` Vendors pay ${moneyText(sell)}.` : ""} See ${craftInfo ? craftInfo.replace(/^, /, "").replace(" and ", ", ") + " and " : ""}prices of similar items.`;
 
 const marketLabel = main ? `${main.label} ${FACTIONS[main.faction]} (${REGION_NAMES[main.region]})` : "";
 const chartPoints = main ? (c.history[`${main.region}:${main.houseId}`] || {})[id] : null;
 const site = Astro.site!.href.replace(/\/$/, "");
+const crumbs = [
+  { name: "Home", item: site + "/" },
+  { name: "Item prices", item: site + "/item" },
+  ...(itemClass ? [{ name: itemClass, item: site + categoryUrl(itemClass) }] : []),
+  { name, item: site + "/item/" + Astro.params.slug },
+];
 const jsonld = {
-  "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
-    { "@type": "ListItem", position: 1, name: "Home", item: site + "/" },
-    { "@type": "ListItem", position: 2, name: "Item prices", item: site + "/item" },
-    { "@type": "ListItem", position: 3, name, item: site + "/item/" + Astro.params.slug },
-  ],
+  "@context": "https://schema.org", "@type": "BreadcrumbList",
+  itemListElement: crumbs.map((x, i) => ({ "@type": "ListItem", position: i + 1, ...x })),
 };
+
+// Similar items: same category, closest in price (A–Z neighbours when unlisted). Gives every item
+// page links from its neighbours, not only from the big A–Z list, and visitors somewhere to go next.
+const similar = similarItems(c, String(id));
 ---
-<BaseLayout title={`${name} Price, WoW: Forever | Forever Anvil`} description={description} page="items" jsonld={jsonld}>
+<BaseLayout title={`${titleName} Price, WoW: Forever | Forever Anvil`} description={description} page="items" image="items" jsonld={jsonld}>
   <section class="page-hero page-hero-item"><div class="wrap"><div class="hero-frame">
-    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/item">Item prices</a> › {name}</nav>
+    <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/item">Item prices</a> › {itemClass && <Fragment><a href={categoryUrl(itemClass)}>{itemClass}</a> › </Fragment>}{name}</nav>
     <div class="item-title"><ItemTitleIcon id={id} /><h1 class={quality ? `q-${quality}` : ""}>{name}</h1><CopyName name={name} large /></div>
     <p class="item-sub">{[quality && capitalize(quality), itemClass, "WoW: Forever"].filter(Boolean).join(" · ")}</p>
     <p class="item-summary">
@@ -128,6 +138,16 @@ const jsonld = {
           })}
         </ul>
         {used.length > 40 && <p class="faint">…and {used.length - 40} more recipes.</p>}
+      </section>
+    )}
+
+    {similar.length > 0 && (
+      <section class="panel">
+        <h2>Similar {itemClass!.toLowerCase()} items</h2>
+        <ul class="recipe-list" style="columns: 2 260px">
+          {similar.map((x) => { const r = primaryRow(c.prices[x]); return <li><ItemLink id={x} name={c.names[x][0]} />{r && <span class="faint"> · <Money c={r.market} /></span>}</li>; })}
+        </ul>
+        <p class="faint" style="margin-top:8px"><a href={categoryUrl(itemClass!)}>All {itemClass!.toLowerCase()} prices</a></p>
       </section>
     )}
 
