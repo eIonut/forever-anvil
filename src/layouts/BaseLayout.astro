@@ -72,6 +72,14 @@ const { title, description, page, jsonld, noindex, image } = Astro.props;
         });
       }
     </script>
+    {config.adsenseClient && (
+      // Google AdSense on every page: proves to Google the site is ours, and lets Auto ads work if
+      // they are switched on in AdSense. Ad spaces (AdSlot.astro) only show once their unit ids are set.
+      <Fragment>
+        <meta name="google-adsense-account" content={config.adsenseClient} />
+        <script is:inline async crossorigin="anonymous" src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${config.adsenseClient}`}></script>
+      </Fragment>
+    )}
     {config.cfAnalyticsToken && (
       // Cloudflare Web Analytics. It loads once and stays in <head> across client-side navigation;
       // its "spa" mode counts each page swap as a page view.

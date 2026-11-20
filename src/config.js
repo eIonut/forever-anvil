@@ -13,7 +13,7 @@ const config = {
 
   // Google AdSense publisher id, e.g. "ca-pub-1234567890123456".
   // Leave empty until your AdSense account is approved; ad slots stay hidden.
-  adsenseClient: "",
+  adsenseClient: "ca-pub-5692911366649698",
   // Optional: per-slot ad unit ids from AdSense (data-ad-slot values).
   adSlots: { top: "", sidebar: "", bottom: "" },
   // Show dashed placeholders where ads will go (handy while designing).
