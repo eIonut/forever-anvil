@@ -1,11 +1,12 @@
 <script lang="ts">
   // Crafting planner: pick recipes and how many times to craft them, get one combined shopping list
   // with live AH and vendor prices. The plan is saved in the browser (src/lib/plan.ts).
+  import Freshness from "./Freshness.svelte";
   import type { Snippet } from "svelte";
   import Loading from "./Loading.svelte";
   import { onMount, tick } from "svelte";
   import { planShoppingList } from "../lib/pricemath.js";
-  import { copyText, getCachedJSON, getJSON, groupLabel, localTime, priceUrl } from "../lib/api";
+  import { copyText, getCachedJSON, getJSON, groupLabel, priceUrl } from "../lib/api";
   import { notify } from "../lib/notify";
   import { getMarketPrefs, saveMarketPrefs } from "../lib/marketPrefs";
   import { addToPlan, getPlan, setPlan, type Plan } from "../lib/plan";
@@ -189,7 +190,7 @@
           <div><dt>Results sell for <span class="faint">(after 5% AH cut)</span></dt><dd>{#if ready}{#if res.sales}<Money c={res.sales} />{#if !res.salesComplete}{" "}<span class="faint">(some results not on AH)</span>{/if}{:else}<span class="faint">-</span>{/if}{/if}</dd></div>
           <div><dt>Profit</dt><dd>{#if ready}{#if res.profit != null}<span class="pct {res.profit >= 0 ? 'up' : 'down'}">{res.profit >= 0 ? "+" : "−"}</span> <Money c={Math.abs(res.profit)} />{:else}<span class="faint">-</span>{/if}{/if}</dd></div>
         </dl>
-        <p class="faint">{groupData ? "Prices from " + localTime(groupData.updated) : ""}</p>
+        <Freshness {region} updated={groupData?.updated} />
         <p class="faint">Your plan is saved in this browser, no account needed.</p>
       </section>
       {@render sidebar?.()}

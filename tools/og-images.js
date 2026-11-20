@@ -20,6 +20,8 @@ const IMAGES = {
   crates: ["Waylaid Crates", "The cheapest Merchant's Favor, priced every hour"],
   items: ["Item prices", "Every traded item, with 30 days of price history"],
   crafting: ["Craft profit calculator", "Which recipes make gold after materials and the AH cut"],
+  leveling: ["Profession leveling cost", "The cheapest way to 300 at today's auction prices"],
+  upgrades: ["AH gear upgrades", "Better gear for your character, on sale right now"],
   planner: ["Crafting planner", "One shopping list for everything you want to craft"],
   recipes: ["Recipes & professions", "Material cost and profit on every Auction House"],
   talents: ["Talent calculator", "The real WoW: Forever talent trees for every class"],

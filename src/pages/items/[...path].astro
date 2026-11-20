@@ -3,6 +3,7 @@
 // its market price, most valuable first, 100 per page. These hubs give each item page links from a
 // page about its own kind of item, and rank for searches like "wow forever trade goods prices".
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import LiveFreshness from "../../components/LiveFreshness.astro";
 import PageHero from "../../components/PageHero.astro";
 import ItemLink from "../../components/ItemLink.astro";
 import Money from "../../components/Money.astro";
@@ -63,6 +64,7 @@ const jsonld = {
   </PageHero>
 
   <div class="wrap section grid">
+    <LiveFreshness />
     <nav class="az" aria-label="Item categories">
       {all.map((x) => x.name === name ? <a href={categoryUrl(x.name)} aria-current="page"><b>{x.name}</b></a> : <a href={categoryUrl(x.name)}>{x.name} <span class="faint">({num(x.count)})</span></a>)}
     </nav>

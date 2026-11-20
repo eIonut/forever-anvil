@@ -1,0 +1,35 @@
+---
+// /leveling: the profession leveling cost calculator, opened on the visitor's last profession,
+// with links to one page per profession (/leveling/blacksmithing…).
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+import Leveling from "../../tools/Leveling.svelte";
+import { loadCatalog, professions, MIN_PROFESSION_RECIPES } from "../../data/catalog";
+import { GATHERING } from "../../data/leveling";
+import { levelingUrl } from "../../lib/urls";
+
+const list = professions(loadCatalog()).filter((p) => !GATHERING.has(p.name) && p.recipes.length >= MIN_PROFESSION_RECIPES && p.recipes.some((r) => r.info)).map((p) => p.name);
+---
+<BaseLayout
+  title="WoW: Forever Profession Leveling Cost Calculator 1–300 | Forever Anvil"
+  description="What does leveling a WoW: Forever profession cost today? The cheapest recipe at every skill from live auction prices, with a shopping list showing the cheapest auction house for each material."
+  page="leveling" image="leveling"
+>
+  <PageHero icon="leveling" eyebrow="Crafting" title="Profession leveling cost" facts={[{ icon: "clock", text: "Prices refreshed about every hour" }, { icon: "prices", text: "Cheapest recipe at every skill" }, { icon: "planner", text: "Shopping list by auction house" }]}>
+    What it costs to level a profession at <b>today's prices</b>, not last month's guide: the cheapest recipe at every skill, how many to craft, and where each material is cheapest.
+  </PageHero>
+
+  <Leveling client:load>
+    <div class="panel pr-help">
+      <h2>Each profession</h2>
+      <p>{list.map((p, i) => <>{i > 0 && " · "}<a href={levelingUrl(p)}>{p} leveling cost</a></>)}</p>
+      <h2>How it works</h2>
+      <ul class="gems">
+        <li>At every skill level we pick the recipe that costs the least per <b>expected</b> skill point: orange recipes always give a point, yellow and green ones less and less often, grey ones never.</li>
+        <li>Materials are priced on your faction's auction house or Blackwater, whichever is cheaper. Skill levels come from WoW: Forever's game files; trainer recipes are counted from the skill where they turn yellow, so the real cost can be a little lower.</li>
+        <li>Not included: trainer fees, and levels from crafting your own materials.</li>
+      </ul>
+      <p class="faint">Data provided by Blizzard Entertainment. Forever Anvil is not affiliated with or endorsed by Blizzard.</p>
+    </div>
+  </Leveling>
+</BaseLayout>

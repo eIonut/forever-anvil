@@ -2,6 +2,7 @@
 // One page per item (/item/2770-copper-ore): prices on every auction house, 30-day chart,
 // vendor price, how to make it and what it's used for. Built from ./out (see src/data/catalog.ts).
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import LiveFreshness from "../../components/LiveFreshness.astro";
 import AdSlot from "../../components/AdSlot.astro";
 import ItemLink from "../../components/ItemLink.astro";
 import CopyName from "../../components/CopyName.astro";
@@ -77,6 +78,7 @@ const similar = similarItems(c, String(id));
     <div class="item-actions">
       <a class="btn" href={`/prices?item=${id}`}>Live prices &amp; filters</a>
       {(made.length > 0 || used.length > 0) && <a class="btn btn-ghost" href={`/crafting?q=${encodeURIComponent(name)}`}>Crafting profits</a>}
+      {(itemClass === "Armor" || itemClass === "Weapon") && <a class="btn btn-ghost" href="/upgrades">Is it an upgrade for you? Check your character</a>}
       <a class="btn btn-ghost wh" href={`https://www.wowhead.com/forever/item=${id}`} target="_blank" rel="noopener nofollow" data-wh-rename-link="false" data-wh-icon-added="true">Full details on Wowhead<span class="sr-only">{" (opens in a new tab)"}</span></a>
     </div>
   </div></div></section>
@@ -100,6 +102,7 @@ const similar = similarItems(c, String(id));
         <p class="faint">Not listed on any auction house in the latest snapshot.</p>
       )}
       <p class="faint" style="margin-top:8px">Market price = average of the cheapest 10% of units listed. Snapshot from {c.asOf}; the <a href={`/prices?item=${id}`}>live prices page</a> updates hourly.</p>
+      <LiveFreshness />
     </section>
 
     {main && (

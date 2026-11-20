@@ -27,5 +27,7 @@ export const wowheadItemUrl = (id: number | string) => `https://www.wowhead.com/
 export const categoryUrl = (itemClass: string, page = 1) => "/items/" + slugify(itemClass) + (page > 1 ? "/" + page : "");
 /** Profession page, e.g. "First Aid" → /profession/first-aid */
 export const professionUrl = (profession: string) => "/profession/" + slugify(profession);
+/** A profession's leveling cost calculator, e.g. "First Aid" → /leveling/first-aid */
+export const levelingUrl = (profession: string) => "/leveling/" + slugify(profession);
 /** One class's talent trees, e.g. "Warrior" → /talents/warrior */
 export const talentClassUrl = (className: string) => "/talents/" + slugify(className);

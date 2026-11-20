@@ -124,7 +124,7 @@ main { flex: 1; padding-bottom: 56px; }
 .nav-link {
   display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 12px; position: relative;
   border-radius: 8px; border: 1px solid transparent; color: var(--ink-dim);
-  font-size: 1rem; font-weight: 500; line-height: 1.2; letter-spacing: .01em; white-space: nowrap;
+  font-size: 1.1rem; font-weight: 500; line-height: 1.2; letter-spacing: .01em; white-space: nowrap;
   transition: background-color .15s, color .15s, border-color .15s;
 }
 .nav-icon { display: inline-grid; place-items: center; color: var(--gold-dim); transition: color .15s; }
@@ -135,6 +135,38 @@ main { flex: 1; padding-bottom: 56px; }
 .nav-link.active .nav-icon { color: var(--gold); }
 .nav-link.active::after { content: ""; position: absolute; left: 12px; right: 12px; bottom: 5px; height: 2px; border-radius: 2px; background: var(--gold); }
 .nav-link:focus-visible { outline-offset: 2px; border-radius: 8px; }
+/* the header may be wider than the page so the menu has room on big screens; tighter on small laptops */
+.topbar .wrap { max-width: 1480px; }
+@media (max-width: 1360px) {
+  .nav { gap: 2px; }
+  .nav-link { padding: 0 9px; gap: 6px; }
+  .nav-link.active::after { left: 9px; right: 9px; }
+}
+/* dropdowns (Gold, Crafting, Characters): a button that opens a panel of links with one-line descriptions.
+   Opens on click, and on hover where there's a mouse. The phone menu lists their links in full instead. */
+.nav-group { position: relative; display: flex; }
+.nav-drop-btn { cursor: pointer; background: none; font: inherit; }
+.nav-caret { display: inline-grid; place-items: center; margin-left: -2px; opacity: .75; transition: transform .15s; }
+.nav-group.open .nav-caret { transform: rotate(180deg); }
+.nav-drop {
+  display: none; position: absolute; top: calc(100% + 8px); left: 0; z-index: 60; width: 370px; padding: 8px; gap: 4px;
+  background: #100d0a; border: 1px solid var(--line-strong); border-radius: 10px; box-shadow: 0 16px 32px rgba(0, 0, 0, .6);
+}
+.nav-drop::before { content: ""; position: absolute; left: 0; right: 0; top: -10px; height: 10px; } /* keeps hover alive across the gap */
+.nav-group:last-child .nav-drop { left: auto; right: 0; }
+.nav-group.open .nav-drop { display: grid; }
+@media (hover: hover) and (min-width: 1141px) { .topbar:not(.compact) .nav:not(.open) .nav-group:hover .nav-drop { display: grid; } }
+.nav-drop .nav-link { min-height: 64px; padding: 8px 12px 8px 8px; gap: 14px; white-space: normal; border-color: transparent; }
+.nav-drop .nav-icon { width: 46px; height: 46px; flex-shrink: 0; border-radius: 8px; background: var(--gold-tint); border: 1px solid rgba(232, 189, 85, .25); }
+.nav-drop .nav-text { display: flex; flex-direction: column; gap: 2px; }
+.nav-drop .nav-label { font-weight: 700; font-size: 1.05rem; color: var(--ink); }
+.nav-drop .nav-desc { display: block; font-size: .88rem; line-height: 1.35; color: var(--ink-faint); }
+.nav-drop .nav-link:hover { background: var(--surface-2); }
+.nav-drop .nav-link.active { background: var(--gold-tint); border-color: rgba(232, 189, 85, .35); }
+.nav-drop .nav-link.active::after { display: none; }
+/* phone menu (and the collapsed header): no dropdowns, every link listed with its description */
+.nav.open .nav-group, .nav.open .nav-drop { display: contents; }
+.nav.open .nav-drop::before, .nav.open .nav-drop-btn { display: none; }
 
 .tools { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 .icon-btn {
@@ -244,6 +276,10 @@ html[data-contrast] .nav-link.active { border-color: var(--gold); }
 .hero-facts .icon { color: var(--gold); }
 .hero-emblem .icon, .tool-icon .icon, .stat-icon > .icon { stroke-width: 1.75; } /* thinner lines for the big icons */
 .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }
+.hero-promise { display: flex; gap: 8px; align-items: flex-start; margin: 18px 0 0; max-width: 60ch; color: var(--ink-dim); }
+.hero-promise svg { flex: none; margin-top: 3px; color: #5fd36a; }
+.hero-promise b { color: var(--ink); }
+.home-hero .freshness { margin-top: 6px; }
 @media (max-width: 640px) {
   .hero-frame { padding: 20px 18px; border-radius: 12px; }
   .hero-frame::after { opacity: .07; background-size: 260px auto; }
@@ -457,11 +493,14 @@ footer.site li a { display: inline-block; padding: 4px 0; }
 
 /* ---------- Settings panel ---------- */
 .settings-panel {
-  position: absolute; right: 16px; top: calc(var(--header-h) + 6px); width: min(360px, calc(100vw - 32px)); z-index: 60;
+  position: fixed; right: 16px; bottom: 16px; width: min(360px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); overflow-y: auto; z-index: 70;
   background: linear-gradient(180deg, #221c15, #15110d); border: 1px solid var(--gold-dim); border-radius: var(--radius);
   box-shadow: 0 20px 50px rgba(0, 0, 0, .75); padding: 18px 20px;
 }
 .settings-panel h2 { font-size: 1.15rem; margin-bottom: 4px; }
+/* the footer's Display settings button, styled as a link */
+.link-btn { display: inline-flex; align-items: center; gap: 6px; padding: 0; border: 0; background: none; color: var(--gold); font: inherit; cursor: pointer; }
+.link-btn:hover { color: var(--gold-2); text-decoration: underline; }
 .settings-intro { font-size: .9rem; color: var(--ink-faint); margin: 0 0 14px; }
 .settings-panel legend { font-weight: 700; color: var(--ink); margin-bottom: 6px; }
 .seg { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; background: var(--field); border: 1px solid var(--line-strong); border-radius: 10px; padding: 4px; margin-bottom: 14px; }
@@ -782,6 +821,8 @@ tr.v-pad > td { padding: 0; border: 0; }
 .ch-card { border-top: 3px solid var(--cc, var(--gold)); }
 .ch-head { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
 .ch-head > div { flex: 1; min-width: 200px; }
+.ch-head > .ch-head-actions { flex: none; min-width: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+#up-title { scroll-margin-top: calc(var(--header-h, 64px) + 16px); }
 .ch-head h2 { margin: 0; }
 .ch-sub { margin: 2px 0; font-size: 1.05rem; }
 .ch-avatar { width: 84px; height: 84px; border-radius: 10px; border: 2px solid var(--cc, var(--gold-dim)); object-fit: cover; font-size: 2rem; }
@@ -1156,3 +1197,34 @@ html[data-contrast] .ec-cell { background: #141414; border-color: #8a8a8a; }
    (src/lib/wowhead.ts hides tooltips left behind by redrawn tables) would leave the icon floating.
    Hide the icon together with its tooltip. */
 .wowhead-tooltip[style*="visibility: hidden"] .whtt-tooltip-icon { visibility: hidden !important; }
+
+/* "Updated 12 min ago · all 12 EU auction houses, every hour · straight from Blizzard, no addon needed"
+   (src/tools/Freshness.svelte in the tools, src/components/LiveFreshness.astro on daily-built pages) */
+.freshness { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; margin: 10px 0; font-size: .9rem; color: var(--ink-dim); }
+.freshness .fr-dot { width: 8px; height: 8px; border-radius: 50%; background: #5fd36a; box-shadow: 0 0 0 3px rgba(95, 211, 106, .18); flex: none; }
+.freshness.stale .fr-dot { background: #e5a33a; box-shadow: 0 0 0 3px rgba(229, 163, 58, .2); }
+.freshness .fr-sep { opacity: .6; }
+.freshness time { color: var(--ink); font-weight: 700; }
+
+/* Home: the two featured tools, right under the hero */
+.spotlight { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+@media (max-width: 900px) { .spotlight { grid-template-columns: 1fr; } }
+.spot-card { position: relative; padding: 22px 24px; border-radius: 12px; border: 1px solid rgba(232, 189, 85, .45); background: linear-gradient(160deg, rgba(232, 189, 85, .12), rgba(232, 189, 85, .02) 55%), var(--surface); box-shadow: 0 10px 30px rgba(0, 0, 0, .35); }
+.spot-head { display: flex; align-items: center; gap: 14px; margin-bottom: 10px; }
+.spot-head .tool-icon { flex: none; }
+.spot-head h2 { margin: 0; font-size: clamp(1.1rem, 4.4vw, 1.35rem); line-height: 1.25; }
+.spot-head h2 a { color: var(--gold-2); }
+.spot-lead { font-size: 1.12rem; margin: 0 0 8px; color: var(--ink); }
+.spot-num { font-size: 1.3rem; color: var(--gold-2); }
+.spot-label { margin: 14px 0 6px; font-size: .78rem; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-dim); }
+.spot-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip-link { display: inline-flex; align-items: center; min-height: 36px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-strong); background: rgba(0, 0, 0, .25); color: var(--ink); font-weight: 600; font-size: .95rem; }
+.chip-link:hover { border-color: var(--gold); color: var(--gold-2); text-decoration: none; background: var(--gold-tint); }
+.spot-form { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 8px; }
+.spot-form .input { min-height: 44px; }
+.spot-form select { flex: none; width: auto; }
+.spot-form input { flex: 1 1 180px; min-width: 0; }
+
+/* a line pointing to a related tool (Crafting → Leveling, Talents → Upgrades) */
+.cross-link { margin: 12px 0 0; padding: 10px 14px; border-left: 3px solid var(--gold); border-radius: 0 8px 8px 0; background: var(--gold-tint); color: var(--ink-dim); }
+.cross-link a { font-weight: 700; }

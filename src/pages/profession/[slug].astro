@@ -3,6 +3,7 @@
 // cost and profit today, the most profitable crafts right now, and the materials it uses most.
 // Ranks for "wow forever <profession> recipes / leveling / profit" and links to every recipe page.
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import LiveFreshness from "../../components/LiveFreshness.astro";
 import PageHero from "../../components/PageHero.astro";
 import ItemLink from "../../components/ItemLink.astro";
 import Money from "../../components/Money.astro";
@@ -12,7 +13,8 @@ import { loadCatalog, primaryPrices, professions, MIN_PROFESSION_RECIPES, type R
 import { craftProfit } from "../../lib/pricemath.js";
 import { REGION_NAMES } from "../../lib/labels";
 import { moneyText, num } from "../../lib/format";
-import { professionUrl, recipeUrl } from "../../lib/urls";
+import { levelingUrl, professionUrl, recipeUrl } from "../../lib/urls";
+import { GATHERING } from "../../data/leveling";
 import { slugify } from "../../lib/pricemath.js";
 import { skillSortKey, sourceLabel } from "../../lib/recipeinfo";
 import { tooltipAttrs } from "../../lib/wowhead";
@@ -66,6 +68,8 @@ const bestText = best.length ? ` Most profitable today: ${best.slice(0, 2).map((
   </PageHero>
 
   <div class="wrap section grid">
+    <LiveFreshness />
+    {!GATHERING.has(name) && <p class="faint"><a href={levelingUrl(name)}>What leveling {name} 1–300 costs today</a>: the cheapest recipe at every skill, with a shopping list.</p>}
     <nav class="az" aria-label="Professions">
       {others.map((p) => p === name ? <a href={professionUrl(p)} aria-current="page"><b>{p}</b></a> : <a href={professionUrl(p)}>{p}</a>)}
     </nav>

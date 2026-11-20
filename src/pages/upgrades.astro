@@ -1,0 +1,30 @@
+---
+// /upgrades: the character lookup with the AH upgrade finder first. Type a character, get the gear on
+// your ruleset's auction houses that beats what you wear, that your class can use at your level.
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import Character from "../tools/Character.svelte";
+---
+<BaseLayout
+  title="WoW: Forever Gear Upgrades on the Auction House for Your Character | Forever Anvil"
+  description="Type your WoW: Forever character's name and see cheap gear upgrades for every slot on your auction house right now: right armor type, your level, cheapest house."
+  page="upgrades" image="upgrades"
+>
+  <PageHero icon="upgrades" eyebrow="Characters" title="AH gear upgrades" facts={[{ icon: "character", text: "Your character's own gear" }, { icon: "prices", text: "Cheapest on your faction's AH or Blackwater" }, { icon: "clock", text: "Prices refreshed about every hour" }]}>
+    Type your character's name: we check what you wear against <b>every item on your auction houses right now</b> and list the upgrades your class can use at your level, cheapest first.
+  </PageHero>
+
+  <div class="wrap section">
+    <Character client:load focus="upgrades" />
+    <div class="panel pr-help">
+      <h2>How it works</h2>
+      <ul class="gems">
+        <li>We read your character's equipped gear from Blizzard (it updates after you log out), then look at every weapon and armor piece listed on your ruleset's auction houses: your faction's and Blackwater.</li>
+        <li>An item counts as an upgrade when its <b>item level</b> is higher than what you wear in that slot, your class can use it (cloth, leather, mail or plate, including plate and mail from level 40; the right weapon types), and you're high enough level. Rings and trinkets must beat your weaker one.</li>
+        <li>Item level is the one thing we know for every item, so this is a shortlist: hover an item to see its stats and check they suit your spec.</li>
+        <li>Pick a price limit to see only cheap upgrades. Prices are the cheapest listing, refreshed about every hour.</li>
+      </ul>
+      <p class="faint">Data provided by Blizzard Entertainment and shown live (cached up to 15 minutes); we don't store profiles. Want a character hidden? See our <a href="/privacy">privacy policy</a>.</p>
+    </div>
+  </div>
+</BaseLayout>

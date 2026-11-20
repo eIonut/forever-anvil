@@ -75,7 +75,7 @@ Run `npm run check` and `npm run build` before publishing.
 
 ## Accessibility built in
 
-- Display settings (sliders icon in the header): text size, high contrast, underlined links, reduced motion. Each visitor's choice is saved in their browser.
+- Display settings ("Display settings" in the footer): text size, high contrast, underlined links, reduced motion. Each visitor's choice is saved in their browser.
 - Skip-to-content link, visible keyboard focus, screen-reader labels and announcements, proper table headers, and respect for the system "reduce motion" setting.
 - When you change a page, keep link text descriptive (not "click here") and don't use colour alone to show meaning.
 

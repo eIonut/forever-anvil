@@ -3,6 +3,7 @@
   // the three houses, the materials ledger, gold by category, movers, cross-house flips,
   // faction price gaps, top-dollar items and the most-listed items. Everything is worked out here from the
   // price files the other tools use, except the ledger's 24-hour changes (econ_<region>.json).
+  import Freshness from "./Freshness.svelte";
   import type { Snippet } from "svelte";
   import Loading from "./Loading.svelte";
   import { onMount, tick } from "svelte";
@@ -187,6 +188,7 @@
     <p class="faint ec-scope">The numbers cover all three auction houses of the {ruleset || "chosen"} ruleset. The materials ledger, flips, gold map and most-listed items follow the auction house you pick. "Sold per day" is an estimate: we compare the auctions every hour and count the ones bought (a seller cancelling looks the same to us), averaged over the last 7 days.</p>
   </div>
 
+  <Freshness {region} updated={groupData?.updated} />
   {#if loading && !groupData}
     <Loading text="Loading the market…" block />
   {:else if loadFailed}

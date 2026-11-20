@@ -2,6 +2,8 @@
 import config from "../config.js";
 import { FOOTER_TOOLS, FOOTER_SITE } from "../lib/nav";
 import DonateButton from "./DonateButton.astro";
+import SettingsPanel from "./SettingsPanel.astro";
+import Icon from "./Icon.astro";
 ---
 <footer class="site">
   <div class="wrap">
@@ -17,7 +19,10 @@ import DonateButton from "./DonateButton.astro";
       </nav>
       <nav aria-labelledby="footer-site">
         <h2 class="footer-head" id="footer-site">About this site</h2>
-        <ul>{FOOTER_SITE.map((n) => <li><a href={n.href}>{n.label}</a></li>)}</ul>
+        <ul>
+          {FOOTER_SITE.map((n) => <li><a href={n.href}>{n.label}</a></li>)}
+          <li><button type="button" class="link-btn" id="open-settings" aria-haspopup="dialog" aria-expanded="false" aria-controls="settings-panel"><Icon name="settings" size={16} />Display settings</button></li>
+        </ul>
       </nav>
     </div>
     <div class="legal">
@@ -26,4 +31,5 @@ import DonateButton from "./DonateButton.astro";
       <a href="/about#legal">Credits &amp; legal</a> · Last updated {config.lastUpdated}
     </div>
   </div>
+  <SettingsPanel />
 </footer>

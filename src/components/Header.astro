@@ -1,9 +1,8 @@
 ---
-// Top bar: logo, main menu, display-settings button, menu button for narrow screens, donate button.
+// Top bar: logo, main menu, menu button for narrow screens, donate button. (Display settings: in the footer.)
 // The menu is plain HTML, so search engines see every link without running scripts.
 import config from "../config.js";
-import { NAV } from "../lib/nav";
-import SettingsPanel from "./SettingsPanel.astro";
+import { NAV, isGroup, type NavLink } from "../lib/nav";
 import DonateButton from "./DonateButton.astro";
 import Icon from "./Icon.astro";
 
@@ -12,6 +11,7 @@ interface Props {
 }
 
 const { page = "" } = Astro.props;
+const isActive = (n: NavLink) => !!n.pages?.includes(page);
 ---
 <header class="topbar">
   <div class="wrap">
@@ -20,21 +20,38 @@ const { page = "" } = Astro.props;
       <span><span class="brand-name">{config.siteName}</span><span class="brand-sub">{config.tagline}</span></span>
     </a>
     <nav class="nav" id="main-nav" aria-label="Main">
-      {NAV.map((n) => {
-        const active = !!n.pages?.includes(page);
+      {NAV.map((n, i) => {
+        if (isGroup(n)) {
+          // a dropdown: the button opens its links; in the phone menu the button hides and the links show in full
+          const active = n.children.some(isActive);
+          return (
+            <div class:list={["nav-group", { active }]}>
+              <button type="button" class:list={["nav-link", "nav-drop-btn", { active }]} aria-expanded="false" aria-controls={`nav-drop-${i}`}>
+                {n.icon && <span class="nav-icon"><Icon name={n.icon} size={24} /></span>}
+                <span class="nav-text"><span class="nav-label">{n.label}</span></span>
+                <span class="nav-caret"><Icon name="chevron" size={16} /></span>
+              </button>
+              <div class="nav-drop" id={`nav-drop-${i}`} role="group" aria-label={n.label}>
+                {n.children.map((c) => (
+                  <a href={c.href} class:list={["nav-link", "nav-sub", { active: isActive(c) }]} aria-current={isActive(c) ? "page" : undefined}>
+                    {c.icon && <span class="nav-icon"><Icon name={c.icon} size={28} /></span>}
+                    <span class="nav-text"><span class="nav-label">{c.label}</span>{c.desc && <span class="nav-desc">{c.desc}</span>}</span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          );
+        }
+        const active = isActive(n);
         return (
           <a href={n.href} class:list={["nav-link", { active }]} aria-current={active ? "page" : undefined}>
-            {n.icon && <span class="nav-icon"><Icon name={n.icon} size={18} /></span>}
+            {n.icon && <span class="nav-icon"><Icon name={n.icon} size={24} /></span>}
             <span class="nav-text"><span class="nav-label">{n.label}</span>{n.desc && <span class="nav-desc">{n.desc}</span>}</span>
           </a>
         );
       })}
     </nav>
     <div class="tools">
-      <button type="button" class="icon-btn" id="open-settings" aria-haspopup="dialog" aria-expanded="false" aria-controls="settings-panel" title="Display settings">
-        <Icon name="settings" size={20} />
-        <span class="sr-only">Display settings</span>
-      </button>
       <button type="button" class="icon-btn nav-toggle" aria-controls="main-nav" aria-expanded="false">
         <Icon name="menu" size={20} class="nav-toggle-open" />
         <Icon name="close" size={20} class="nav-toggle-close" />
@@ -43,7 +60,6 @@ const { page = "" } = Astro.props;
       <DonateButton class="btn-sm" />
     </div>
   </div>
-  <SettingsPanel />
 </header>
 
 <script>
@@ -76,6 +92,24 @@ import "../lib/navprogress";
     document.addEventListener("click", (e) => {
       if (nav.classList.contains("open") && !inside(e, ".nav") && !inside(e, ".nav-toggle")) setMenu(false);
     }, { signal });
+
+    // Dropdowns: click (or Enter/Space) opens one and closes the others; Escape, a click elsewhere or
+    // tabbing out closes it. Hovering also shows it on mouse screens (CSS), without changing aria-expanded.
+    const groups = [...nav.querySelectorAll<HTMLElement>(".nav-group")];
+    function setDrop(g: HTMLElement | null, focusButton = false) {
+      for (const x of groups) {
+        const on = x === g;
+        x.classList.toggle("open", on);
+        x.querySelector(".nav-drop-btn")?.setAttribute("aria-expanded", on ? "true" : "false");
+      }
+      if (!g && focusButton) (document.activeElement?.closest(".nav-group")?.querySelector(".nav-drop-btn") as HTMLElement | null)?.focus();
+    }
+    for (const g of groups) {
+      g.querySelector(".nav-drop-btn")!.addEventListener("click", () => setDrop(g.classList.contains("open") ? null : g), { signal });
+      g.addEventListener("focusout", (e) => { if (!g.contains(e.relatedTarget as Node | null)) { g.classList.remove("open"); g.querySelector(".nav-drop-btn")?.setAttribute("aria-expanded", "false"); } }, { signal });
+    }
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape" && groups.some((g) => g.classList.contains("open"))) setDrop(null, true); }, { signal });
+    document.addEventListener("click", (e) => { if (!inside(e, ".nav-group")) setDrop(null); }, { signal });
 
     // Collapse the menu into the ☰ button whenever the links don't fit on one line (e.g. large text).
     function fitHeader() {

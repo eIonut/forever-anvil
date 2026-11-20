@@ -1,10 +1,11 @@
 <script lang="ts">
   // Vendor flips: items listed on the AH for less than a vendor pays (computed hourly by the price job).
+  import Freshness from "./Freshness.svelte";
   import type { Snippet } from "svelte";
   import Loading from "./Loading.svelte";
   import SkeletonRows from "./SkeletonRows.svelte";
   import { onMount } from "svelte";
-  import { getCachedJSON, getJSON, groupLabel, localTime, priceUrl } from "../lib/api";
+  import { getCachedJSON, getJSON, groupLabel, priceUrl } from "../lib/api";
   import { announce } from "../lib/announce";
   import { getMarketPrefs, saveMarketPrefs } from "../lib/marketPrefs";
   import { setupWowhead } from "../lib/wowhead";
@@ -63,8 +64,9 @@
       ongroup={(v) => { group = v; save(); loadGroup(); }}
       onfaction={(v) => { faction = v; save(); }} />
   </div>
+  <Freshness {region} updated={groupData?.updated} />
   <p class="fl-summary" aria-live="polite">
-    {#if loading}<Loading text="Loading vendor flips…" />{:else if flips.length}<b>{flips.length}</b> item{flips.length > 1 ? "s" : ""} listed below vendor price right now, about <Money c={total} /> profit if you bought them all. <span class="faint">Snapshot from {localTime(groupData!.updated)}.</span>{:else}No vendor flips on this auction house right now. Check back after the next hourly update.{/if}
+    {#if loading}<Loading text="Loading vendor flips…" />{:else if flips.length}<b>{flips.length}</b> item{flips.length > 1 ? "s" : ""} listed below vendor price right now, about <Money c={total} /> profit if you bought them all.{:else}No vendor flips on this auction house right now. Check back after the next hourly update.{/if}
   </p>
   <div class="table-wrap">
     <table class="prices">

@@ -13,6 +13,7 @@
   import { professionIcon, wowIcon } from "../lib/icons";
   import Icon from "./Icon.svelte";
   import Loading from "./Loading.svelte";
+  import Upgrades from "./Upgrades.svelte";
 
   interface Gear { slot?: string; slotType?: string | null; id: number; icon?: number | null; enchant?: string | null; name?: string; quality?: string; level?: number }
   interface Result {
@@ -61,6 +62,9 @@
     hated: "hated", hostile: "hostile", unfriendly: "unfriendly", neutral: "neutral",
     friendly: "friendly", honored: "honored", revered: "revered", exalted: "exalted",
   };
+
+  // focus="upgrades" (the /upgrades page): the AH upgrades come first, right under the character's name
+  let { focus = null }: { focus?: "upgrades" | null } = $props();
 
   let region = $state("eu"), name = $state("");
   let view = $state.raw<{ kind: "none" } | { kind: "loading"; name: string } | { kind: "error"; message: string } | { kind: "ok"; d: Result }>({ kind: "none" });
@@ -185,9 +189,16 @@
             {#if c.lastLogin}<span class="ch-fact">Last logged in {ago(c.lastLogin)}</span>{/if}
           </p>
         </div>
-        <button type="button" class="btn btn-ghost btn-sm" id="ch-share" onclick={() => share(d)}><Icon name="link" size={16} />Copy link</button>
+        <div class="ch-head-actions">
+          {#if focus !== "upgrades"}<a class="btn btn-sm ch-up-jump" href="#up-title"><Icon name="upgrades" size={16} />AH upgrades for {c.name || "this character"}</a>{/if}
+          <button type="button" class="btn btn-ghost btn-sm" id="ch-share" onclick={() => share(d)}><Icon name="link" size={16} />Copy link</button>
+        </div>
       </div>
       <p class="note fresh">{#if d.blizzardUpdated}<b>Blizzard last updated this profile {ago(d.blizzardUpdated)}</b> ({localTime(d.blizzardUpdated)}).{" "}{/if}Profiles only refresh after the character logs out, and Blizzard can take several hours (sometimes until the next day), so very recent gear or skill changes may not show yet.{d.partial ? " Some sections aren't available yet." : ""}</p>
+
+      {#if focus === "upgrades"}
+        {#key d.character.slug + d.fetched}<Upgrades region={d.region} character={d.character} gear={d.gear} first />{/key}
+      {/if}
 
       <section class="ch-doll-wrap" aria-labelledby="ch-gear-title">
         <h3 id="ch-gear-title" class="ch-h">Equipped gear{#if L.avg}<span class="ch-avg">Average item level <b>{L.avg}</b></span>{/if}</h3>
@@ -212,6 +223,10 @@
           </div>
         {:else}<p class="faint">No gear data.</p>{/if}
       </section>
+
+      {#if focus !== "upgrades"}
+        {#key d.character.slug + d.fetched}<Upgrades region={d.region} character={d.character} gear={d.gear} />{/key}
+      {/if}
 
       <div class="grid grid-2 ch-sections">
         <section aria-labelledby="ch-prof-title">

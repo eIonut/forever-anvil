@@ -3,18 +3,19 @@
   // material cost (live AH prices, vendor prices as fallback), sale price, sales per day and profit
   // after the AH cut. Every column header sorts; click again to flip the order.
   // /crafting?q=Copper Bar (from an item page) searches it, in the profession that makes or uses it.
+  import Freshness from "./Freshness.svelte";
   import type { Snippet } from "svelte";
   import Loading from "./Loading.svelte";
   import SkeletonRows from "./SkeletonRows.svelte";
   import { onMount, tick } from "svelte";
   import { craftProfit } from "../lib/pricemath.js";
-  import { getCachedJSON, getJSON, groupLabel, localTime, noDataMessage, priceUrl } from "../lib/api";
+  import { getCachedJSON, getJSON, groupLabel, noDataMessage, priceUrl } from "../lib/api";
   import { announce } from "../lib/announce";
   import { notify } from "../lib/notify";
   import { getMarketPrefs, saveMarketPrefs } from "../lib/marketPrefs";
   import { addToPlan } from "../lib/plan";
   import { load, save as saveStore } from "../lib/store";
-  import { recipeUrl } from "../lib/urls";
+  import { levelingUrl, recipeUrl } from "../lib/urls";
   import { setupWowhead, tooltipAttrs } from "../lib/wowhead";
   import { skillLevels, skillSentence, skillSortKey, wowheadItem, wowheadSpell } from "../lib/recipeinfo";
   import { useItems, itemSource, type ItemInfo } from "./itemIcons.svelte";
@@ -200,6 +201,7 @@
         {/each}
       </div>
     </fieldset>
+    {#if profession && ![182, 186, 356, 393].includes(Number(profession.id))}<p class="cross-link cr-level"><a href={levelingUrl(profession.name)}>Leveling {profession.name}? See the cheapest route to 300 at today's prices</a>, with one shopping list.</p>{/if}
     <div class="control-row cr-row">
     <div><label class="field-label" for="cr-sort">Sort by</label>
       <div class="cr-sort">
@@ -221,8 +223,9 @@
     </fieldset>
   </div>
 
-  <div class="section-head" style="margin-top:18px">
-    <p class="faint" style="margin:0">{#if ready && groupData}Prices from {localTime(groupData.updated)} · {profession?.name || ""}: {rows.length} recipes{/if}</p>
+  <Freshness {region} updated={groupData?.updated} />
+  <div class="section-head">
+    <p class="faint" style="margin:0">{#if ready && groupData}{profession?.name || ""}: {rows.length} recipes{/if}</p>
     <p class="faint" style="margin:0">{#if ready}{status}{:else if !emptyMsg}<Loading text="Loading recipes and prices…" />{/if}</p>
   </div>
   <p class="faint cr-legend"><span class="cr-legend-sort">Click a column heading to sort by it, again to flip the order.</span>{" "}Skill: <span class="sk sk-o">needed</span> <span class="sk sk-y">yellow</span> <span class="sk sk-g">green</span> <span class="sk sk-x">grey</span>: the skill to learn it, then where it gets less likely to give skill points. "≤" means the trainer sets the exact skill, at most that.</p>

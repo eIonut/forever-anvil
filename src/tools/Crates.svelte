@@ -2,11 +2,12 @@
   // Waylaid Crate calculator: which crate turns the least gold into Merchant's Favor right now.
   // Every bundle that fills a crate (from Blizzard's crate data, pipeline/crates.js) is priced on your
   // faction's auction house and on Blackwater; the cheaper one wins. Math: src/lib/cratemath.js.
+  import Freshness from "./Freshness.svelte";
   import type { Snippet } from "svelte";
   import { onMount } from "svelte";
   import Loading from "./Loading.svelte";
   import SkeletonRows from "./SkeletonRows.svelte";
-  import { getCachedJSON, getJSON, groupLabel, localTime, noDataMessage, priceUrl } from "../lib/api";
+  import { getCachedJSON, getJSON, groupLabel, noDataMessage, priceUrl } from "../lib/api";
   import { announce } from "../lib/announce";
   import { getMarketPrefs, saveMarketPrefs } from "../lib/marketPrefs";
   import { load as loadStore, save as saveStore } from "../lib/store";
@@ -178,8 +179,9 @@
     {:else}<p>None of these crates can be filled from this auction house right now.</p>{/if}
   </div>
 
-  <div class="section-head" style="margin-top:18px">
-    <p class="faint" style="margin:0">{#if ready && groupData}Prices from {localTime(groupData.updated)} · {rows.length} crates · compares {faction === "neutral" ? "Blackwater only" : houseName(faction) + " and Blackwater"}{/if}</p>
+  <Freshness {region} updated={groupData?.updated} />
+  <div class="section-head">
+    <p class="faint" style="margin:0">{#if ready && groupData}{rows.length} crates · compares {faction === "neutral" ? "Blackwater only" : houseName(faction) + " and Blackwater"}{/if}</p>
   </div>
   <div class="table-wrap">
     <table class="prices crafting crates">

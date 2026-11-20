@@ -237,6 +237,8 @@ async function main() {
 
   meta.lastRun = new Date(now).toISOString();
   meta.groups = Object.keys(latestByGroup);
+  // how many auction houses this run read (the site's "all 12 EU auction houses, every hour" line)
+  meta.houses = Object.values(latestByGroup).reduce((n, g) => n + Object.keys(g.houses).length, 0);
   // confirmed ruleset names per group, so the site can label its group picker up front
   meta.rulesets = {};
   for (const g of GROUPS) if (latestByGroup[g.id] && g.ruleset && g.ruleset[region]) meta.rulesets[g.id] = g.ruleset[region];

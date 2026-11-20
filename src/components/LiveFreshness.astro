@@ -1,0 +1,56 @@
+---
+// The freshness line for pages built once a day (item, recipe, profession and category pages).
+// The page's own prices are a daily snapshot; this line says how fresh the LIVE prices are, from the
+// price job's meta file: "Live prices updated 12 min ago · all 12 EU auction houses, every hour · ...".
+// Plain script (no Svelte), so these 10,000+ pages stay light. The tools use src/tools/Freshness.svelte.
+// brief: leave out "straight from Blizzard, no addon needed" where the page already says it (home page)
+interface Props { region?: string; brief?: boolean }
+const { region = "eu", brief = false } = Astro.props;
+---
+<p class="freshness live-freshness" data-region={region} hidden>
+  <span class="fr-dot" aria-hidden="true"></span>
+  <span>Live prices updated <time></time></span>
+  <span class="fr-sep" aria-hidden="true">·</span><span class="fr-houses"></span>
+  {!brief && <Fragment><span class="fr-sep fr-ok" aria-hidden="true">·</span><span class="fr-ok">straight from Blizzard, no addon needed</span></Fragment>}
+  <span class="fr-late" hidden>· the hourly update is running late, so prices may have moved</span>
+  <a href="/prices">See live prices</a>
+</p>
+
+<script>
+  import { priceUrl } from "../lib/api";
+
+  const NAMES: Record<string, string> = { eu: "EU", us: "US", kr: "Korean", tw: "Taiwanese" };
+  const short = (ms: number) => {
+    const m = Math.round(ms / 60000);
+    if (m < 2) return "just now";
+    if (m < 60) return m + " min ago";
+    const h = Math.round(m / 60);
+    return h < 48 ? h + (h === 1 ? " hour ago" : " hours ago") : Math.round(h / 24) + " days ago";
+  };
+
+  for (const el of document.querySelectorAll<HTMLElement>(".live-freshness")) {
+    const region = el.dataset.region || "eu";
+    fetch(priceUrl("meta", region))
+      .then((r) => (r.ok ? r.json() : null))
+      .then((m: { lastRun?: string; houses?: number; groups?: string[] } | null) => {
+        if (!m?.lastRun) return;
+        const age = Date.now() - new Date(m.lastRun).getTime();
+        if (isNaN(age)) return;
+        const time = el.querySelector("time")!;
+        time.dateTime = m.lastRun;
+        time.title = new Date(m.lastRun).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+        time.textContent = short(age);
+        const houses = m.houses || (m.groups?.length || 0) * 3;
+        const h = el.querySelector<HTMLElement>(".fr-houses")!;
+        if (houses) h.textContent = `all ${houses} ${NAMES[region] || region.toUpperCase()} auction houses, every hour`;
+        else { h.hidden = true; (h.previousElementSibling as HTMLElement).hidden = true; }
+        if (age > 2 * 3600_000) {
+          el.classList.add("stale");
+          el.querySelector<HTMLElement>(".fr-late")!.hidden = false;
+          for (const x of el.querySelectorAll<HTMLElement>(".fr-ok")) x.hidden = true;
+        }
+        el.hidden = false;
+      })
+      .catch(() => { /* the line just stays hidden */ });
+  }
+</script>

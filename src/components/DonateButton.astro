@@ -9,5 +9,5 @@ interface Props {
 const { class: extra } = Astro.props;
 ---
 {config.donateUrl && (
-  <a class:list={["btn btn-donate", extra]} href={config.donateUrl} target="_blank" rel="noopener">&#9829; {config.donateLabel || "Donate"}</a>
+  <a class:list={["btn btn-donate", extra]} href={config.donateUrl} target="_blank" rel="noopener" title={config.donateLabel || "Donate"}><span aria-hidden="true">&#9829;</span> <span class="donate-label">{config.donateLabel || "Donate"}</span></a>
 )}

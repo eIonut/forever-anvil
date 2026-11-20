@@ -3,10 +3,13 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import AdSlot from "../components/AdSlot.astro";
 import DonateBox from "../components/DonateBox.astro";
 import Icon from "../components/Icon.astro";
+import LiveFreshness from "../components/LiveFreshness.astro";
 import type { IconName } from "../lib/icons";
 import config from "../config.js";
 import { itemCategories, loadCatalog, loadTalents, professions, MIN_PROFESSION_RECIPES } from "../data/catalog";
-import { categoryUrl, professionUrl, talentClassUrl } from "../lib/urls";
+import { categoryUrl, levelingUrl, professionUrl, talentClassUrl } from "../lib/urls";
+import { builtRoute, GATHERING } from "../data/leveling";
+import { moneyText, num } from "../lib/format";
 
 // "Browse" links to the hub pages, so every item, recipe and class is a few clicks from here
 const cat = loadCatalog();
@@ -15,6 +18,12 @@ const BROWSE = [
   { title: "Item prices by category", links: itemCategories(cat).map((x) => ({ href: categoryUrl(x.name), label: x.name })) },
   { title: "Talents by class", links: loadTalents().map((x) => ({ href: talentClassUrl(x.name), label: x.name })) },
 ].filter((b) => b.links.length);
+
+// Spotlight: the leveling calculator with a real number from today's build, and the upgrade finder
+const levelProfs = professions(cat).filter((p) => !GATHERING.has(p.name) && p.recipes.length >= MIN_PROFESSION_RECIPES && p.recipes.some((r) => r.info));
+const bsRecipes = levelProfs.find((p) => p.name === "Blacksmithing")?.recipes;
+const bsRoute = bsRecipes ? builtRoute(cat, bsRecipes) : null;
+const bsCost = bsRoute && bsRoute.steps.length ? (bsRoute.total >= 10000 ? num(Math.round(bsRoute.total / 10000)) + "g" : moneyText(bsRoute.total)) : null;
 
 // Site name and logo for search results (WebSite + Organization)
 const site = Astro.site!.href.replace(/\/$/, "");
@@ -55,6 +64,7 @@ const GROUPS: Group[] = [
     desc: "Material costs from today's prices, so you know what's worth making.",
     tools: [
       { href: "/crafting", icon: "crafting", title: "Craft profits", desc: "Which recipes make gold right now, after material costs and the Auction House's 5% cut.", shows: ["Every profession", "Profit and margin"] },
+      { href: "/leveling", icon: "leveling", title: "Leveling cost", desc: "What leveling a profession 1–300 costs today: the cheapest recipe at every skill and one shopping list.", shows: ["Every crafting profession", "Cheapest house per material"] },
       { href: "/planner", icon: "planner", title: "Crafting planner", desc: "Pick what you want to craft and get one shopping list for all the materials.", shows: ["What to buy where", "Total cost"] },
       { href: "/recipe", icon: "recipes", title: "Recipe pages", desc: "Every recipe by profession, with its materials, cost and profit.", shows: ["Materials list", "Cost on every house"] },
     ],
@@ -64,6 +74,7 @@ const GROUPS: Group[] = [
     desc: "Plan your build and look up anyone's gear.",
     tools: [
       { href: "/talents", icon: "talents", title: "Talent calculator", desc: "Plan a build with the real WoW: Forever talent trees and share it with one link.", shows: ["Every class", "Shareable link"] },
+      { href: "/upgrades", icon: "upgrades", title: "AH gear upgrades", desc: "Type a character and see better gear for every slot on the Auction House right now.", shows: ["Your class and level", "Cheapest first"] },
       { href: "/character", icon: "character", title: "Character lookup", desc: "Any character's level, gear, professions and reputations.", shows: ["Equipped gear", "Professions"] },
     ],
   },
@@ -71,13 +82,13 @@ const GROUPS: Group[] = [
 
 const STEPS: { icon: IconName; title: string; text: string }[] = [
   { icon: "globe", title: "Pick your market", text: "Choose your region, ruleset and auction house once. Every tool remembers it." },
-  { icon: "clock", title: "Fresh every hour", text: "Prices come straight from Blizzard's official API about once an hour." },
+  { icon: "clock", title: "Complete, every hour", text: "Every auction house comes straight from Blizzard's official API about once an hour. No addon, no waiting for someone to scan." },
   { icon: "lock", title: "No account needed", text: "Builds, plans and settings stay in your own browser. Nothing to sign up for." },
 ];
 ---
 <BaseLayout
   title="Forever Anvil | WoW: Forever auction prices, crafting & talent tools"
-  description="Free tools for World of Warcraft: Forever: live auction house prices, vendor flips, crafting profits and planner, a talent calculator and character lookup."
+  description="Free WoW: Forever tools: profession leveling cost at today's prices, AH gear upgrades for your character, live auction prices, crafting profits and talents."
   page="home"
   jsonld={jsonld}
 >
@@ -88,15 +99,43 @@ const STEPS: { icon: IconName; title: string; text: string }[] = [
           <div class="hero-text">
             <p class="eyebrow">World of Warcraft: Forever · Free fan-made tools</p>
             <h1>Tools for the new Azeroth</h1>
-            <p class="lead">Live auction prices, crafting profits, talent builds and character lookups, worked out from Blizzard's own data. Free, and no sign-up.</p>
+            <p class="lead">What your profession costs to level today, gear upgrades for your character on the AH, live auction prices and crafting profits, worked out from Blizzard's own data. Free, and no sign-up.</p>
             <div class="hero-actions">
-              <a class="btn" href="/prices"><Icon name="prices" size={20} />Check auction prices</a>
-              <a class="btn btn-ghost" href="/crafting"><Icon name="crafting" size={20} />Find profitable crafts</a>
+              <a class="btn" href="/leveling"><Icon name="leveling" size={20} />Profession leveling cost</a>
+              <a class="btn" href="/upgrades"><Icon name="upgrades" size={20} />Find gear upgrades</a>
+              <a class="btn btn-ghost" href="/prices"><Icon name="prices" size={20} />Check auction prices</a>
             </div>
+            <p class="hero-promise"><Icon name="check" size={18} /><span><b>Complete hourly data, no addon.</b> Every auction house is read straight from Blizzard every hour, so prices never wait for someone to scan.</span></p>
+            <LiveFreshness brief />
           </div>
         </div>
       </div>
     </div>
+  </section>
+
+  <section class="wrap section spotlight" aria-label="Featured tools">
+    <article class="spot-card">
+      <div class="spot-head"><span class="tool-icon"><Icon name="leveling" size={34} /></span><h2><a href="/leveling">What does leveling your profession cost?</a></h2></div>
+      {bsCost
+        ? <p class="spot-lead">Leveling <b>Blacksmithing 1→300</b> costs about <b class="spot-num">{bsCost}</b> on {bsRoute!.market} today.</p>
+        : <p class="spot-lead">The cheapest way to 300 at <b>today's</b> prices.</p>}
+      <p>The cheapest recipe at every skill, how many to craft, and one shopping list with the cheapest auction house for each material. Guides use last month's prices; this uses this hour's.</p>
+      <p class="spot-label">Pick your profession</p>
+      <div class="spot-chips">{levelProfs.map((p) => <a class="chip-link" href={levelingUrl(p.name)}>{p.name}</a>)}</div>
+    </article>
+    <article class="spot-card">
+      <div class="spot-head"><span class="tool-icon"><Icon name="upgrades" size={34} /></span><h2><a href="/upgrades">Gear upgrades on the AH, for your character</a></h2></div>
+      <p class="spot-lead">Type your name: we check <b>every item for sale</b> against what you wear.</p>
+      <p>Upgrades for every slot that your class can use at your level, on your faction's auction house or Blackwater, cheapest first.</p>
+      <form class="spot-form" action="/upgrades" method="get">
+        <label class="sr-only" for="spot-region">Region</label>
+        <select class="input" id="spot-region" name="r"><option value="eu">Europe</option><option value="kr">Korea</option><option value="tw">Taiwan</option></select>
+        <label class="sr-only" for="spot-name">Character name</label>
+        <input class="input" id="spot-name" name="n" placeholder="Firstname Lastname" autocomplete="off" maxlength="40" required />
+        <button class="btn" type="submit">Find upgrades</button>
+      </form>
+      <p class="faint">Forever characters have a first and last name. Level 10+, logged out at least once.</p>
+    </article>
   </section>
 
   <section class="wrap section" aria-labelledby="how-title">

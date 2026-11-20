@@ -19,6 +19,12 @@ export const ICONS = {
   items: `<path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"/><path d="M12 22V12"/><polyline points="3.29 7 12 12 20.71 7"/><path d="m7.5 4.27 9 5.15"/>`,
   // lucide: archive
   crates: `<rect width="20" height="5" x="2" y="3" rx="1"/><path d="M4 8v11a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8"/><path d="M10 12h4"/>`,
+  // lucide: trending-up
+  leveling: `<path d="M16 7h6v6"/><path d="m22 7-8.5 8.5-5-5L2 17"/>`,
+  // lucide: circle-arrow-up
+  upgrades: `<circle cx="12" cy="12" r="10"/><path d="m16 12-4-4-4 4"/><path d="M12 16V8"/>`,
+  // lucide: chevron-down (dropdown menus)
+  chevron: `<path d="m6 9 6 6 6-6"/>`,
   // lucide: hammer
   crafting: `<path d="m15 12-9.373 9.373a1 1 0 0 1-3.001-3L12 9"/><path d="m18 15 4-4"/><path d="m21.5 11.5-1.914-1.914A2 2 0 0 1 19 8.172v-.344a2 2 0 0 0-.586-1.414l-1.657-1.657A6 6 0 0 0 12.516 3H9l1.243 1.243A6 6 0 0 1 12 8.485V10l2 2h1.172a2 2 0 0 1 1.414.586L18.5 14.5"/>`,
   // lucide: clipboard-list
@@ -70,7 +76,9 @@ export const WOW_ICONS = {
   flips: "/img/wow/flips.jpg",         // inv_misc_coin_17: a single gold coin (flip it)
   items: "/img/wow/items.jpg",         // inv_misc_bag_07: leather bag
   crates: "/img/wow/crates.jpg",       // icon file 236994: open wooden crate (the Waylaid Crates' own icon)
-  crafting: "/img/wow/crafting.jpg",   // trade_blacksmithing: anvil
+  crafting: "/img/wow/crafting.jpg",
+  leveling: "/img/wow/leveling.jpg",
+  upgrades: "/img/wow/upgrades.jpg",   // inv_chest_plate16: golden breastplate (gear upgrades)   // inv_misc_book_11: blue skill book (profession leveling)   // trade_blacksmithing: anvil
   planner: "/img/wow/planner.jpg",     // inv_misc_note_01: sealed note (shopping list)
   recipes: "/img/wow/recipes.jpg",     // inv_scroll_03: recipe scroll
   talents: "/img/wow/talents.jpg",     // ability_marksmanship: arrow in the bullseye

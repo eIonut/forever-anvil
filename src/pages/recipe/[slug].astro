@@ -2,6 +2,7 @@
 // One page per recipe (/recipe/2359-bolt-of-linen-cloth): materials with today's prices,
 // and the profit on every auction house. Built from ./out (see src/data/catalog.ts).
 import BaseLayout from "../../layouts/BaseLayout.astro";
+import LiveFreshness from "../../components/LiveFreshness.astro";
 import AdSlot from "../../components/AdSlot.astro";
 import ItemLink from "../../components/ItemLink.astro";
 import CopyName from "../../components/CopyName.astro";
@@ -13,7 +14,8 @@ import { itemPageUrl, loadCatalog, priceOn, primaryPrices } from "../../data/cat
 import { craftProfit } from "../../lib/pricemath.js";
 import { FACTIONS, REGION_NAMES } from "../../lib/labels";
 import { moneyText } from "../../lib/format";
-import { professionUrl, recipeSlug, recipeUrl } from "../../lib/urls";
+import { levelingUrl, professionUrl, recipeSlug, recipeUrl } from "../../lib/urls";
+import { GATHERING } from "../../data/leveling";
 import { MIN_PROFESSION_RECIPES } from "../../data/catalog";
 import { skillSortKey } from "../../lib/recipeinfo";
 import { skillLevels, skillSentence, wowheadItem, wowheadSpell } from "../../lib/recipeinfo";
@@ -75,10 +77,12 @@ const nearby = profRecipes
           : "."}</Fragment>
       )} Prices as of {c.asOf}.
     </p>
+    <LiveFreshness />
     <div class="item-actions">
       <PlanButton recipeId={r.id} />
       <a class="btn btn-ghost" href="/planner">View my plan <span class="plan-count" data-plan-count hidden></span></a>
       <a class="btn btn-ghost" href={`/crafting?q=${encodeURIComponent(itemName || r.name)}`}>Compare with other recipes</a>
+      {!GATHERING.has(r.prof) && <a class="btn btn-ghost" href={levelingUrl(r.prof)}>What leveling {r.prof} costs</a>}
       {r.item && c.hasPage.has(String(r.item)) && <a class="btn btn-ghost" href={itemPageUrl(c, r.item)}>{itemName} prices</a>}
     </div>
   </div></div></section>

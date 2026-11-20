@@ -1,0 +1,79 @@
+---
+// One page per crafting profession (/leveling/blacksmithing): the leveling cost calculator opened on
+// that profession, plus the route on the site's main market written out at build time, so the page
+// answers "wow forever blacksmithing leveling cost" even before the calculator loads.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+import Money from "../../components/Money.astro";
+import AdSlot from "../../components/AdSlot.astro";
+import Leveling from "../../tools/Leveling.svelte";
+import { loadCatalog, professions, PROFESSION_IDS, MIN_PROFESSION_RECIPES } from "../../data/catalog";
+import { builtRoute, GATHERING } from "../../data/leveling";
+import { levelingUrl, professionUrl, recipeUrl } from "../../lib/urls";
+import { slugify } from "../../lib/pricemath.js";
+import { moneyText, num } from "../../lib/format";
+
+export function getStaticPaths() {
+  const c = loadCatalog();
+  const list = professions(c).filter((p) => !GATHERING.has(p.name) && p.recipes.length >= MIN_PROFESSION_RECIPES && p.recipes.some((r) => r.info));
+  return list.map((p) => ({ params: { prof: slugify(p.name) }, props: { name: p.name, others: list.map((x) => x.name) } }));
+}
+
+const { name, others } = Astro.props as { name: string; others: string[] };
+const c = loadCatalog();
+const recipes = professions(c).find((p) => p.name === name)!.recipes;
+const route = builtRoute(c, recipes);
+const site = Astro.site!.href.replace(/\/$/, "");
+// the cost first: search results cut descriptions at about 160 characters
+const description = route && route.steps.length
+  ? `Leveling ${name} 1–300 in WoW: Forever costs about ${route.total >= 10000 ? num(Math.round(route.total / 10000)) + "g" : moneyText(route.total)} today (${route.market}): the cheapest recipe at every skill, plus a shopping list.`
+  : `How much does leveling ${name} 1–300 cost in WoW: Forever? The cheapest recipes at every skill from today's auction prices, with a shopping list.`;
+const jsonld = [{
+  "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: site + "/" },
+    { "@type": "ListItem", position: 2, name: "Leveling cost", item: site + "/leveling" },
+    { "@type": "ListItem", position: 3, name: `${name} leveling`, item: site + levelingUrl(name) },
+  ],
+}];
+---
+<BaseLayout
+  title={`WoW: Forever ${name} Leveling 1–300: Cost Today & Shopping List | Forever Anvil`}
+  description={description}
+  page="leveling" image="leveling" jsonld={jsonld}
+>
+  <PageHero icon="leveling" eyebrow="Crafting" title={`${name} leveling cost`} facts={[{ icon: "clock", text: "Prices refreshed about every hour" }, { icon: "prices", text: "Cheapest recipe at every skill" }, { icon: "planner", text: "Shopping list by auction house" }]}>
+    <Fragment slot="before"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/leveling">Leveling cost</a> › {name}</nav></Fragment>
+    What leveling <b>{name}</b> costs at <b>today's prices</b>: the cheapest recipe at every skill, how many to craft, and where each material is cheapest. Pick your ruleset and faction below.
+  </PageHero>
+
+  <Leveling client:load initialProf={PROFESSION_IDS[name] ?? null}>
+    {route && route.steps.length > 0 && (
+      <section class="panel pr-help" aria-labelledby="built-title">
+        <h2 id="built-title">{name} 1–300 on {route.market}, {c.asOf}</h2>
+        <p>Leveling {name} from 1 to 300 cost about <b><Money c={route.total} /></b> in materials on {route.market} on {c.asOf}{route.withPatterns ? <Fragment>, using patterns and plans as well as trainer recipes (trainer recipes alone: about <Money c={route.trainerOnly} />)</Fragment> : " with trainer recipes"}. The calculator above uses this hour's prices and your own ruleset and faction.</p>
+        <ol class="built-route">
+          {route.steps.map((s) => <li><span class="faint">{s.from}–{s.to}:</span> <a href={recipeUrl(s.recipeId, s.name)}>{s.name}</a> × {s.crafts} <span class="faint">({moneyText(s.cost)})</span></li>)}
+        </ol>
+        {route.gaps.length > 0 && <p class="faint">No trainer recipe gave skill points at some levels on this market; turn on patterns and plans in the calculator to fill them.</p>}
+      </section>
+    )}
+    <div class="panel pr-help">
+      <h2>How it works</h2>
+      <ul class="gems">
+        <li>At every skill level we pick the recipe that costs the least per <b>expected</b> skill point: orange recipes always give a point, yellow and green ones less and less often, grey ones never. "Times" is how many crafts that takes on average, rounded up.</li>
+        <li>Materials are priced at their market price (the average of the cheapest 10% on sale) on your faction's auction house or Blackwater, whichever is cheaper. Materials that aren't on the AH use Blizzard's vendor price, marked "estimate".</li>
+        <li>Skill levels come from WoW: Forever's game files. Patterns and plans have a known skill to learn them; for trainer recipes the trainer sets it, so we only count them from the skill where they turn yellow. They may be available a few points earlier, so the real cost can be a little lower.</li>
+        <li>By default only trainer recipes are used. Turn on patterns and plans to include recipes you buy or find; their prices are listed separately.</li>
+        <li>Not included: trainer fees, and levels you might gain by crafting materials yourself (smelting bars, bolts of cloth).</li>
+      </ul>
+      <p class="faint">Other professions: {others.filter((o) => o !== name).map((o, i) => <Fragment>{i > 0 && " · "}<a href={levelingUrl(o)}>{o}</a></Fragment>)} · <a href={professionUrl(name)}>Every {name} recipe</a></p>
+      <p class="faint">Data provided by Blizzard Entertainment. Forever Anvil is not affiliated with or endorsed by Blizzard.</p>
+    </div>
+  </Leveling>
+  <div class="wrap"><AdSlot name="bottom" /></div>
+</BaseLayout>
+
+<style>
+  .built-route { columns: 2 300px; column-gap: 32px; padding-left: 1.4em; margin: 10px 0; }
+  .built-route li { break-inside: avoid; margin: 2px 0; }
+</style>

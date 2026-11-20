@@ -11,24 +11,45 @@ export interface NavLink {
   pages?: string[];
 }
 
-/** Header menu */
-export const NAV: NavLink[] = [
+/** A dropdown in the header menu: its label opens a list of links (in the phone menu they're listed in full) */
+export interface NavGroup {
+  label: string;
+  icon?: IconName;
+  children: NavLink[];
+}
+
+export const isGroup = (n: NavLink | NavGroup): n is NavGroup => "children" in n;
+
+/** Header menu: the most-used tools as links, the rest grouped in dropdowns */
+export const NAV: (NavLink | NavGroup)[] = [
   { href: "/prices", label: "Prices", icon: "prices", pages: ["prices", "items"],
     desc: "What every item sells for on the Auction House" },
-  { href: "/economy", label: "Economy", icon: "economy", pages: ["economy"],
-    desc: "Material prices, gold by category and cross-house flips" },
-  { href: "/flips", label: "Flips", icon: "flips", pages: ["flips"],
-    desc: "Listings cheaper than what a vendor pays" },
-  { href: "/waylaid-crates", label: "Crates", icon: "crates", pages: ["crates"],
-    desc: "The cheapest Merchant's Favor from Waylaid Crates" },
-  { href: "/crafting", label: "Crafting", icon: "crafting", pages: ["crafting", "recipe", "recipes"],
-    desc: "Which recipes make gold after materials and the AH cut" },
-  { href: "/planner", label: "Planner", icon: "planner", pages: ["planner"],
-    desc: "One shopping list for everything you want to craft" },
-  { href: "/talents", label: "Talents", icon: "talents", pages: ["talents"],
-    desc: "Plan a talent build for any class and share it" },
-  { href: "/character", label: "Character", icon: "character", pages: ["character"],
-    desc: "Any character's gear, professions and reputations" },
+  { href: "/leveling", label: "Profession leveling", icon: "leveling", pages: ["leveling"],
+    desc: "What leveling a profession 1–300 costs at today's prices" },
+  { href: "/upgrades", label: "Gear upgrades", icon: "upgrades", pages: ["upgrades"],
+    desc: "Cheap gear upgrades for your character on the AH right now" },
+  { label: "Gold", icon: "economy", children: [
+    { href: "/economy", label: "Economy", icon: "economy", pages: ["economy"],
+      desc: "Material prices, gold by category and cross-house flips" },
+    { href: "/flips", label: "Vendor flips", icon: "flips", pages: ["flips"],
+      desc: "Listings cheaper than what a vendor pays" },
+    { href: "/waylaid-crates", label: "Waylaid Crates", icon: "crates", pages: ["crates"],
+      desc: "The cheapest Merchant's Favor from Waylaid Crates" },
+  ] },
+  { label: "Crafting", icon: "crafting", children: [
+    { href: "/crafting", label: "Craft profits", icon: "crafting", pages: ["crafting"],
+      desc: "Which recipes make gold after materials and the AH cut" },
+    { href: "/planner", label: "Crafting planner", icon: "planner", pages: ["planner"],
+      desc: "One shopping list for everything you want to craft" },
+    { href: "/recipe", label: "Recipes by profession", icon: "recipes", pages: ["recipe", "recipes"],
+      desc: "Every recipe with its materials, cost and profit" },
+  ] },
+  { label: "Characters", icon: "character", children: [
+    { href: "/character", label: "Character lookup", icon: "character", pages: ["character"],
+      desc: "Any character's gear, professions and reputations" },
+    { href: "/talents", label: "Talent calculator", icon: "talents", pages: ["talents"],
+      desc: "Plan a talent build for any class and share it" },
+  ] },
 ];
 
 /** Footer: every tool, plus the browsable item and recipe pages */
@@ -39,10 +60,12 @@ export const FOOTER_TOOLS: NavLink[] = [
   { href: "/waylaid-crates", label: "Waylaid Crates" },
   { href: "/item", label: "Item price pages" },
   { href: "/crafting", label: "Craft profits" },
+  { href: "/leveling", label: "Profession leveling cost" },
   { href: "/planner", label: "Crafting planner" },
   { href: "/recipe", label: "Recipe pages" },
   { href: "/talents", label: "Talent calculator" },
   { href: "/character", label: "Character lookup" },
+  { href: "/upgrades", label: "AH gear upgrades" },
 ];
 
 /** Footer: about the site */
