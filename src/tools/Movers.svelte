@@ -55,9 +55,9 @@
         <tbody>
           {#each list as x (x[0])}
             {#if tab === "deals"}
-              <tr><th scope="row"><ItemLink id={x[0]} name={itemName(x[0])} copy /></th><td><Money c={x[1]} /></td><td><Money c={x[2]} /></td><td><span class="pct up">{Math.round((1 - x[1] / x[2]) * 100)}% off</span></td><td>{x[3].toLocaleString()}</td><td><SoldPerDay a={live?.items[x[0]]} hours={live?.salesHours} suffix="" /></td></tr>
+              <tr><th scope="row"><ItemLink id={x[0]} name={itemName(x[0])} copy watch /></th><td><Money c={x[1]} /></td><td><Money c={x[2]} /></td><td><span class="pct up">{Math.round((1 - x[1] / x[2]) * 100)}% off</span></td><td>{x[3].toLocaleString()}</td><td><SoldPerDay a={live?.items[x[0]]} hours={live?.salesHours} suffix="" /></td></tr>
             {:else}
-              <tr><th scope="row"><ItemLink id={x[0]} name={itemName(x[0])} copy /></th><td><span class="pct {x[1] > 0 ? 'up' : 'down'}">{x[1] > 0 ? "▲ +" : "▼ "}{x[1]}%</span></td><td><Money c={x[2]} /></td><td><Money c={x[3]} /></td><td><SoldPerDay a={live?.items[x[0]]} hours={live?.salesHours} suffix="" /></td></tr>
+              <tr><th scope="row"><ItemLink id={x[0]} name={itemName(x[0])} copy watch /></th><td><span class="pct {x[1] > 0 ? 'up' : 'down'}">{x[1] > 0 ? "▲ +" : "▼ "}{x[1]}%</span></td><td><Money c={x[2]} /></td><td><Money c={x[3]} /></td><td><SoldPerDay a={live?.items[x[0]]} hours={live?.salesHours} suffix="" /></td></tr>
             {/if}
           {/each}
         </tbody>

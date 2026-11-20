@@ -75,7 +75,7 @@
       <tbody>
         {#if loading}<SkeletonRows rows={6} cols={6} />{:else}
           {#each flips as f (f[0])}
-            <tr><th scope="row"><ItemLink id={f[0]} name={itemSource.items[f[0]]?.[0]} copy /></th><td><Money c={f[3]} /></td><td><Money c={f[4]} /></td><td><span class="pct up">+<Money c={f[4] - f[3]} /></span></td><td>{f[1].toLocaleString()}</td><td><b><Money c={f[2]} /></b></td></tr>
+            <tr><th scope="row"><ItemLink id={f[0]} name={itemSource.items[f[0]]?.[0]} copy watch /></th><td><Money c={f[3]} /></td><td><Money c={f[4]} /></td><td><span class="pct up">+<Money c={f[4] - f[3]} /></span></td><td>{f[1].toLocaleString()}</td><td><b><Money c={f[2]} /></b></td></tr>
           {:else}
             <tr><td colspan="6" class="empty">Nothing to flip here right now.</td></tr>
           {/each}

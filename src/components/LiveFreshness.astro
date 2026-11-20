@@ -18,6 +18,8 @@ const { region = "eu", brief = false } = Astro.props;
 
 <script>
   import { priceUrl } from "../lib/api";
+  import { autoRefresh } from "../lib/autorefresh";
+  import { onPage } from "../lib/page";
 
   const NAMES: Record<string, string> = { eu: "EU", us: "US", kr: "Korean", tw: "Taiwanese" };
   const short = (ms: number) => {
@@ -28,12 +30,13 @@ const { region = "eu", brief = false } = Astro.props;
     return h < 48 ? h + (h === 1 ? " hour ago" : " hours ago") : Math.round(h / 24) + " days ago";
   };
 
-  for (const el of document.querySelectorAll<HTMLElement>(".live-freshness")) {
+  /** Fill in (or update) one freshness line from the price job's meta file */
+  function update(el: HTMLElement) {
     const region = el.dataset.region || "eu";
-    fetch(priceUrl("meta", region))
+    return fetch(priceUrl("meta", region))
       .then((r) => (r.ok ? r.json() : null))
       .then((m: { lastRun?: string; houses?: number; groups?: string[] } | null) => {
-        if (!m?.lastRun) return;
+        if (!m?.lastRun || !el.isConnected) return;
         const age = Date.now() - new Date(m.lastRun).getTime();
         if (isNaN(age)) return;
         const time = el.querySelector("time")!;
@@ -44,13 +47,22 @@ const { region = "eu", brief = false } = Astro.props;
         const h = el.querySelector<HTMLElement>(".fr-houses")!;
         if (houses) h.textContent = `all ${houses} ${NAMES[region] || region.toUpperCase()} auction houses, every hour`;
         else { h.hidden = true; (h.previousElementSibling as HTMLElement).hidden = true; }
-        if (age > 2 * 3600_000) {
-          el.classList.add("stale");
-          el.querySelector<HTMLElement>(".fr-late")!.hidden = false;
-          for (const x of el.querySelectorAll<HTMLElement>(".fr-ok")) x.hidden = true;
-        }
+        const late = age > 2 * 3600_000;
+        el.classList.toggle("stale", late);
+        el.querySelector<HTMLElement>(".fr-late")!.hidden = !late;
+        for (const x of el.querySelectorAll<HTMLElement>(".fr-ok")) x.hidden = late;
         el.hidden = false;
       })
-      .catch(() => { /* the line just stays hidden */ });
+      .catch(() => { /* the line just stays as it was */ });
   }
+
+  // On every page (the router swaps pages without reloading), and again while the page stays open,
+  // on the same schedule as the price tools (src/lib/autorefresh.ts).
+  onPage((signal) => {
+    const lines = [...document.querySelectorAll<HTMLElement>(".live-freshness")];
+    if (!lines.length) return;
+    lines.forEach(update);
+    const stop = autoRefresh(() => Promise.all(lines.map(update)));
+    signal.addEventListener("abort", stop);
+  });
 </script>

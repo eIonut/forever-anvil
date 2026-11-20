@@ -1,0 +1,18 @@
+---
+// Star button that adds an item to the visitor's watchlist, or removes it. The click, and showing which
+// items are already watched, are handled for the whole site in src/lib/watchlist.ts.
+// Svelte twin: src/tools/WatchStar.svelte.
+import Icon from "./Icon.astro";
+
+interface Props {
+  id: number | string;
+  name: string;
+  /** larger button, e.g. next to a page title */
+  large?: boolean;
+}
+
+const { id, name, large = false } = Astro.props;
+---
+<button type="button" class:list={["watch-star", { "watch-star-lg": large }]} data-watch-id={String(id)} data-watch-name={name} aria-pressed="false" aria-label={`Watch ${name}`} title="Add to your watchlist">
+  <Icon name="star" size={large ? 20 : 15} line />
+</button>

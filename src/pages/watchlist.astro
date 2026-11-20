@@ -1,0 +1,29 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import AdSlot from "../components/AdSlot.astro";
+import Watchlist from "../tools/Watchlist.svelte";
+---
+<BaseLayout
+  title="WoW: Forever AH Watchlist: Track Item Prices | Forever Anvil"
+  description="Star the WoW: Forever items you buy and sell and see this hour's auction house prices, 7-day change and the cheapest house, with target-price flags. No sign-up."
+  page="watchlist" image="prices"
+>
+  <PageHero icon="star" eyebrow="Gold & auction house" title="My watchlist" facts={[{ icon: "clock", text: "This hour's prices" }, { icon: "economy", text: "7-day change" }, { icon: "lock", text: "Saved in your browser, no account" }]}>
+    The items you care about in one place: what they cost right now on your auction house, how that's moved this week, and a flag when they drop to your target price.
+  </PageHero>
+
+  <Watchlist client:load>
+    <div class="panel pr-help">
+      <h2>Good to know</h2>
+      <ul class="gems">
+        <li><b>Flag at or below</b>: enter a target price in the gold, silver and copper boxes, as on the in-game Auction House. Clear all three to remove it. The item is highlighted here and on the home page whenever its lowest listing is at that price or cheaper.</li>
+        <li><b>7 days</b> compares this hour's market price with the market price about a week ago.</li>
+        <li><b>Cheaper elsewhere</b> shows another auction house in your ruleset that's at least 5% cheaper. Alliance and Horde can only trade across factions through Blackwater.</li>
+        <li>Your watchlist is saved in this browser only. Use <b>Copy share link</b> to open it on another device or send it to a friend.</li>
+      </ul>
+      <p class="faint">Data provided by Blizzard Entertainment. Forever Anvil is not affiliated with or endorsed by Blizzard.</p>
+    </div>
+  </Watchlist>
+  <div class="wrap"><AdSlot name="bottom" /></div>
+</BaseLayout>

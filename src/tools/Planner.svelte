@@ -8,6 +8,7 @@
   import { planShoppingList } from "../lib/pricemath.js";
   import { copyText, getCachedJSON, getJSON, groupLabel, priceUrl } from "../lib/api";
   import { notify } from "../lib/notify";
+  import { askConfirm } from "../lib/dialog";
   import { getMarketPrefs, saveMarketPrefs } from "../lib/marketPrefs";
   import { addToPlan, getPlan, setPlan, type Plan } from "../lib/plan";
   import { recipeUrl } from "../lib/urls";
@@ -97,8 +98,13 @@
     update(p);
     input.value = String(res.mats.find((m) => m.id === id)?.have ?? v); // capped at what's needed
   }
-  function clear() {
-    if (!confirm("Remove every recipe from your plan?")) return;
+  async function clear() {
+    const ok = await askConfirm({
+      title: "Clear your crafting plan?",
+      message: "This removes every recipe and the materials you said you have. It can't be undone.",
+      confirmLabel: "Clear plan", danger: true,
+    });
+    if (!ok) return;
     update({ list: [], have: {} });
     notify("Plan cleared", "info");
   }

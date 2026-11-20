@@ -564,9 +564,15 @@ a.wh::after { content: none; }
   vertical-align: -.06em; border-radius: 50%;
   box-shadow: inset 0 0 0 1px rgba(0,0,0,.5), inset -1px -1px 0 1px rgba(0,0,0,.15);
 }
-.coin.g::after { background: radial-gradient(circle at 35% 30%, #fff6c2 0 12%, #ffd84a 34%, #d29a12 70%, #8a5a00 100%); }
-.coin.s::after { background: radial-gradient(circle at 35% 30%, #ffffff 0 12%, #dfe3e8 34%, #9ea4ab 70%, #5d6268 100%); }
-.coin.c::after { background: radial-gradient(circle at 35% 30%, #ffd9b3 0 12%, #e59a5a 34%, #a85a26 70%, #63300f 100%); }
+.coin.g::after, .mi-coin.g { background: radial-gradient(circle at 35% 30%, #fff6c2 0 12%, #ffd84a 34%, #d29a12 70%, #8a5a00 100%); }
+.coin.s::after, .mi-coin.s { background: radial-gradient(circle at 35% 30%, #ffffff 0 12%, #dfe3e8 34%, #9ea4ab 70%, #5d6268 100%); }
+.coin.c::after, .mi-coin.c { background: radial-gradient(circle at 35% 30%, #ffd9b3 0 12%, #e59a5a 34%, #a85a26 70%, #63300f 100%); }
+/* Price entry like the in-game Auction House: gold, silver and copper boxes, each with its coin (MoneyInput.svelte) */
+.money-input { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.mi-part { display: inline-flex; align-items: center; gap: 4px; margin: 0; }
+.mi-part .input { width: 3.1em; min-height: 36px; padding: 6px 6px; text-align: right; font-variant-numeric: tabular-nums; }
+.mi-g .input { width: 4.4em; }
+.mi-coin { display: inline-block; flex: none; width: 14px; height: 14px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.5), inset -1px -1px 0 1px rgba(0,0,0,.15); }
 table.prices td, table.prices th { vertical-align: middle; }
 table.prices tbody th { font-weight: 700; }
 table.prices a.item-link { color: var(--ink); text-decoration: none; }
@@ -593,6 +599,30 @@ table.prices a.item-link:hover { color: var(--gold-2); text-decoration: underlin
 }
 @media (prefers-reduced-motion: reduce) { .pr-dialog[open] { animation: none; } }
 html[data-calm] .pr-dialog[open] { animation: none; }
+
+/* Confirm and copy popups (src/lib/dialog.ts), in place of the browser's confirm() and prompt() */
+.site-dialog {
+  width: min(460px, calc(100% - 32px)); max-width: none; max-height: calc(100dvh - 32px); margin: auto; padding: 0;
+  color: var(--ink); background: none; border: 0; overflow: auto; overscroll-behavior: contain;
+}
+.site-dialog::backdrop { background: rgba(0, 0, 0, .7); }
+.site-dialog[open] { animation: pr-pop .16s ease-out; }
+.site-dialog-box { margin: 0; border-color: var(--gold-dim); box-shadow: 0 24px 60px rgba(0, 0, 0, .75); }
+.site-dialog-box h2 { margin: 0 0 10px; font-size: clamp(1.15rem, 1.8vw, 1.35rem); }
+.site-dialog-box p { margin: 0 0 14px; max-width: none; }
+.site-dialog-copy { width: 100%; margin: 4px 0 10px; font: inherit; resize: vertical; }
+.site-dialog-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 6px; }
+@media (max-width: 600px) {
+  .site-dialog { width: 100%; margin: auto 0 0; }
+  .site-dialog-box { border-radius: 16px 16px 0 0; border-bottom: 0; }
+  .site-dialog-actions .btn { flex: 1; }
+  .site-dialog[open] { animation-name: pr-sheet; animation-duration: .2s; }
+}
+@media (prefers-reduced-motion: reduce) { .site-dialog[open] { animation: none; } }
+html[data-calm] .site-dialog[open] { animation: none; }
+.btn-danger { background: linear-gradient(#b8382b, #7c1b12); color: #fff3d0; border-color: #e07a5f; box-shadow: none; }
+.btn-danger:hover { background: linear-gradient(#cc4232, #8c2016); color: #fff; }
+html[data-contrast] .btn-danger { background: #000; color: #ff9b85; border: 2px solid #ff9b85; }
 .pr-detail h2 a { color: var(--gold); text-decoration: none; }
 .pr-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
 .pr-stats .stat b { font-size: 1.15rem; }
@@ -635,6 +665,53 @@ html[data-calm] .pr-dialog[open] { animation: none; }
 
 /* ---------- Vendor flips ---------- */
 .fl-summary { margin: 16px 0 10px; font-size: 1.05rem; }
+
+/* ---------- Watchlist (src/tools/Watchlist.svelte) ---------- */
+.wl-shared { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 20px; margin-bottom: 14px; }
+.wl-shared p { margin: 0; }
+.wl-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.wl-actions .btn .icon { margin-right: 6px; }
+.wl-head { margin: 14px 0 10px; }
+.wl-summary { margin: 0; font-size: 1.05rem; }
+.wl-hit-count { color: var(--up); }
+.wl-empty { margin-top: 14px; }
+.wl-star-demo { display: inline-flex; vertical-align: -2px; color: var(--gold); }
+.wl-star-demo .icon { fill: currentColor; }
+.wl-where { display: block; font-size: .85rem; }
+/* an item at its target price: a faint green row with a green edge on the left */
+.wl-table tr.wl-hit > * { background: rgba(127, 220, 106, .07); }
+.wl-table tr.wl-hit > :first-child { box-shadow: inset 3px 0 0 var(--up); }
+.wl-flag { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; font-size: .78rem; font-weight: 700; color: #10200c; background: var(--up); white-space: nowrap; vertical-align: middle; }
+@media (max-width: 980px) {
+  table.wl-table tbody th[scope="row"] { padding-right: 0; }
+  table.wl-table td.wl-target-cell { grid-column: 1 / -1; }
+  /* each item is one card here, its cells laid out as tiles: colour the card, not each tile */
+  table.wl-table tbody tr.wl-hit { background: rgba(127, 220, 106, .07); box-shadow: inset 3px 0 0 var(--up); }
+  table.wl-table tbody tr.wl-hit > *, table.wl-table tbody tr.wl-hit > :first-child { background: none; box-shadow: none; }
+  /* no cheaper house: leave the tile out rather than show a lone dash */
+  table.wl-table tbody tr > td.wl-none { display: none; }
+}
+
+/* ---------- Home: your market right now (src/tools/HomeMarket.svelte) ---------- */
+.hm-controls { display: grid; gap: 12px; }
+.hm-head h2 { margin: 0 0 2px; font-size: clamp(1.15rem, 1.8vw, 1.35rem); }
+.hm-head p { margin: 0; }
+.hm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr)); gap: 14px; margin-top: 12px; }
+.hm-card { display: flex; flex-direction: column; min-height: 250px; margin: 0; }
+.hm-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; }
+.hm-card-head h3 { display: flex; align-items: center; gap: 8px; margin: 0; font-size: 1.1rem; }
+.hm-card-head h3 a { color: inherit; text-decoration: none; }
+.hm-card-head h3 a:hover, .hm-card-head h3 a:focus-visible { text-decoration: underline; }
+.hm-card-head .icon { color: var(--gold); flex: none; }
+.hm-card p { margin: 0 0 8px; }
+.hm-list { list-style: none; margin: 0 0 10px; padding: 0; }
+.hm-list li { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--line-soft); }
+.hm-list li:last-child { border-bottom: 0; }
+.hm-list li.wl-hit { box-shadow: inset 3px 0 0 var(--up); padding-left: 8px; }
+.hm-name { min-width: 0; overflow-wrap: anywhere; }
+.hm-sub { display: block; font-size: .82rem; }
+.hm-val { flex: none; text-align: right; white-space: nowrap; }
+.hm-more { margin-top: auto; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; }
 
 /* ---------- Item pages ---------- */
 table.prices td.dim { color: var(--ink-faint); }
@@ -1230,6 +1307,21 @@ html[data-contrast] .ec-cell { background: #141414; border-color: #8a8a8a; }
 @media (pointer: coarse) { .copy-name { width: 36px; height: 36px; } }
 /* Copying is for pasting into the game on a PC: on narrow screens the small buttons only crowd the tables */
 @media (max-width: 700px) { .copy-name:not(.copy-name-lg) { display: none; } }
+
+/* Watchlist star next to item names (WatchStar.astro / WatchStar.svelte, src/lib/watchlist.ts).
+   Unlike the copy button it stays on phones: checking a watchlist is something people do on the go. */
+.watch-star {
+  display: inline-flex; align-items: center; justify-content: center; vertical-align: middle;
+  width: 26px; height: 26px; margin-left: 2px; padding: 0; cursor: pointer;
+  color: var(--ink-dim); background: transparent; border: 1px solid transparent; border-radius: 6px;
+  opacity: .7; transition: opacity .15s, color .15s, border-color .15s, background-color .15s;
+}
+.watch-star:hover, .watch-star:focus-visible { opacity: 1; color: var(--gold-2); border-color: var(--line-strong); background: var(--gold-tint); }
+.watch-star .icon { display: block; }
+.watch-star[aria-pressed="true"] { opacity: 1; color: var(--gold); }
+.watch-star[aria-pressed="true"] .icon { fill: currentColor; }
+.watch-star-lg { width: 40px; height: 40px; margin-left: 0; border-color: var(--line-strong); opacity: 1; color: var(--gold-2); }
+@media (pointer: coarse) { .watch-star { width: 36px; height: 36px; } }
 
 /* Wowhead tooltips: the icon beside a tooltip sets its own visibility, so hiding the tooltip
    (src/lib/wowhead.ts hides tooltips left behind by redrawn tables) would leave the icon floating.

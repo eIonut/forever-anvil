@@ -4,6 +4,7 @@ import AdSlot from "../components/AdSlot.astro";
 import DonateBox from "../components/DonateBox.astro";
 import Icon from "../components/Icon.astro";
 import LiveFreshness from "../components/LiveFreshness.astro";
+import HomeMarket from "../tools/HomeMarket.svelte";
 import type { IconName } from "../lib/icons";
 import config from "../config.js";
 import { itemCategories, loadCatalog, loadTalents, professions, MIN_PROFESSION_RECIPES } from "../data/catalog";
@@ -53,6 +54,7 @@ const GROUPS: Group[] = [
     desc: "Live Auction House data for every ruleset, refreshed about every hour.",
     tools: [
       { href: "/prices", icon: "prices", title: "Auction prices", desc: "What items really sell for, and whether to sell them on the Auction House or to a vendor.", shows: ["Market and lowest price", "Rising, falling and deals", "30-day history"] },
+      { href: "/watchlist", icon: "star", title: "My watchlist", desc: "Star the items you buy and sell, see this hour's price and weekly change, and get flagged at your target price.", shows: ["Target-price flags", "Cheapest house"] },
       { href: "/economy", icon: "economy", title: "Economy", desc: "The state of your ruleset's three auction houses at a glance.", shows: ["Material prices", "Gold by category", "Cross-house flips"] },
       { href: "/flips", icon: "flips", title: "Vendor flips", desc: "Listings priced below what a vendor pays. Buy them, sell to any vendor, keep the difference.", shows: ["Profit per item", "Units worth buying"] },
       { href: "/waylaid-crates", icon: "crates", title: "Waylaid Crates", desc: "Which crate turns the least gold into Merchant's Favor, and the cheapest bundle to fill it.", shows: ["Gold per Favor", "Every bundle priced"] },
@@ -112,6 +114,8 @@ const STEPS: { icon: IconName; title: string; text: string }[] = [
       </div>
     </div>
   </section>
+
+  <HomeMarket client:load />
 
   <section class="wrap section spotlight" aria-label="Featured tools">
     <article class="spot-card">

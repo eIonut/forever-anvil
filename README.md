@@ -1,6 +1,6 @@
 # Forever Anvil: unofficial WoW: Forever tools
 
-A static website with tools for WoW: Forever: auction prices, an economy overview (materials ledger, gold by category, cross-house flips), vendor flips, the cheapest Merchant's Favor from Waylaid Crates, crafting profits and planner, a talent calculator and a character lookup. Built with [Astro](https://astro.build); the interactive tools are [Svelte](https://svelte.dev) components. See [docs/astro-migration-plan.md](docs/astro-migration-plan.md) for how the site moved to Astro.
+A static website with tools for WoW: Forever: auction prices, a watchlist with target-price flags (starred items, saved in the browser; the home page shows them with this hour's flips, fastest sellers and best crafts for the visitor's auction house), an economy overview (materials ledger, gold by category, cross-house flips), vendor flips, the cheapest Merchant's Favor from Waylaid Crates, crafting profits and planner, a talent calculator and a character lookup. Built with [Astro](https://astro.build); the interactive tools are [Svelte](https://svelte.dev) components. See [docs/astro-migration-plan.md](docs/astro-migration-plan.md) for how the site moved to Astro.
 
 ## Run it locally
 

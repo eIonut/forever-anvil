@@ -29,6 +29,8 @@ export const NAV: (NavLink | NavGroup)[] = [
   { href: "/upgrades", label: "Gear upgrades", icon: "upgrades", pages: ["upgrades"],
     desc: "Cheap gear upgrades for your character on the AH right now" },
   { label: "Gold", icon: "economy", children: [
+    { href: "/watchlist", label: "My watchlist", icon: "star", pages: ["watchlist"],
+      desc: "Your starred items with this hour's prices and target-price flags" },
     { href: "/economy", label: "Economy", icon: "economy", pages: ["economy"],
       desc: "Material prices, gold by category and cross-house flips" },
     { href: "/flips", label: "Vendor flips", icon: "flips", pages: ["flips"],
@@ -55,6 +57,7 @@ export const NAV: (NavLink | NavGroup)[] = [
 /** Footer: every tool, plus the browsable item and recipe pages */
 export const FOOTER_TOOLS: NavLink[] = [
   { href: "/prices", label: "Auction prices" },
+  { href: "/watchlist", label: "My watchlist" },
   { href: "/economy", label: "Economy" },
   { href: "/flips", label: "Vendor flips" },
   { href: "/waylaid-crates", label: "Waylaid Crates" },

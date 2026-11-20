@@ -1,6 +1,7 @@
 // Loading live data in the browser, and small helpers the tools share.
 import config from "../config.js";
 import { notify } from "./notify";
+import { showCopyBox } from "./dialog";
 
 /**
  * Where a price-job file comes from: the Cloudflare Worker in production (config.pricesApi),
@@ -98,7 +99,10 @@ export function ago(iso: string): string {
   return d === 1 ? "yesterday" : d + " days ago";
 }
 
-/** Copy text, falling back to a prompt where the clipboard isn't allowed. Resolves true when copied. */
+/**
+ * Copy text. Where the browser doesn't allow the clipboard, a popup shows the text selected, to copy by
+ * hand (src/lib/dialog.ts); promptLabel is its title, e.g. "Copy this link:". Resolves true when copied.
+ */
 export async function copyText(text: string, promptLabel: string): Promise<boolean> {
   try {
     if (!navigator.clipboard) throw new Error("no clipboard");
@@ -106,9 +110,9 @@ export async function copyText(text: string, promptLabel: string): Promise<boole
     return true;
   } catch {
     try {
-      prompt(promptLabel, text);
+      showCopyBox(promptLabel.replace(/:\s*$/, ""), text);
     } catch {
-      // no clipboard and no prompt (some embedded browsers): say so instead of failing silently
+      // no popups either (some embedded browsers): say so instead of failing silently
       notify("Couldn't copy: your browser blocked the clipboard.", "error");
     }
     return false;
