@@ -1,6 +1,6 @@
 # Forever Anvil: unofficial WoW: Forever tools
 
-A static website with tools for WoW: Forever: auction prices, an economy overview (materials ledger, gold by category, cross-house flips), vendor flips, crafting profits and planner, a talent calculator and a character lookup. Built with [Astro](https://astro.build); the interactive tools are [Svelte](https://svelte.dev) components. See [docs/astro-migration-plan.md](docs/astro-migration-plan.md) for how the site moved to Astro.
+A static website with tools for WoW: Forever: auction prices, an economy overview (materials ledger, gold by category, cross-house flips), vendor flips, the cheapest Merchant's Favor from Waylaid Crates, crafting profits and planner, a talent calculator and a character lookup. Built with [Astro](https://astro.build); the interactive tools are [Svelte](https://svelte.dev) components. See [docs/astro-migration-plan.md](docs/astro-migration-plan.md) for how the site moved to Astro.
 
 ## Run it locally
 
@@ -52,7 +52,7 @@ To try the Worker locally: `npm run build`, then `npx wrangler dev` (it reads th
 | `public/og/` | Share pictures for links posted on Discord, Reddit, X… Redraw with `node tools/og-images.js` |
 | `src/layouts/BaseLayout.astro` | The frame of every page: `<head>`, header, footer |
 | `src/components/` | Header, footer, settings panel, the framed page banner (`PageHero.astro`), icons (`Icon.astro`, drawn in `src/lib/icons.ts`), SEO tags, ad space, donate box, and pieces of the item and recipe pages |
-| `src/tools/` | The six interactive tools (Svelte) and the pieces they share: pickers, prices, item links, charts |
+| `src/tools/` | The interactive tools (Svelte) and the pieces they share: pickers, prices, item links, charts |
 | `src/lib/` | Code shared by pages and tools: the price and talent math (also used by the price job), formatting, page addresses, menus, saved settings, the crafting plan, Wowhead tooltips |
 | `src/data/catalog.ts` | Reads `out/` at build time for the item and recipe pages |
 | `src/styles/global.css` | The WoW-style theme |

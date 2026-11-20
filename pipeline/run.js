@@ -13,10 +13,11 @@
 // Every run, after 4:
 //   the materials ledger's 24-hour changes (pipeline/economy.js)
 // Every 25 days (inside Blizzard's 30-day limit):
-//   7. refresh all profession recipes (materials + crafted item) for the craft calculator
+//   7. refresh all profession recipes (materials + crafted item) for the craft calculator,
+//      and the Waylaid Crates with the bundles that fill them (pipeline/crates.js)
 //
 // Run locally:  node pipeline/run.js            (reads .env, writes to ./out)
-// Options:      --region=us   --max-new-items=3000   --force-daily=true   --force-recipes=true
+// Options:      --region=us   --max-new-items=3000   --force-daily=true   --force-recipes=true   --force-crates=true
 import fs from "node:fs";
 import path from "node:path";
 import { createClient, pool } from "./blizzard.js";
@@ -27,6 +28,7 @@ import { fetchTalents } from "./talents.js";
 import { updateEconomy } from "./economy.js";
 import { updateSales } from "./sales.js";
 import { fetchRecipeInfo } from "./recipeinfo.js";
+import { fetchCrates } from "./crates.js";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, "").split("=")));
@@ -124,6 +126,30 @@ async function main() {
 
   const reagentIds = new Set();
   for (const p of recipes.professions) for (const r of p.recipes) { for (const x of r[6]) reagentIds.add(x[0]); if (r[3]) reagentIds.add(r[3]); if (r[7] && r[7][4]) reagentIds.add(r[7][4]); }
+
+  // Waylaid Crates and the bundles that fill them, for the Merchant's Favor calculator (every 25 days)
+  let crates = await store.getJSON(`crates:${region}`);
+  if (!crates || today - crates.day >= REFRESH_DAYS || args["force-crates"] === "true") {
+    const nameIndex = new Map(); // lowercase name → item ids, from recipes and the item cache
+    const addName = (id, name) => {
+      if (!id || !name) return;
+      const k = name.toLowerCase(), list = nameIndex.get(k) || [];
+      if (!list.includes(id)) list.push(id);
+      nameIndex.set(k, list);
+    };
+    for (const p of recipes.professions) for (const r of p.recipes) { addName(r[3], r[4]); for (const x of r[6]) addName(x[0], x[2]); }
+    for (const [id, e] of Object.entries(items)) addName(Number(id), e[0]);
+    // several items can share a name (an original and a newer version): take the one on sale, then a crafting material
+    const pick = (ids) => [...ids].sort((a, b) => ((listingsOf.get(b) || 0) - (listingsOf.get(a) || 0)) || (reagentIds.has(b) - reagentIds.has(a)) || a - b)[0];
+    try {
+      crates = await fetchCrates(api, today, nameIndex, pick, log);
+      await store.putJSON(`crates:${region}`, crates);
+    } catch (e) {
+      log("Waylaid Crates skipped (will retry next run): " + e.message);
+    }
+  }
+  // crates and their bundles get names, icons and vendor prices first, like crafting materials
+  for (const c of (crates && crates.crates) || []) { reagentIds.add(c[0]); for (const f of c[3]) if (f[0]) reagentIds.add(f[0]); }
 
   /* 4: item names, vendor prices, quality, type and icon (for item pages) */
   // Blizzard's Forever item data lacks many older items (e.g. Brain Hacker, 1263) that its Classic Era

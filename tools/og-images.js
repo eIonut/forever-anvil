@@ -17,6 +17,7 @@ const IMAGES = {
   prices: ["Auction House prices", "Market price, history and sell-or-vendor for every item"],
   economy: ["The Economy", "Trade board, where the gold is and Blackwater flips"],
   flips: ["Vendor flips", "Listings cheaper than what a vendor pays"],
+  crates: ["Waylaid Crates", "The cheapest Merchant's Favor, priced every hour"],
   items: ["Item prices", "Every traded item, with 30 days of price history"],
   crafting: ["Craft profit calculator", "Which recipes make gold after materials and the AH cut"],
   planner: ["Crafting planner", "One shopping list for everything you want to craft"],

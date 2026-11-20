@@ -17,6 +17,7 @@ export const KINDS = {
   econ: 300,
   items: 3600,
   recipes: 3600,
+  crates: 3600,
   talents: 3600,
   movers: 3600,
   history: 3600

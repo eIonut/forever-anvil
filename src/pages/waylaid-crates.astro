@@ -1,0 +1,29 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import Crates from "../tools/Crates.svelte";
+---
+<BaseLayout
+  title="WoW: Forever Waylaid Crates: Cheapest Merchant's Favor Calculator | Forever Anvil"
+  description="Which WoW: Forever Waylaid Crate gives Merchant's Favor for the least gold? Every bundle priced on your faction's auction house and Blackwater, updated hourly."
+  page="crates" image="crates"
+>
+  <PageHero icon="crates" eyebrow="Gold & auction house" title="Waylaid Crates" facts={[{ icon: "clock", text: "Prices refreshed about every hour" }, { icon: "prices", text: "Gold per Merchant's Favor" }, { icon: "flips", text: "Your faction's AH and Blackwater" }]}>
+    Which <b>Waylaid Crate</b> gets you Merchant's Favor for the least gold right now. Every bundle that fills every crate, priced on the auction houses you can buy from.
+  </PageHero>
+
+  <Crates client:load>
+    <div class="panel pr-help">
+      <h2>How Waylaid Crates work</h2>
+      <ul class="gems">
+        <li>Waylaid Crates drop from monsters and world chests, and players sell them on the Auction House. Each crate's label says what it takes: open it with any <b>one</b> bundle from its list and it becomes a sealed crate, which is bound to you.</li>
+        <li>Hand sealed crates in for <b>Merchant's Favor</b> and reputation: Alliance with the Azeroth Commerce Authority at Three Corners in Redridge Mountains, Horde with Durotar Supply and Logistics west of the Crossroads in the Barrens. Your first crate also starts a one-time quest worth 50 Favor.</li>
+        <li><b>Per Favor</b> is the cheapest bundle's cost divided by the crate's Favor. <b>Buy + fill</b> adds the cheapest crate listed on the AH, for when you don't have one.</li>
+        <li>Bundles are priced at their market price (the average of the cheapest 10% on sale) on your faction's auction house or Blackwater, whichever is cheaper. A house with fewer units listed than the bundle needs is skipped.</li>
+        <li>If you have the Legacy perk that adds Favor to turn-ins, pick its bonus above; it changes the Favor of every crate.</li>
+        <li>The bundle lists come from Blizzard's crate data and are refreshed every 25 days. Prices every hour.</li>
+      </ul>
+      <p class="faint">Data provided by Blizzard Entertainment. Forever Anvil is not affiliated with or endorsed by Blizzard.</p>
+    </div>
+  </Crates>
+</BaseLayout>
