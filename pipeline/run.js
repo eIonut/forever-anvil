@@ -65,6 +65,7 @@ async function main() {
 
   /* 1–3: latest prices per group (+ vendor flips per house) */
   const seenItems = new Set();
+  const listingsOf = new Map(); // item id → listings across all houses (to look up popular items first)
   const latestByGroup = {};
   for (const g of GROUPS) {
     const groupOut = { v: 1, region, group: g.id, ruleset: (g.ruleset && g.ruleset[region]) || null, updated: new Date(now).toISOString(), houses: {} };
@@ -80,7 +81,10 @@ async function main() {
         if (lm > (dataMs || 0)) dataMs = lm;
       }
       const houseItems = aggregate(listings);
-      Object.keys(houseItems).forEach((id) => seenItems.add(Number(id)));
+      for (const [id, a] of Object.entries(houseItems)) {
+        seenItems.add(Number(id));
+        listingsOf.set(Number(id), (listingsOf.get(Number(id)) || 0) + a[3]);
+      }
       // estimated units sold per day (pipeline/sales.js) as the 5th number of each item; absent = none seen
       const sales = await updateSales(store, region, houseId, listings, now, dataMs);
       for (const [id, n] of Object.entries(sales.perDay)) if (houseItems[id] && n > 0) houseItems[id][4] = n;
@@ -134,7 +138,11 @@ async function main() {
     if (e[0] == null && e.length < 8) return true;          // unknown, and Classic Era not tried yet
     const age = today - e[2];
     return e[0] == null ? age >= ITEM_RETRY_404_DAYS : age >= REFRESH_DAYS;
-  }).slice(0, maxNewItems);
+  })
+    // At most maxNewItems per run, so the ones visitors see first go first: crafting materials
+    // (the craft calculator needs their vendor prices), then the items with the most listings.
+    .sort((a, b) => (reagentIds.has(b) - reagentIds.has(a)) || ((listingsOf.get(b) || 0) - (listingsOf.get(a) || 0)))
+    .slice(0, maxNewItems);
   if (todo.length) {
     let found = 0, fromEra = 0;
     const lower = (x) => (x && x.type ? x.type.toLowerCase() : null);
