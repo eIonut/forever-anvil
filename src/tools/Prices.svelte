@@ -338,18 +338,18 @@
     <p class="faint" style="margin:0">{#if loading}<Loading text="Loading prices…" />{:else}{status}{/if}</p>
   </div>
   <div class="table-wrap">
-    <table class="prices" aria-rowcount={list.length + 1}>
+    <table class="prices pr-table" aria-rowcount={list.length + 1}>
       <caption class="sr-only">Auction house prices per item. Column headings sort the table.</caption>
       <thead><tr aria-rowindex="1">
-        {@render head("name", "Item")}{@render head("level", "Level", "col-hide-sm")}{@render head("market", "Market price")}{@render head("min", "Lowest")}{@render head("qty", "Listed")}{@render head("sold", "Sold per day")}
-        {@render head("listings", "Listings", "col-hide-sm")}{@render head("vendor", "Vendor", "col-hide-sm")}{@render head("ahgain", "Sell where?")}<th scope="col"><span class="sr-only">Details</span></th>
+        {@render head("name", "Item")}{@render head("level", "Level", "col-hide-md")}{@render head("market", "Market")}{@render head("min", "Lowest")}{@render head("qty", "Listed")}{@render head("sold", "Sold/day")}
+        {@render head("listings", "Listings", "col-hide-md")}{@render head("vendor", "Vendor", "col-hide-sm")}{@render head("ahgain", "Sell where?")}<th scope="col"><span class="sr-only">Details</span></th>
       </tr></thead>
       <tbody class="v-body" bind:this={v.body}>
         {#if loading}<SkeletonRows cols={10} />{:else if !loadFailed}
           {#if v.padTop}<tr class="v-pad" aria-hidden="true"><td colspan="10" style:height="{v.padTop}px"></td></tr>{/if}
           {#each v.slice as r, i (r.id)}
             {@const vd = verdict(r.market, r.vendor)}
-            <tr data-id={r.id} aria-rowindex={v.start + i + 2} {@attach v.measure(r.id)}><th scope="row"><ItemLink id={r.id} name={r.name} copy /></th><td class="col-hide-sm">{#if r.kind.req}{r.kind.req}{:else}<span class="faint">-</span>{/if}</td><td><Money c={r.market} /></td><td><Money c={r.min} /></td><td>{r.qty.toLocaleString()}</td><td><SoldPerDay a={r.a} hours={current?.house.salesHours} suffix="" /></td><td class="col-hide-sm">{r.n.toLocaleString()}</td><td class="col-hide-sm"><Money c={r.vendor} /></td><td><span class="verdict {vd.cls}" title={vd.why}>{vd.label}</span></td><td><button type="button" class="btn btn-ghost btn-sm pr-open" data-id={r.id} onclick={() => openDetail(r.id)}>Details<span class="sr-only">{" for " + (r.name || "item " + r.id)}</span></button></td></tr>
+            <tr data-id={r.id} aria-rowindex={v.start + i + 2} {@attach v.measure(r.id)}><th scope="row"><ItemLink id={r.id} name={r.name} copy /></th><td class="col-hide-md" data-label="Level">{#if r.kind.req}{r.kind.req}{:else}<span class="faint">-</span>{/if}</td><td data-label="Market"><Money c={r.market} /></td><td data-label="Lowest"><Money c={r.min} /></td><td data-label="Listed">{r.qty.toLocaleString()}</td><td data-label="Sold/day"><SoldPerDay a={r.a} hours={current?.house.salesHours} suffix="" /></td><td class="col-hide-md" data-label="Listings">{r.n.toLocaleString()}</td><td class="col-hide-sm" data-label="Vendor"><Money c={r.vendor} /></td><td class="pr-verdict"><span class="verdict {vd.cls}" title={vd.why}>{vd.label}</span></td><td class="pr-more"><button type="button" class="btn btn-ghost btn-sm pr-open" data-id={r.id} title="Details" onclick={() => openDetail(r.id)}><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg><span class="sr-only">{"Details for " + (r.name || "item " + r.id)}</span></button></td></tr>
           {:else}
             <tr><td colspan="10" class="empty">No items match.</td></tr>
           {/each}

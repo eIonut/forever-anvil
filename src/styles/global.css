@@ -551,6 +551,27 @@ table.prices a.item-link:hover { color: var(--gold-2); text-decoration: underlin
 .pct.up { color: #7fdc6a; }
 .pct.down { color: #ff8a6b; }
 @media (max-width: 700px) { .col-hide-sm { display: none; } }
+@media (max-width: 1200px) { .col-hide-md { display: none; } }
+/* Main prices table: tighter cells and wrapping item names so all columns fit without sideways scrolling. */
+.pr-table th, .pr-table td { padding: 10px 9px; }
+.pr-table th:first-child, .pr-table td:first-child { padding-left: 14px; }
+.pr-table th:last-child, .pr-table td:last-child { padding-right: 12px; }
+.pr-table tbody th { white-space: normal; min-width: 11em; }
+.pr-table .pr-open { padding: 4px 6px; line-height: 0; }
+/* phones and narrow windows: each item becomes a card; the column headings give way to the Sort by menu */
+@media (max-width: 980px) {
+  table.pr-table, table.pr-table tbody { display: block; }
+  table.pr-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); }
+  table.pr-table tbody tr:not(.v-pad) { position: relative; display: grid; grid-template-columns: repeat(auto-fill, minmax(105px, 1fr)); gap: 8px 14px; padding: 12px 14px 14px; border-bottom: 1px solid var(--line-soft); }
+  table.pr-table tbody tr:not(.v-pad) > * { display: block; padding: 0; border: 0; white-space: normal; }
+  table.pr-table tbody tr > .col-hide-md, table.pr-table tbody tr > .col-hide-sm { display: none; }
+  table.pr-table tbody th[scope="row"] { grid-column: 1 / -1; order: -2; padding-right: 44px; min-width: 0; }
+  table.pr-table td.pr-verdict { grid-column: 1 / -1; order: -1; margin-top: -4px; }
+  table.pr-table td.pr-more { position: absolute; top: 9px; right: 10px; }
+  table.pr-table td[data-label]::before { content: attr(data-label); display: block; font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--gold-dim); margin-bottom: 1px; }
+  table.pr-table td.empty { display: block; }
+  table.pr-table tbody tr.v-pad, table.pr-table tbody tr.v-pad > td { display: block; padding: 0; border: 0; }
+}
 
 /* ---------- Vendor flips ---------- */
 .fl-summary { margin: 16px 0 10px; font-size: 1.05rem; }
