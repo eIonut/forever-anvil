@@ -1,7 +1,7 @@
 // Run: npm test
 import test from "node:test";
 import assert from "node:assert/strict";
-import { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, planShoppingList, DAY_MS, SHARDS } from "../src/lib/pricemath.js";
+import { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, planShoppingList, DAY_MS, SHARDS, PLACEHOLDER_PRICE } from "../src/lib/pricemath.js";
 import { itemUrl, recipeUrl, itemSlug } from "../src/lib/urls.ts";
 
 test("recipe page address", () => {
@@ -128,6 +128,19 @@ test("aggregate: min, market (cheapest 10% of units), qty, listings", () => {
   assert.deepEqual(out[1], [100, 150, 20, 3]);
   assert.deepEqual(out[2], [50, 50, 1, 1]);
   assert.equal(out[3], undefined);
+});
+
+test("placeholder listings (1,000,000g+ each) are left out", () => {
+  const max = 99999999999; // the game's maximum buyout: 9,999,999g 99s 99c
+  const out = aggregate([
+    { item: { id: 5 }, buyout: max, quantity: 1 },             // only a placeholder: item left out
+    { item: { id: 6 }, buyout: 500, quantity: 2 },
+    { item: { id: 6 }, unit_price: PLACEHOLDER_PRICE, quantity: 1 }, // exactly the cutoff: left out
+    { item: { id: 7 }, unit_price: PLACEHOLDER_PRICE - 1, quantity: 1 } // just under: a real price
+  ]);
+  assert.equal(out[5], undefined);
+  assert.deepEqual(out[6], [250, 250, 2, 1]);
+  assert.deepEqual(out[7], [PLACEHOLDER_PRICE - 1, PLACEHOLDER_PRICE - 1, 1, 1]);
 });
 
 test("one cheap outlier moves min but barely moves market", () => {

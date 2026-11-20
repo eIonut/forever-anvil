@@ -58,6 +58,8 @@
     v.toTop();
   }
 
+  const THIN = 3; // fewer listings than this = a thin market (as on the Crafting page)
+
   /** the value a row sorts by; null (no level, no vendor price) always sorts last */
   function sortValue(r: Row, key: SortKey): number | string | null {
     switch (key) {
@@ -92,6 +94,9 @@
     const hits = rows.filter((r) => matches(r.kind, active) && (!t || (r.name && r.name.toLowerCase().includes(t)) || String(r.id) === t));
     const byName = (a: Row, b: Row) => (a.name || "~").localeCompare(b.name || "~");
     return hits.sort((a, b) => {
+      // "Biggest market": busy markets first. With fewer than THIN listings, one pricey listing
+      // isn't a big market, however much gold it asks.
+      if (sort === "value") { const ta = a.n < THIN, tb = b.n < THIN; if (ta !== tb) return ta ? 1 : -1; }
       const x = sortValue(a, sort), y = sortValue(b, sort);
       if (x == null || y == null) return x == null && y == null ? byName(a, b) : x == null ? 1 : -1;
       const c = typeof x === "string" ? x.localeCompare(y as string) : x - (y as number);

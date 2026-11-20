@@ -19,13 +19,19 @@ function unitPrice(listing) {
 //            more stable than the minimum, which one cheap listing can distort
 //   qty    = total units listed
 //   listings = number of listings
+// Listings at PLACEHOLDER_PRICE or more per unit are left out: nobody pays that in this economy
+// (the dearest real items sell for a few thousand gold). They're jokes or "not for sale" parking,
+// often at the game's maximum of 9,999,999g, and would otherwise top every "biggest market" list
+// and spike the price charts. An item listed only at such prices doesn't appear at all.
+const PLACEHOLDER_PRICE = 1000000 * 10000; // 1,000,000 gold, in copper
+
 function aggregate(listings) {
   const byItem = new Map();
   for (const l of listings) {
     const id = l.item && l.item.id;
     const unit = unitPrice(l);
     const q = l.quantity || 1;
-    if (!id || unit == null || !(unit >= 0)) continue;
+    if (!id || unit == null || !(unit >= 0) || unit >= PLACEHOLDER_PRICE) continue;
     let arr = byItem.get(id);
     if (!arr) byItem.set(id, (arr = []));
     arr.push([unit, q]);
@@ -216,4 +222,4 @@ function planShoppingList(plan, have, price) {
   return { mats, cost: Math.round(cost), complete, sales: net, salesComplete, profit: complete && salesComplete ? net - Math.round(cost) : null };
 }
 
-export { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, planShoppingList, slugify, iconUrl, dayNumber, HISTORY_DAYS, SHARDS, DAY_MS };
+export { unitPrice, aggregate, updateHistory, pruneHistory, computeMovers, craftProfit, computeFlips, planShoppingList, slugify, iconUrl, dayNumber, HISTORY_DAYS, SHARDS, DAY_MS, PLACEHOLDER_PRICE };
