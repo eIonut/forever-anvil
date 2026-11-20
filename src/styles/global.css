@@ -575,7 +575,24 @@ table.prices a.item-link:hover { color: var(--gold-2); text-decoration: underlin
 .verdict.v-ah { color: #7fdc6a; }
 .verdict.v-vendor { color: #ffb36b; }
 .verdict.v-even { color: var(--ink-dim); }
-.pr-detail { margin-top: 18px; border-color: var(--gold-dim); }
+/* item details: a popup over the price list (Prices.svelte); a sheet from the bottom on phones */
+.pr-dialog {
+  width: min(780px, calc(100% - 32px)); max-width: none; max-height: calc(100dvh - 32px); margin: auto; padding: 0;
+  color: var(--ink); background: none; border: 0; overflow: auto; overscroll-behavior: contain;
+}
+.pr-dialog::backdrop { background: rgba(0, 0, 0, .7); }
+.pr-dialog[open] { animation: pr-pop .16s ease-out; }
+@keyframes pr-pop { from { opacity: 0; transform: translateY(8px) scale(.98); } }
+.pr-detail { margin: 0; border-color: var(--gold-dim); box-shadow: 0 24px 60px rgba(0, 0, 0, .75); }
+@media (max-width: 600px) {
+  .pr-dialog { width: 100%; max-height: 90dvh; margin: auto 0 0; }
+  .pr-dialog .pr-detail { border-radius: 16px 16px 0 0; border-bottom: 0; }
+  .pr-dialog .pr-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .pr-dialog[open] { animation-name: pr-sheet; animation-duration: .2s; }
+  @keyframes pr-sheet { from { transform: translateY(40px); opacity: 0; } }
+}
+@media (prefers-reduced-motion: reduce) { .pr-dialog[open] { animation: none; } }
+html[data-calm] .pr-dialog[open] { animation: none; }
 .pr-detail h2 a { color: var(--gold); text-decoration: none; }
 .pr-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
 .pr-stats .stat b { font-size: 1.15rem; }

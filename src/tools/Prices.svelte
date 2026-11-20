@@ -176,25 +176,32 @@
     }
   }
 
+  // Details open in a popup over the list, so the page never scrolls away from the row you clicked.
+  let dlg: HTMLDialogElement | undefined = $state();
+
   async function openDetail(id: number) {
     detailId = id;
     const part = group + "_" + (id % 32), key = region + ":" + part; // history is split per server group
     history = { points: null, loading: true };
     await tick();
-    document.getElementById("pr-detail")?.scrollIntoView({ block: "nearest" });
+    if (dlg && !dlg.open) dlg.showModal();
     document.getElementById("pr-close")?.focus();
     const h = key in histCache ? histCache[key] : (histCache[key] = await getJSON(priceUrl("history", region, part)));
     const houseId = current?.id;
     if (detailId === id) history = { points: (houseId && h?.[houseId]?.[id]) || null, loading: false };
   }
 
-  function closeDetail() {
+  const closeDetail = () => dlg?.close();
+
+  // runs however the popup closes (×, Escape, a click outside): back to the row's button, without scrolling
+  function onDetailClosed() {
     const id = detailId;
     detailId = null;
-    // the row may be scrolled out of the page: bring it back first, then focus its button
-    v.scrollToIndex(list.findIndex((r) => r.id === id));
-    tick().then(() => document.querySelector<HTMLElement>(`.pr-open[data-id="${id}"]`)?.focus());
+    document.querySelector<HTMLElement>(`.pr-open[data-id="${id}"]`)?.focus({ preventScroll: true });
   }
+
+  // the item left the list (another house or ruleset picked): close the popup too
+  $effect(() => { if (!detail && dlg?.open) dlg.close(); });
 
   onMount(() => {
     const p = getMarketPrefs();
@@ -325,7 +332,10 @@
 {/snippet}
 
 {#snippet results()}
-  <section class="panel pr-detail" id="pr-detail" hidden={!detail} aria-labelledby="pr-detail-title">
+  <!-- svelte-ignore a11y_click_events_have_key_events, a11y_no_noninteractive_element_interactions (Escape closes it natively) -->
+  <dialog class="pr-dialog" bind:this={dlg} aria-labelledby="pr-detail-title" onclose={onDetailClosed}
+    onclick={(e) => { if (e.target === dlg) closeDetail(); }}>
+  <section class="panel pr-detail" id="pr-detail">
     {#if detail}
       {@const dv = verdict(detail.market, detail.vendor)}
       <div class="section-head"><h2 id="pr-detail-title"><ItemLink id={detail.id} name={detail.name} copy /></h2><button type="button" class="icon-btn" id="pr-close" aria-label="Close details" onclick={closeDetail}>×</button></div>
@@ -340,6 +350,7 @@
       <div id="pr-chart" class="pr-chart"><PriceHistory points={history.points} loading={history.loading} /></div>
     {/if}
   </section>
+  </dialog>
 
   <Freshness {region} updated={groupData?.updated} />
   <div class="section-head">
