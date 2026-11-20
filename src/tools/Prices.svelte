@@ -242,8 +242,10 @@
           <label class="chip"><input type="radio" name="pr-cat" value="" checked={!filter.cat} onchange={() => setCategory("")} /><span>All</span></label>
           {#each CATEGORIES as c (c.value)}
             {@const n = catCounts.get(c.value) || 0}
-            {#if n || filter.cat === c.value}
-              <label class="chip"><input type="radio" name="pr-cat" value={c.value} checked={filter.cat === c.value} onchange={() => setCategory(c.value)} /><span>{c.label} <span class="chip-note">{n.toLocaleString()}</span></span></label>
+            <!-- before prices arrive, show every category with a hidden stand-in count, so the chips
+                 take their final size and the filters below don't jump when the counts come in -->
+            {#if n || filter.cat === c.value || !groupData}
+              <label class="chip"><input type="radio" name="pr-cat" value={c.value} checked={filter.cat === c.value} onchange={() => setCategory(c.value)} /><span>{c.label} <span class="chip-note" class:pr-count-pending={!groupData}>{groupData ? n.toLocaleString() : "000"}</span></span></label>
             {/if}
           {/each}
         </div>

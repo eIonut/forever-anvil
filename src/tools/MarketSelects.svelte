@@ -27,6 +27,9 @@
     { value: "neutral", label: "Blackwater", hint: "neutral, both factions" },
   ];
 
+  // Stand-ins shown until the server groups load, at about the same size, so the page doesn't jump.
+  const PLACEHOLDER_GROUPS = [{ value: "A", name: "PvP" }, { value: "B", name: "Normal" }, { value: "C", name: "Roleplay" }, { value: "D", name: "RP-PvP" }];
+
   // "Group A · ruleset not confirmed yet" → chip "Group A", with the rest as a hint
   const split = (label: string) => {
     const [name, ...rest] = label.split(" · ");
@@ -50,6 +53,12 @@
         {@const l = split(g.label)}
         {@const ri = rulesetIcon(l.name)}
         <label class="chip" title={l.hint || undefined}><input type="radio" name="{prefix}-group" value={g.value} checked={g.value === group} onchange={() => ongroup(g.value)} /><span>{#if ri}<Icon name={ri} size={22} />{/if}{l.name}{#if l.hint}<span class="sr-only"> ({l.hint})</span><sup class="chip-flag" aria-hidden="true">?</sup>{/if}</span></label>
+      {:else}
+        {#each PLACEHOLDER_GROUPS as p, i}
+          {@const ri = rulesetIcon(p.name)}
+          <!-- .on gives the picked one its check mark, so the chips keep their width when the real ones arrive -->
+          <span class="chip chip-placeholder" class:on={group ? p.value === group : i === 0} aria-hidden="true"><span>{#if ri}<Icon name={ri} size={22} />{/if}{p.name}</span></span>
+        {/each}
       {/each}
     </div>
   </fieldset>

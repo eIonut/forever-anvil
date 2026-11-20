@@ -9,6 +9,15 @@ import "@fontsource/cinzel/500.css";
 import "@fontsource/cinzel/700.css";
 import "@fontsource/cinzel-decorative/700.css";
 import "../styles/global.css";
+// The Latin font files the first screen uses, preloaded so they arrive with the CSS instead of after it.
+// Without this the text paints in the wider fallback font first, then reflows when these swap in
+// (rows of chips re-wrap and the page jumps). Same files as the @fontsource CSS above, so no double download.
+import fontBody400 from "@fontsource/alegreya-sans/files/alegreya-sans-latin-400-normal.woff2?url";
+import fontBody500 from "@fontsource/alegreya-sans/files/alegreya-sans-latin-500-normal.woff2?url";
+import fontBody700 from "@fontsource/alegreya-sans/files/alegreya-sans-latin-700-normal.woff2?url";
+import fontDisplay700 from "@fontsource/cinzel/files/cinzel-latin-700-normal.woff2?url";
+import fontBrand700 from "@fontsource/cinzel-decorative/files/cinzel-decorative-latin-700-normal.woff2?url";
+const preloadFonts = [fontBody400, fontBody500, fontBody700, fontDisplay700, fontBrand700];
 import Seo from "../components/Seo.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
@@ -34,6 +43,7 @@ const { title, description, page, jsonld, noindex } = Astro.props;
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <Seo title={title} description={description} jsonld={jsonld} noindex={noindex} />
+    {preloadFonts.map((href) => <link rel="preload" href={href} as="font" type="font/woff2" crossorigin />)}
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <script is:inline>
       // Apply saved display settings before the page paints, so it doesn't flash.

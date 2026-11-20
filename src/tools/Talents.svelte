@@ -18,6 +18,8 @@
   type Build = Record<number, Record<string, number>>;
 
   const SAVE_KEY = "codex-talents";
+  // Shown until the trees load, at the same size, so nothing below jumps when they arrive.
+  const PLACEHOLDER_CLASSES = ["Warrior", "Paladin", "Hunter", "Rogue", "Priest", "Shaman", "Mage", "Warlock", "Druid"];
   let data = $state.raw<{ classes: Cls[] } | null>(null);
   let empty = $state(false);
   let cls = $state.raw<Cls | null>(null);
@@ -169,13 +171,17 @@
         onclick={() => { selectClass(c.name.toLowerCase(), null); announce(cls!.name + " talents"); }}>
         {#if c.icon}<img src={c.icon} alt="" width="28" height="28" />{/if}<span>{c.name}</span>
       </button>
+    {:else}
+      {#each PLACEHOLDER_CLASSES as name}
+        <span class="tc-class tc-placeholder" aria-hidden="true"><i class="tc-ph-icon"></i><span>{name}</span></span>
+      {/each}
     {/each}
   </nav>
 
   <div class="panel tc-summary">
     <div class="tc-build">
       <span class="eyebrow-sm">Your build</span>
-      <h2><span>{cls?.name || ""}</span> <span class="tc-split" aria-hidden="true">{specs.map((s, t) => TM.treeTotal(build, t)).join(" / ")}</span></h2>
+      <h2><span>{cls?.name || " "}</span> <span class="tc-split" aria-hidden="true">{specs.map((s, t) => TM.treeTotal(build, t)).join(" / ")}</span></h2>
       <p class="sr-only">{specs.map((s, t) => s.name + " " + TM.treeTotal(build, t)).join(", ")}</p>
     </div>
     <div class="tc-points">
@@ -184,7 +190,7 @@
         onchange={(e) => { level = Math.max(10, Math.min(60, parseInt(e.currentTarget.value, 10) || 60)); e.currentTarget.value = String(level); }} />
     </div>
     <div class="tc-left-box"><b class:over={spent > available}>{cls ? available - spent : 51}</b><span>points left</span></div>
-    <div class="tc-progress"><div class="progress" aria-hidden="true"><i style="width:{Math.min(100, available ? spent / available * 100 : 0)}%"></i></div><span class="faint">{cls ? spent + " / " + available + " spent" : ""}</span></div>
+    <div class="tc-progress"><div class="progress" aria-hidden="true"><i style="width:{Math.min(100, available ? spent / available * 100 : 0)}%"></i></div><span class="faint">{cls ? spent + " / " + available + " spent" : " "}</span></div>
     <div class="tc-actions">
       <button type="button" class="btn btn-ghost btn-sm" onclick={() => { build = {}; selected = null; notify("All talents reset", "info"); }}>Reset all</button>
       <button type="button" class="btn btn-sm" onclick={share}>{shareLabel}</button>
@@ -223,6 +229,13 @@
           {/each}
         </div>
       </section>
+    {:else}
+      {#each [0, 1, 2] as t}
+        <section class="tc-tree tc-placeholder" aria-hidden="true">
+          <header class="tc-tree-head"><i class="tc-ph-icon"></i><div class="tc-ph-title">&nbsp;</div><span class="tc-tree-pts">0</span></header>
+          <div class="tc-grid">{#each [1, 2, 3, 4, 5, 6, 7] as row}<span class="tc-rowlabel" style="grid-row:{row}">{(row - 1) * 5}</span>{/each}</div>
+        </section>
+      {/each}
     {/each}
   </div>
 

@@ -366,6 +366,8 @@ ul.gems.small li { font-size: .92rem; margin-bottom: 5px; color: var(--ink-dim);
 .legend-hint { text-transform: none; letter-spacing: 0; font-weight: 400; color: var(--ink-faint); }
 .chips { display: flex; flex-wrap: wrap; gap: 6px; }
 .chip { position: relative; display: inline-flex; cursor: pointer; }
+.chip-placeholder { cursor: default; opacity: .55; }
+.chip-placeholder.on > span::before { content: "✓"; font-size: .85em; }
 .chip input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: pointer; }
 .chip > span {
   display: inline-flex; align-items: center; gap: 7px; min-height: 38px; padding: 6px 14px; border-radius: 999px;
@@ -620,6 +622,10 @@ table.crafting td.cr-actions .btn + .btn { margin: 4px 0 0; }
   background: linear-gradient(180deg, var(--stone-2), var(--stone)); border: 1px solid var(--border); border-radius: 8px; }
 .tc-class img { border-radius: 5px; border: 1px solid #000; }
 .tc-class:hover { color: var(--cc); border-color: var(--cc); }
+.tc-placeholder { pointer-events: none; opacity: .55; }
+.tc-ph-icon { display: block; flex: none; width: 28px; height: 28px; border-radius: 5px; border: 1px solid #000; background: var(--field); }
+.tc-tree-head .tc-ph-icon { width: 30px; height: 30px; }
+.tc-ph-title { line-height: 1.2; }
 .tc-class.active { color: var(--cc); border-color: var(--cc); box-shadow: inset 0 0 0 1px var(--cc), 0 0 18px -6px var(--cc); }
 .tc-summary { display: grid; grid-template-columns: 1fr auto auto 1.2fr auto; gap: 14px 22px; align-items: center; }
 .tc-summary h2 { margin: 0; color: var(--cc, var(--gold)); }
@@ -641,7 +647,7 @@ table.crafting td.cr-actions .btn + .btn { margin: 4px 0 0; }
 .tc-tree::before { content: ""; position: absolute; inset: 0; background: var(--spec-icon) center 60% / 70% no-repeat; opacity: .06; filter: grayscale(.3) blur(1px); pointer-events: none; }
 .tc-tree-head { position: relative; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-bottom: 1px solid var(--border); background: rgba(0,0,0,.35); }
 .tc-tree-head img { border-radius: 5px; border: 1px solid #000; }
-.tc-tree-head h2 { margin: 0; font-size: 1.1rem; flex: 1; }
+.tc-tree-head h2, .tc-ph-title { margin: 0; font-size: 1.1rem; flex: 1; }
 .tc-tree-pts { font: 700 1.3rem var(--font-display); color: var(--gold-2); }
 .tc-grid { position: relative; display: grid; grid-template-columns: 26px repeat(4, 1fr); grid-template-rows: repeat(7, 70px); padding: 8px 8px 8px 4px; }
 .tc-lines { position: absolute; top: 8px; bottom: 8px; left: 30px; right: 8px; width: calc(100% - 38px); height: calc(100% - 16px); pointer-events: none; overflow: visible; }
@@ -745,6 +751,7 @@ table.crafting td .cat { white-space: normal; }
 /* ---------- Prices: item filters ---------- */
 .pr-filters { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
 .pr-filters .chips { gap: 8px; }
+.pr-count-pending { visibility: hidden; }
 .pr-subfilters { display: flex; flex-wrap: wrap; gap: 14px 20px; align-items: end; margin-top: 14px; }
 .pr-subfilters > div { min-width: 200px; }
 .pr-subfilters > .pr-clear { min-width: 0; }
