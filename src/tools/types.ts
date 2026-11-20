@@ -47,7 +47,7 @@ export function houseOf(g: GroupPrices | null, faction: string): { id: string; h
 
 /** One server group's economy file entry (econ_<region>.json, written by pipeline/economy.js) */
 export interface EconGroup {
-  /** houseId → itemId → % change in typical price since about a day ago (trade board items only) */
+  /** houseId → itemId → % change in typical price since about a day ago (materials ledger items only) */
   board?: Record<string, Record<string, number>>;
 }
 

@@ -9,7 +9,7 @@ const HOUR = 3600;
 const DAY = 86400;
 const WILD = 10000 * 10000;     // 10,000g in copper: a single item priced above this is a joke listing, not a price
 
-// Materials on the trade board, by item ID (WoW: Forever uses the classic item IDs).
+// Materials in the materials ledger, by item ID (WoW: Forever uses the classic item IDs).
 const BASKETS = {
   ORE: [2770, 2771, 2775, 2772, 2776, 3858, 7911, 10620, 2840, 3576, 2841, 2842, 3575, 3577, 3859, 3860, 6037, 12359, 2835, 2836, 2838, 7912, 12365],
   CLOTH: [2589, 2592, 4306, 4338, 14047, 14256, 2996, 2997, 4305, 4339, 14048],
@@ -50,7 +50,7 @@ function snapshotsFromHistory(history, houses) {
   return [...byDay.entries()].sort((a, b) => a[0] - b[0]).map(([day, group]) => ({ day, group }));
 }
 
-/* ---------- 24-hour change for the trade board ---------- */
+/* ---------- 24-hour change for the materials ledger ---------- */
 
 /**
  * Keep a ring of market prices for the board items (36 hours), and work out each item's
@@ -117,7 +117,7 @@ function goldByClass(houses, items) {
 }
 
 /** Most expensive items listed in a group: [{ id, price, houseId, faction, qty }], one row per item. */
-function crownJewels(group, n) {
+function priciestItems(group, n) {
   const best = new Map();
   for (const [houseId, h] of Object.entries(group.houses)) for (const [id, a] of Object.entries(h.items)) {
     if (!fair(a[1])) continue;
@@ -128,7 +128,7 @@ function crownJewels(group, n) {
 }
 
 /** Items with the most listings ("listings") or the most units ("units") on one house. */
-function bazaar(house, mode, n) {
+function mostListed(house, mode, n) {
   const col = mode === "units" ? 2 : 3;
   return Object.entries(house.items)
     .map(([id, a]) => ({ id: Number(id), count: a[col], market: a[1] }))
@@ -136,7 +136,7 @@ function bazaar(house, mode, n) {
     .slice(0, n || 24);
 }
 
-/** Which tab of "Alliance vs Horde" an item class falls under */
+/** Which tab of "Faction price gaps" an item class falls under */
 function categoryOf(cls) {
   if (cls === "Trade Goods" || cls === "Reagent") return "trade";
   if (cls === "Consumable") return "cons";
@@ -168,13 +168,13 @@ function factionGaps(group, items, opts) {
 }
 
 /**
- * Blackwater flips: buy the cheapest listing on the neutral auction house and resell it on your
+ * Cross-house flips: buy the cheapest listing on the neutral auction house and resell it on your
  * own faction's house at its market price, after your house's 5% cut. Your house needs at least
  * minListings listings of the item (so there's real trade), and the profit must be at least
  * minProfit copper and minPct of the buy price. Ignores deposits and whether it actually sells.
  * Returns [{ id, buy, sell, profit, pct, neutralQty, ownListings }], most profit per unit first.
  */
-function blackwaterFlips(group, faction, opts) {
+function crossHouseFlips(group, faction, opts) {
   opts = Object.assign({ minListings: 5, minProfit: 50, minPct: 0.1, top: 25 }, opts || {});
   let own = null, neutral = null;
   for (const h of Object.values(group.houses)) { if (h.faction === faction) own = h; if (h.faction === "neutral") neutral = h; }
@@ -233,5 +233,5 @@ function squarify(values, w, h) {
 export {
   BASKETS, BOARD_IDS, WILD, HOUR, DAY,
   snapshotsFromHistory, updateRing,
-  houseSummary, goldByClass, crownJewels, bazaar, categoryOf, factionGaps, blackwaterFlips, squarify
+  houseSummary, goldByClass, priciestItems, mostListed, categoryOf, factionGaps, crossHouseFlips, squarify
 };

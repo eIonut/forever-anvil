@@ -1,6 +1,6 @@
 # Forever Anvil: unofficial WoW: Forever tools
 
-A static website with tools for WoW: Forever: auction prices, an economy overview (trade board, where the gold is, Blackwater flips), vendor flips, crafting profits and planner, a talent calculator and a character lookup. Built with [Astro](https://astro.build); the interactive tools are [Svelte](https://svelte.dev) components. See [docs/astro-migration-plan.md](docs/astro-migration-plan.md) for how the site moved to Astro.
+A static website with tools for WoW: Forever: auction prices, an economy overview (materials ledger, gold by category, cross-house flips), vendor flips, crafting profits and planner, a talent calculator and a character lookup. Built with [Astro](https://astro.build); the interactive tools are [Svelte](https://svelte.dev) components. See [docs/astro-migration-plan.md](docs/astro-migration-plan.md) for how the site moved to Astro.
 
 ## Run it locally
 
@@ -60,7 +60,7 @@ To try the Worker locally: `npm run build`, then `npx wrangler dev` (it reads th
 | `integrations/dev-api.ts` | `npm run dev` only: answers `/api/...` from `out/`, and `/api/character` |
 | `worker/` | The live site's Cloudflare Worker (`index.js`) and which `/api` addresses serve which files (`routes.js`) |
 | `.github/workflows/site.yml` | Hourly price job, KV upload, daily deploy |
-| `pipeline/` | The price job, the Blizzard API client and the character lookup. `pipeline/economy.js` adds the trade board's 24-hour price changes (`out/econ_<region>.json`) |
+| `pipeline/` | The price job, the Blizzard API client and the character lookup. `pipeline/economy.js` adds the materials ledger's 24-hour price changes (`out/econ_<region>.json`) |
 | `tools/` | Scripts: KV upload/download (`kv-sync.js`), API probe, ruleset check, character opt-out |
 
 ## How to change things

@@ -1,8 +1,8 @@
 <script lang="ts">
   // The Economy page: the state of one ruleset's auction houses at a glance. Headline numbers,
-  // the three houses, the trade board, where the gold is, movers, Blackwater flips,
-  // Alliance vs Horde gaps, crown jewels and the bazaar. Everything is worked out here from the
-  // price files the other tools use, except the trade board's 24-hour changes (econ_<region>.json).
+  // the three houses, the materials ledger, gold by category, movers, cross-house flips,
+  // faction price gaps, top-dollar items and the most-listed items. Everything is worked out here from the
+  // price files the other tools use, except the ledger's 24-hour changes (econ_<region>.json).
   import type { Snippet } from "svelte";
   import Loading from "./Loading.svelte";
   import { onMount, tick } from "svelte";
@@ -15,12 +15,12 @@
   import MarketSelects from "./MarketSelects.svelte";
   import Icon from "./Icon.svelte";
   import Movers from "./Movers.svelte";
-  import TradeBoard from "./econ/TradeBoard.svelte";
+  import MaterialsLedger from "./econ/MaterialsLedger.svelte";
   import Treemap from "./econ/Treemap.svelte";
-  import BlackwaterFlips from "./econ/BlackwaterFlips.svelte";
+  import CrossHouseFlips from "./econ/CrossHouseFlips.svelte";
   import FactionGaps from "./econ/FactionGaps.svelte";
-  import CrownJewels from "./econ/CrownJewels.svelte";
-  import Bazaar from "./econ/Bazaar.svelte";
+  import TopDollar from "./econ/TopDollar.svelte";
+  import MostListed from "./econ/MostListed.svelte";
   import { FACTION_NAME, compact, goldText } from "./econ/shared";
   import { salesBasis } from "./SoldPerDay.svelte";
 
@@ -108,18 +108,21 @@
   // The sections below the house cards, one tab each, so nothing is more than a click away.
   // The open tab is in the address (/economy#flips: links open it) and remembered for the next visit.
   const TABS = [
-    ["board", "Trade board", "crafting"],
+    ["materials", "Materials ledger", "crafting"],
     ["movers", "Price changes & deals", "economy"],
-    ["flips", "Blackwater flips", "neutral"],
-    ["gaps", "Alliance vs Horde", "pvp"],
-    ["gold", "Where the gold is", "prices"],
-    ["jewels", "Crown jewels", "items"],
-    ["bazaar", "The bazaar", "flips"],
+    ["flips", "Cross-house flips", "neutral"],
+    ["gaps", "Faction price gaps", "pvp"],
+    ["gold", "Gold by category", "prices"],
+    ["priciest", "Top-dollar items", "items"],
+    ["busiest", "Most-listed items", "flips"],
   ] as const;
   type TabId = (typeof TABS)[number][0];
   const TAB_KEY = "codex-econ-tab";
+  // old tab names, so saved tabs and old links still open the right section
+  const OLD_TABS: Record<string, TabId> = { board: "materials", jewels: "priciest", bazaar: "busiest" };
   const isTab = (t: string | null | undefined): t is TabId => !!t && TABS.some(([id]) => id === t);
-  let tab = $state<TabId>("board");
+  const tabFrom = (t: string | null | undefined): TabId | null => (t && OLD_TABS[t]) || (isTab(t) ? t : null);
+  let tab = $state<TabId>("materials");
   let tabBar: HTMLElement | undefined = $state();
 
   function selectTab(t: TabId, focus = false) {
@@ -145,14 +148,16 @@
   onMount(() => {
     const p = getMarketPrefs();
     region = p.region || "eu"; group = p.group || ""; faction = p.faction || "horde";
-    const fromHash = location.hash.slice(1);
+    const fromHash = tabFrom(location.hash.slice(1));
     let saved: string | null = null;
     try { saved = localStorage.getItem(TAB_KEY); } catch { /* storage blocked */ }
-    if (isTab(fromHash)) tab = fromHash; else if (isTab(saved)) tab = saved;
+    const fromSaved = tabFrom(saved);
+    if (fromHash) { tab = fromHash; if (fromHash !== location.hash.slice(1)) history.replaceState(history.state, "", "#" + fromHash); }
+    else if (fromSaved) tab = fromSaved;
     loadRegion();
     const timer = setInterval(() => (now = Date.now()), 30_000);
     // a link to another section of this page (/economy#flips) only changes the address: follow it
-    const onHash = () => { const h = location.hash.slice(1); if (isTab(h) && h !== tab) selectTab(h); };
+    const onHash = () => { const h = tabFrom(location.hash.slice(1)); if (h && h !== tab) selectTab(h); };
     window.addEventListener("hashchange", onHash);
     return () => { clearInterval(timer); window.removeEventListener("hashchange", onHash); };
   });
@@ -179,7 +184,7 @@
       onregion={(v) => { region = v; save(); loadRegion(); }}
       ongroup={(v) => { group = v; save(); loadGroup(); }}
       onfaction={(v) => { faction = v; save(); }} />
-    <p class="faint ec-scope">The numbers cover all three auction houses of the {ruleset || "chosen"} ruleset. The trade board, flips, gold map and bazaar follow the auction house you pick. "Sold per day" is an estimate: we compare the auctions every hour and count the ones bought (a seller cancelling looks the same to us), averaged over the last 7 days.</p>
+    <p class="faint ec-scope">The numbers cover all three auction houses of the {ruleset || "chosen"} ruleset. The materials ledger, flips, gold map and most-listed items follow the auction house you pick. "Sold per day" is an estimate: we compare the auctions every hour and count the ones bought (a seller cancelling looks the same to us), averaged over the last 7 days.</p>
   </div>
 
   {#if loading && !groupData}
@@ -220,12 +225,12 @@
     </div>
 
     <div id="ec-panel" class="ec-panel" role="tabpanel" aria-labelledby="ec-tab-{tab}">
-    {#if tab === "board" && current}
-      <TradeBoard houseItems={current.house.items} changes={series?.board?.[current.id]} {houseName} salesHours={current.house.salesHours} />
+    {#if tab === "materials" && current}
+      <MaterialsLedger houseItems={current.house.items} changes={series?.board?.[current.id]} {houseName} salesHours={current.house.salesHours} />
     {:else if tab === "gold" && current}
       <section class="panel" aria-labelledby="ec-gold-title">
         <div class="section-head">
-          <h2 id="ec-gold-title">Where the gold is</h2>
+          <h2 id="ec-gold-title">Gold by category</h2>
           <div class="seg-buttons" role="group" aria-label="Show">
             <button type="button" class:active={treeScope === "house"} aria-pressed={treeScope === "house"} onclick={() => (treeScope = "house")}>{houseName}</button>
             <button type="button" class:active={treeScope === "group"} aria-pressed={treeScope === "group"} onclick={() => (treeScope = "group")}>Whole ruleset</button>
@@ -237,13 +242,13 @@
     {:else if tab === "movers"}
       <Movers {region} {group} houseId={current?.id ?? null} house={current?.house} />
     {:else if tab === "flips"}
-      <BlackwaterFlips group={groupData} {faction} />
+      <CrossHouseFlips group={groupData} {faction} />
     {:else if tab === "gaps"}
       <FactionGaps group={groupData} />
-    {:else if tab === "jewels"}
-      <CrownJewels group={groupData} />
-    {:else if tab === "bazaar" && current}
-      <Bazaar house={current.house} {houseName} />
+    {:else if tab === "priciest"}
+      <TopDollar group={groupData} />
+    {:else if tab === "busiest" && current}
+      <MostListed house={current.house} {houseName} />
     {:else}
       <div class="panel"><p class="faint">Nothing to show for this auction house right now.</p></div>
     {/if}

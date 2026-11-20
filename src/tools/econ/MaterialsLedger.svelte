@@ -1,5 +1,5 @@
 <script lang="ts">
-  // The trade board: crafting materials on one auction house, with lowest and typical price
+  // The materials ledger: crafting materials on one auction house, with lowest and typical price
   // and the change since about a day ago. Each group shows its biggest markets first.
   import { BASKETS } from "../../lib/econmath.js";
   import { itemName } from "../itemIcons.svelte";
@@ -23,8 +23,8 @@
   })).filter((b) => b.rows.length));
 </script>
 
-<section class="panel" aria-labelledby="ec-board-title">
-  <div class="section-head"><h2 id="ec-board-title">Trade board</h2><p class="faint" style="margin:0">Materials on the {houseName} auction house, biggest markets first</p></div>
+<section class="panel" aria-labelledby="ec-ledger-title">
+  <div class="section-head"><h2 id="ec-ledger-title">Materials ledger</h2><p class="faint" style="margin:0">Materials on the {houseName} auction house, biggest markets first</p></div>
   {#if !boards.length}<p class="faint">No materials listed on this auction house right now.</p>
   {:else}
     <div class="ec-boards">

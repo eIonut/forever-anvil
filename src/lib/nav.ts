@@ -16,7 +16,7 @@ export const NAV: NavLink[] = [
   { href: "/prices", label: "Prices", icon: "prices", pages: ["prices", "items"],
     desc: "What every item sells for on the Auction House" },
   { href: "/economy", label: "Economy", icon: "economy", pages: ["economy"],
-    desc: "Material prices, where the gold is and Blackwater flips" },
+    desc: "Material prices, gold by category and cross-house flips" },
   { href: "/flips", label: "Flips", icon: "flips", pages: ["flips"],
     desc: "Listings cheaper than what a vendor pays" },
   { href: "/crafting", label: "Crafting", icon: "crafting", pages: ["crafting", "recipe", "recipes"],

@@ -1,5 +1,5 @@
 <script lang="ts">
-  // "Where the gold is": gold listed per item class as a treemap (area = gold), with a list for screen readers.
+  // "Gold by category": gold listed per item class as a treemap (area = gold), with a list for screen readers.
   import { squarify } from "../../lib/econmath.js";
   import { goldText } from "./shared";
 

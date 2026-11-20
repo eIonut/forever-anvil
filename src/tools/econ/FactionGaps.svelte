@@ -1,5 +1,5 @@
 <script lang="ts">
-  // Alliance vs Horde: the biggest typical-price gaps between the two faction auction houses,
+  // Faction price gaps: the biggest typical-price gaps between the two faction auction houses,
   // drawn on a log price scale (one marker per faction, joined by a line).
   import { factionGaps } from "../../lib/econmath.js";
   import { moneyText } from "../../lib/format";
@@ -35,7 +35,7 @@
 
 <section class="panel" aria-labelledby="ec-gap-title">
   <div class="section-head">
-    <h2 id="ec-gap-title">Alliance vs Horde</h2>
+    <h2 id="ec-gap-title">Faction price gaps</h2>
     <div class="seg-buttons ec-wrap-tabs" role="group" aria-label="Item type">
       {#each TABS as [t, name]}<button type="button" class:active={tab === t} aria-pressed={tab === t} onclick={() => (tab = t)}>{name}</button>{/each}
     </div>

@@ -770,7 +770,7 @@ tr.v-pad > td { padding: 0; border: 0; }
 .v-body { overflow-anchor: none; }
 .v-more { text-align: center; margin-top: 14px; }
 .sold { font-variant-numeric: tabular-nums; white-space: nowrap; }
-.ec-baz-sold { display: block; font-size: .78rem; color: var(--ink-faint); }
+.ec-ml-sold { display: block; font-size: .78rem; color: var(--ink-faint); }
 
 /* ---------- Character ---------- */
 .ch-form { display: grid; grid-template-columns: 180px 1fr auto; gap: 12px; align-items: end; }
@@ -967,7 +967,7 @@ span.item-icon { border-color: transparent; background: none; }
 .ec-table summary { cursor: pointer; color: var(--gold-2); font-weight: 700; font-size: .92rem; }
 .ec-table .table-wrap { margin-top: 8px; }
 
-/* trade board */
+/* materials ledger */
 .ec-boards { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 10px 22px; align-items: start; }
 /* each group title centred over its table, between two thin gold rules */
 .ec-board > .mini-head { display: flex; align-items: center; gap: 12px; justify-content: center; text-align: center; margin: 14px 0 6px; color: var(--gold); }
@@ -1000,7 +1000,7 @@ html[data-contrast] .ec-tabs button.active { background: #ffd257; color: #000; b
 .ec-more { font: inherit; font-size: .85rem; font-weight: 700; color: var(--gold-2); background: none; border: 0; padding: 6px 4px; cursor: pointer; }
 .ec-more:hover { text-decoration: underline; }
 
-/* where the gold is */
+/* gold by category */
 .ec-tree { position: relative; width: 100%; aspect-ratio: 1000 / 420; }
 .ec-cell { position: absolute; box-sizing: border-box; border: 2px solid var(--stone); border-radius: 6px; background: rgba(230,184,74,var(--a)); overflow: hidden; padding: 8px 10px; display: flex; flex-direction: column; gap: 2px; }
 .ec-cell-name { font-family: var(--font-display); font-size: .85rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1009,7 +1009,7 @@ html[data-contrast] .ec-tabs button.active { background: #ffd257; color: #000; b
 .ec-cell-gold { font-size: .8rem; color: var(--ink-dim); }
 @media (max-width: 700px) { .ec-tree { aspect-ratio: 1000 / 760; } }
 
-/* alliance vs horde */
+/* faction price gaps */
 .ec-wrap-tabs { flex-wrap: wrap; }
 .ec-gaps ul { list-style: none; margin: 0; padding: 0; }
 .ec-gap-row, .ec-gap-axis { display: grid; grid-template-columns: minmax(150px, 230px) 1fr 140px; gap: 14px; align-items: center; }
@@ -1036,32 +1036,32 @@ html[data-contrast] .ec-tabs button.active { background: #ffd257; color: #000; b
   .ec-gap-prices { display: flex; gap: 14px; grid-column: 1 / -1; font-size: .88rem; }
 }
 
-/* crown jewels */
+/* top-dollar items */
 .ec-podium { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; align-items: end; }
 .ec-step { display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; background: rgba(0,0,0,.3); border: 1px solid var(--stone-edge); border-radius: var(--radius); padding: 18px 12px 14px; }
 .ec-step-1 { padding-top: 30px; border-color: var(--gold-dim); background: linear-gradient(180deg, rgba(230,184,74,.12), rgba(0,0,0,.3)); }
 .ec-rank { width: 28px; height: 28px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; background: #8a8a8a; color: #111; }
 .ec-step-1 .ec-rank { background: var(--gold); } .ec-step-3 .ec-rank { background: #b87333; }
-.ec-jewel-icon { border-radius: 6px; border: 2px solid var(--line); }
-.ec-jewel-icon.qb-uncommon { border-color: #1eff00; } .ec-jewel-icon.qb-rare { border-color: #3d9bff; } .ec-jewel-icon.qb-epic { border-color: #c27bff; } .ec-jewel-icon.qb-legendary { border-color: #ff8000; }
-.ec-jewel-name { font-weight: 700; text-decoration: none; }
-.ec-jewel-name:hover { text-decoration: underline; }
-.ec-jewel-price { font-size: 1.2rem; }
-.ec-jewels { columns: 2 300px; column-gap: 24px; margin: 16px 0 0; padding-left: 1.6em; }
-.ec-jewels li { padding: 4px 0; break-inside: avoid; }
+.ec-top-icon { border-radius: 6px; border: 2px solid var(--line); }
+.ec-top-icon.qb-uncommon { border-color: #1eff00; } .ec-top-icon.qb-rare { border-color: #3d9bff; } .ec-top-icon.qb-epic { border-color: #c27bff; } .ec-top-icon.qb-legendary { border-color: #ff8000; }
+.ec-top-name { font-weight: 700; text-decoration: none; }
+.ec-top-name:hover { text-decoration: underline; }
+.ec-top-price { font-size: 1.2rem; }
+.ec-toplist { columns: 2 300px; column-gap: 24px; margin: 16px 0 0; padding-left: 1.6em; }
+.ec-toplist li { padding: 4px 0; break-inside: avoid; }
 @media (max-width: 560px) { .ec-podium { grid-template-columns: 1fr; } .ec-step-1 { order: -1; } }
 
-/* bazaar */
-.ec-bazaar { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 14px 10px; }
-.ec-bazaar li { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; min-width: 0; }
-.ec-bazaar a { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--ink); text-decoration: none; min-width: 0; max-width: 100%; }
-.ec-bazaar a:hover .ec-baz-name { color: var(--gold-2); text-decoration: underline; }
-.ec-baz-icon { position: relative; width: 48px; height: 48px; border-radius: 6px; border: 2px solid var(--line); background: var(--field); }
-.ec-baz-icon.qb-poor { border-color: #9d9d9d; } .ec-baz-icon.qb-uncommon { border-color: #1eff00; } .ec-baz-icon.qb-rare { border-color: #3d9bff; } .ec-baz-icon.qb-epic { border-color: #c27bff; }
-.ec-baz-icon img { display: block; width: 44px; height: 44px; border-radius: 4px; }
-.ec-baz-icon b { position: absolute; right: -6px; bottom: -6px; background: var(--field); border: 1px solid var(--gold-dim); border-radius: 999px; padding: 0 5px; font-size: .72rem; color: var(--gold-2); }
-.ec-baz-name { font-size: .8rem; line-height: 1.2; max-width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }
-.ec-baz-price { font-size: .78rem; }
+/* most-listed items */
+.ec-mostlisted { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 14px 10px; }
+.ec-mostlisted li { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; min-width: 0; }
+.ec-mostlisted a { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--ink); text-decoration: none; min-width: 0; max-width: 100%; }
+.ec-mostlisted a:hover .ec-ml-name { color: var(--gold-2); text-decoration: underline; }
+.ec-ml-icon { position: relative; width: 48px; height: 48px; border-radius: 6px; border: 2px solid var(--line); background: var(--field); }
+.ec-ml-icon.qb-poor { border-color: #9d9d9d; } .ec-ml-icon.qb-uncommon { border-color: #1eff00; } .ec-ml-icon.qb-rare { border-color: #3d9bff; } .ec-ml-icon.qb-epic { border-color: #c27bff; }
+.ec-ml-icon img { display: block; width: 44px; height: 44px; border-radius: 4px; }
+.ec-ml-icon b { position: absolute; right: -6px; bottom: -6px; background: var(--field); border: 1px solid var(--gold-dim); border-radius: 999px; padding: 0 5px; font-size: .72rem; color: var(--gold-2); }
+.ec-ml-name { font-size: .8rem; line-height: 1.2; max-width: 100%; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; }
+.ec-ml-price { font-size: .78rem; }
 
 /* =====================================================================
    USER DISPLAY PREFERENCES (set from the settings panel)
@@ -1129,7 +1129,7 @@ html[data-contrast] .ec-cell { background: #141414; border-color: #8a8a8a; }
 /* market pickers: game icon instead of the colour dot */
 .chip > span:has(.wow-icon) { padding-left: 7px; }
 .chip input:checked + span .wow-icon { box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .85), 0 0 0 1px #6b4a12; }
-/* Alliance vs Horde chart: faction crests as the price markers */
+/* Faction price gaps chart: faction crests as the price markers */
 .crest { background: #000 center / 120% no-repeat; color: transparent !important; font-size: 0 !important; width: 20px !important; height: 20px !important; }
 .crest-alliance { background-image: url("/img/wow/alliance.jpg"); border-color: var(--alliance) !important; }
 .crest-horde { background-image: url("/img/wow/horde.jpg"); border-color: var(--horde) !important; }

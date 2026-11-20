@@ -11,7 +11,7 @@
 // Every run, during 1–3:
 //   estimated units sold per day, from the change since last run's auctions (pipeline/sales.js)
 // Every run, after 4:
-//   the trade board's 24-hour changes (pipeline/economy.js)
+//   the materials ledger's 24-hour changes (pipeline/economy.js)
 // Every 25 days (inside Blizzard's 30-day limit):
 //   7. refresh all profession recipes (materials + crafted item) for the craft calculator
 //
@@ -182,7 +182,7 @@ async function main() {
   }
   if (changed) await store.putJSON(`items:${region}`, items);
 
-  /* trade board changes, every run */
+  /* materials ledger changes, every run */
   await updateEconomy(store, region, latestByGroup, now, log);
 
   /* 5–6: history + movers, once per day */

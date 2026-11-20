@@ -1,4 +1,4 @@
-// Economy step of the price job: the trade board's 24-hour price changes.
+// Economy step of the price job: the materials ledger's 24-hour price changes.
 //
 // Writes (each run):
 //   econ:<region>       served to the Economy page:

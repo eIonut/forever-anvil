@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import {
   BOARD_IDS, WILD, DAY, HOUR,
   snapshotsFromHistory, updateRing,
-  houseSummary, goldByClass, crownJewels, bazaar, factionGaps, blackwaterFlips, squarify
+  houseSummary, goldByClass, priciestItems, mostListed, factionGaps, crossHouseFlips, squarify
 } from "../src/lib/econmath.js";
 
 // a group with one house; items: { id: [min, market, qty, listings] }
@@ -44,16 +44,16 @@ test("house summary and gold by class leave wild prices out", () => {
   assert.deepEqual(goldByClass([h], items), [["Trade goods", 1000], ["Consumables", 200]]);
 });
 
-test("crown jewels: one row per item, the dearest house, wild prices left out", () => {
+test("priciest items: one row per item, the dearest house, wild prices left out", () => {
   const g = { houses: { 1: { faction: "alliance", items: { 9: [500, 500, 1, 1], 8: [WILD * 3, WILD * 3, 1, 1] } }, 2: { faction: "horde", items: { 9: [700, 700, 1, 1], 7: [600, 600, 1, 1] } } } };
-  const j = crownJewels(g, 5);
+  const j = priciestItems(g, 5);
   assert.deepEqual(j.map((x) => [x.id, x.price, x.faction]), [[9, 700, "horde"], [7, 600, "horde"]]);
 });
 
-test("bazaar: most listings or most units", () => {
+test("most listed: most listings or most units", () => {
   const h = { items: { 1: [1, 1, 100, 2], 2: [1, 1, 5, 9] } };
-  assert.equal(bazaar(h, "listings")[0].id, 2);
-  assert.equal(bazaar(h, "units")[0].id, 1);
+  assert.equal(mostListed(h, "listings")[0].id, 2);
+  assert.equal(mostListed(h, "units")[0].id, 1);
 });
 
 test("faction gaps: thin listings don't count", () => {
@@ -65,14 +65,14 @@ test("faction gaps: thin listings don't count", () => {
   assert.deepEqual([gaps[0].id, gaps[0].ratio, gaps[0].cat], [1, 4, "trade"]);
 });
 
-test("blackwater flips: cheap on neutral, sells on your house after the 5% cut", () => {
+test("cross-house flips: cheap on neutral, sells on your house after the 5% cut", () => {
   const g = { houses: {
     1: { faction: "horde", items: { 1: [900, 1000, 20, 6], 2: [100, 100, 20, 6], 3: [900, 1000, 20, 2] } },
     3: { faction: "neutral", items: { 1: [500, 600, 3, 2], 2: [90, 90, 3, 1], 3: [100, 100, 1, 1] } } } };
-  const f = blackwaterFlips(g, "horde");
+  const f = crossHouseFlips(g, "horde");
   assert.equal(f.length, 1); // item 2: profit too small; item 3: too few listings on your house
   assert.deepEqual([f[0].id, f[0].buy, f[0].sell, f[0].profit], [1, 500, 950, 450]);
-  assert.deepEqual(blackwaterFlips(g, "neutral"), []);
+  assert.deepEqual(crossHouseFlips(g, "neutral"), []);
 });
 
 test("treemap: areas match the values and fill the box", () => {

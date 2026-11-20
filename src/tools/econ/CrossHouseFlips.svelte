@@ -1,6 +1,6 @@
 <script lang="ts">
-  // Blackwater flips: cheap on the neutral auction house, worth more on your own faction's house.
-  import { blackwaterFlips } from "../../lib/econmath.js";
+  // Cross-house flips: cheap on the neutral auction house, worth more on your own faction's house.
+  import { crossHouseFlips } from "../../lib/econmath.js";
   import { itemName } from "../itemIcons.svelte";
   import type { GroupPrices } from "../types";
   import ItemLink from "../ItemLink.svelte";
@@ -11,12 +11,12 @@
 
   let { group, faction }: { group: GroupPrices; faction: string } = $props();
   let shown = $state(10);
-  const list = $derived(faction === "neutral" ? [] : blackwaterFlips(group, faction));
+  const list = $derived(faction === "neutral" ? [] : crossHouseFlips(group, faction));
   const home = $derived(houseOf(group, faction)?.house);
 </script>
 
-<section class="panel" aria-labelledby="ec-bw-title">
-  <div class="section-head"><h2 id="ec-bw-title">Blackwater flips</h2></div>
+<section class="panel" aria-labelledby="ec-xh-title">
+  <div class="section-head"><h2 id="ec-xh-title">Cross-house flips</h2></div>
   {#if faction === "neutral"}
     <p class="faint">Pick your faction's auction house above to see what you can buy cheaply on Blackwater and resell at home.</p>
   {:else}

@@ -5,12 +5,12 @@ import AdSlot from "../components/AdSlot.astro";
 import Economy from "../tools/Economy.svelte";
 ---
 <BaseLayout
-  title="WoW: Forever Economy: Trade Board, Gold & Flips | Forever Anvil"
-  description="The WoW: Forever auction house economy at a glance: material prices with daily changes, where the gold is, Blackwater flips and Alliance vs Horde price gaps."
+  title="WoW: Forever Economy: Materials, Gold & Flips | Forever Anvil"
+  description="The WoW: Forever auction house economy at a glance: material prices with daily changes, gold by category, cross-house flips and faction price gaps."
   page="economy" image="economy"
 >
-  <PageHero icon="economy" eyebrow="Gold & auction house" title="The Economy" facts={[{ icon: "clock", text: "Refreshed about every hour" }, { icon: "economy", text: "Where the gold is, by kind of item" }, { icon: "globe", text: "All three auction houses per ruleset" }]}>
-    How the auction houses of your ruleset are doing: what's getting dearer, where the gold sits, and where there's gold to be made.
+  <PageHero icon="economy" eyebrow="Gold & auction house" title="The Economy" facts={[{ icon: "clock", text: "Refreshed about every hour" }, { icon: "economy", text: "Gold listed, by kind of item" }, { icon: "globe", text: "All three auction houses per ruleset" }]}>
+    How the auction houses of your ruleset are doing: what's getting dearer, where the money sits, and where there's gold to be made.
   </PageHero>
 
   <Economy client:load>
@@ -19,7 +19,7 @@ import Economy from "../tools/Economy.svelte";
       <ul class="gems">
         <li><b>Typical price</b> is the average of the cheapest 10% of units on sale. One bargain or one silly listing barely moves it.</li>
         <li><b>Gold listed</b> is units × typical price. Anything priced above 10,000g each is treated as a joke listing and left out.</li>
-        <li><b>Blackwater flips</b> and <b>Alliance vs Horde</b> leave out thinly traded items. Deposits aren't counted, and a listed price isn't a sale.</li>
+        <li><b>Cross-house flips</b> and <b>Faction price gaps</b> leave out thinly traded items. Deposits aren't counted, and a listed price isn't a sale.</li>
         <li>Prices refresh about once an hour. Blizzard's terms let us keep data for 30 days, so history covers at most that.</li>
       </ul>
       <p class="faint">Data provided by Blizzard Entertainment. Forever Anvil is not affiliated with or endorsed by Blizzard.</p>
