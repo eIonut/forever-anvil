@@ -25,6 +25,12 @@ const config = {
   googleSiteVerification: "",
   bingSiteVerification: "",
 
+  // Cloudflare Web Analytics token: visitors and page views, no cookies, so no consent banner.
+  // Dashboard → Analytics & Logs → Web Analytics → Add a site → foreveranvil.com → pick the
+  // manual JS snippet ("Enable with JS Snippet installation"), and copy the "token" value out of it.
+  // Leave empty to turn analytics off.
+  cfAnalyticsToken: "777094ec4e76454894b4aab0836d5bd9",
+
   // Contact email shown on the About page (optional).
   contactEmail: "",
 

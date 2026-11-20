@@ -18,6 +18,7 @@ import fontBody700 from "@fontsource/alegreya-sans/files/alegreya-sans-latin-700
 import fontDisplay700 from "@fontsource/cinzel/files/cinzel-latin-700-normal.woff2?url";
 import fontBrand700 from "@fontsource/cinzel-decorative/files/cinzel-decorative-latin-700-normal.woff2?url";
 const preloadFonts = [fontBody400, fontBody500, fontBody700, fontDisplay700, fontBrand700];
+import config from "../config.js";
 import Seo from "../components/Seo.astro";
 import Header from "../components/Header.astro";
 import Footer from "../components/Footer.astro";
@@ -71,6 +72,16 @@ const { title, description, page, jsonld, noindex, image } = Astro.props;
         });
       }
     </script>
+    {config.cfAnalyticsToken && (
+      // Cloudflare Web Analytics. It loads once and stays in <head> across client-side navigation;
+      // its "spa" mode counts each page swap as a page view.
+      <script
+        is:inline
+        defer
+        src="https://static.cloudflareinsights.com/beacon.min.js"
+        data-cf-beacon={JSON.stringify({ token: config.cfAnalyticsToken, spa: true })}
+      ></script>
+    )}
     <ClientRouter />
   </head>
   <body>
