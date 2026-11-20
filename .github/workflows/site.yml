@@ -1,5 +1,8 @@
 # Keeps the live site running:
-#   every hour       the price job (EU + US) → changed files uploaded to Workers KV → the tools show them
+#   every hour       the price job (EU + US) → changed files uploaded to Workers KV → the tools show them.
+#                    GitHub's schedule below is best-effort, so the Worker also starts this at minute 47
+#                    when GitHub hasn't (worker/hourly.js); a scheduled run within 40 minutes of the
+#                    last price job skips it, so the two never double up (KV allows 1,000 writes a day)
 #   once a day       rebuild the site (item and recipe pages carry prices, and Blizzard's terms say
 #                    their data may be kept at most 30 days) and deploy it to Cloudflare
 #   on push to main  rebuild and deploy, so code changes go live (no price job)
@@ -38,7 +41,6 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       BNET_CLIENT_ID: ${{ secrets.BNET_CLIENT_ID }}
       BNET_CLIENT_SECRET: ${{ secrets.BNET_CLIENT_SECRET }}
-      PRICE_JOB: ${{ github.event_name != 'push' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -62,6 +64,19 @@ jobs:
       - name: Download data from KV
         if: steps.restore.outputs.cache-matched-key == ''
         run: node tools/kv-sync.js pull
+
+      # pushes never run it; a scheduled run skips it when the Worker's backup already ran it this hour
+      - name: Is a price job due?
+        run: |
+          last=$(cat out/_priced 2>/dev/null || echo 0)
+          age=$(( $(date +%s) - last ))
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "PRICE_JOB=false" >> "$GITHUB_ENV"
+          elif [ "${{ github.event_name }}" = "schedule" ] && [ "$age" -lt 2400 ]; then
+            echo "PRICE_JOB=false" >> "$GITHUB_ENV"; echo "No price job: the last one was $((age / 60)) minutes ago"
+          else
+            echo "PRICE_JOB=true" >> "$GITHUB_ENV"; mkdir -p out; date +%s > out/_priced
+          fi
 
       - name: Price job (EU)
         id: eu

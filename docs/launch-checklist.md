@@ -7,6 +7,7 @@ How the live site works:
 | **Worker** `forever-anvil` | Serves the site from `dist/`, the price data at `/api/...` and the character lookup at `/api/character` | `worker/index.js`, `wrangler.jsonc` |
 | **Workers KV** `DATA` | Holds the price job's public files (like `out/`, online) | Cloudflare |
 | **GitHub workflow** "Prices and deploy" | Hourly: price job (EU + US) → uploads changed files to KV. Daily, and on every push to `main`: rebuilds and deploys the site | `.github/workflows/site.yml` |
+| **Worker cron** (minute 47) | Backup for GitHub's unreliable schedule: starts the workflow when no price job has run in the last 40 minutes | `worker/hourly.js`, `wrangler.jsonc` |
 
 All of it fits in the free plans: the Worker only runs for `/api` requests (pages, images and scripts don't count toward its 100,000 a day), KV gets ~600 of its 1,000 free writes a day, and GitHub Actions is free for public repositories. **Going over a free limit never costs money**: Cloudflare returns errors until the limit resets at midnight UTC. Just don't upgrade to Workers Paid.
 
@@ -104,7 +105,24 @@ Blocked requests stop at Cloudflare's edge and never reach the Worker, so they d
   1. In **DNS**, add a record: type `AAAA`, name `www`, IPv6 `100::`, Proxied (orange cloud).
   2. In **Rules** → **Redirect Rules**, add a rule: hostname equals `www.foreveranvil.com` → dynamic redirect to `concat("https://foreveranvil.com", http.request.uri.path)`, status 301, preserve query string.
 
-## 11. After launch
+## 11. Backup for the hourly schedule (a GitHub token for the Worker)
+
+GitHub's schedule is best-effort, and a new schedule can take hours to start. Every hour at minute 47 (UTC), the Worker checks whether a price job has started in the last 40 minutes, and if not, starts the workflow itself (`worker/hourly.js`). It needs a GitHub token that can do nothing but that:
+
+1. GitHub → your profile → **Settings** → **Developer settings** → **Personal access tokens** → **Fine-grained tokens** → **Generate new token**.
+2. Name: `forever-anvil worker`. Expiration: the longest offered (put a reminder in your calendar to renew it). Repository access: **Only select repositories** → `eIonut/forever-anvil`.
+3. Permissions → Repository permissions → **Actions: Read and write**. Leave everything else at "No access".
+4. Generate it, then give it to the Worker (the command asks you to paste it):
+
+```powershell
+npx wrangler secret put GITHUB_TOKEN
+```
+
+To check that it works: Cloudflare → *Workers & Pages* → `forever-anvil` → *Logs*. Each hour after minute 47 there's a line "Hourly backup trigger: started" (it started the job), "skipped" (GitHub's schedule already ran it) or "not-configured" (no token). An expired or wrong token shows up there as an error.
+
+Free plan: up to 5 cron triggers per account. This uses 1.
+
+## 12. After launch
 
 Follow "What you need to do after launch" in [seo-report.md](seo-report.md): Search Console, Bing, the sitemap, and sharing links with the community.
 

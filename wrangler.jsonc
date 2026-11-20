@@ -27,6 +27,10 @@
   "workers_dev": false,
   "preview_urls": false,
 
+  // Hourly backup for the price job (worker/hourly.js): at minute 47 (UTC), starts it on GitHub
+  // if GitHub's own schedule (minute 17) hasn't. Free plan: up to 5 of these per account.
+  "triggers": { "crons": ["47 * * * *"] },
+
   // Logs and errors in the Cloudflare dashboard (Workers → forever-anvil → Logs)
   "observability": { "enabled": true }
 }

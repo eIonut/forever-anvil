@@ -13,6 +13,7 @@
 //   3. Answers are kept in Cloudflare's cache here, so most requests never read KV or call Blizzard.
 //   4. Character lookups have their own per-visitor limit and a 15-minute cache per character.
 import { dataRoute } from "./routes.js";
+import { ensureHourlyRun } from "./hourly.js";
 import { createClient } from "../pipeline/blizzard.js";
 import { lookupCharacter, normalizeName } from "../pipeline/character.js";
 import optout from "../data/optout.json";
@@ -28,6 +29,12 @@ export default {
     const url = new URL(request.url);
     if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
     return noindex(await api(request, url, env, ctx));
+  },
+
+  // hourly (wrangler.jsonc "triggers"): start the price job on GitHub if its own schedule missed it
+  async scheduled(event, env, ctx) {
+    const result = await ensureHourlyRun(env);
+    console.log("Hourly backup trigger:", result);
   }
 };
 
