@@ -71,7 +71,7 @@ npx wrangler secret put BNET_CLIENT_SECRET
 
 ## 7. GitHub secrets
 
-GitHub → `eIonut/forever-tome` → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**, four times:
+GitHub → `eIonut/forever-anvil` → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**, four times:
 
 | Name | Value |
 |---|---|
