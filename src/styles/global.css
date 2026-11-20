@@ -1151,3 +1151,8 @@ html[data-contrast] .ec-cell { background: #141414; border-color: #8a8a8a; }
 @media (pointer: coarse) { .copy-name { width: 36px; height: 36px; } }
 /* Copying is for pasting into the game on a PC: on narrow screens the small buttons only crowd the tables */
 @media (max-width: 700px) { .copy-name:not(.copy-name-lg) { display: none; } }
+
+/* Wowhead tooltips: the icon beside a tooltip sets its own visibility, so hiding the tooltip
+   (src/lib/wowhead.ts hides tooltips left behind by redrawn tables) would leave the icon floating.
+   Hide the icon together with its tooltip. */
+.wowhead-tooltip[style*="visibility: hidden"] .whtt-tooltip-icon { visibility: hidden !important; }
