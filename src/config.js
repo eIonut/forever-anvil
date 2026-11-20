@@ -8,7 +8,7 @@ const config = {
 
   // Your donation page (Ko-fi, Buy Me a Coffee, Patreon, PayPal.me ...).
   // Leave empty "" to hide all donate buttons.
-  donateUrl: "",
+  donateUrl: "https://ko-fi.com/gabrielionut",
   donateLabel: "Support Forever Anvil",
 
   // Google AdSense publisher id, e.g. "ca-pub-1234567890123456".

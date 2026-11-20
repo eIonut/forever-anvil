@@ -65,6 +65,8 @@
 /* "hidden" must always hide, even on elements whose class sets a display (e.g. .btn is inline-flex) */
 [hidden] { display: none !important; }
 html { scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 12px); }
+/* scrollbars in the site's colours instead of the browser's grey ones (inherited by every scrolling box) */
+html { scrollbar-color: var(--line-strong) var(--bg-2); }
 
 body {
   margin: 0;
@@ -186,12 +188,12 @@ main { flex: 1; padding-bottom: 56px; }
 @media (max-width: 1140px) {
   .nav-toggle { display: inline-flex; }
   .tools { margin-left: auto; }
-  .topbar .btn-donate { display: none; }
+  .topbar .btn-donate .donate-label { display: none; }
   .nav { display: none; }
 }
 .topbar.compact .nav-toggle { display: inline-flex; }
 .topbar.compact .tools { margin-left: auto; }
-.topbar.compact .btn-donate { display: none; }
+.topbar.compact .btn-donate .donate-label { display: none; }
 .topbar.compact .nav { display: none; }
 /* the open menu: a panel under the header with one large row per page (icon, name, one-line description) */
 @media (max-width: 1140px) {
@@ -448,7 +450,7 @@ fieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
 .seg-buttons button.active { background: linear-gradient(#f0c962, #c99a34); color: var(--on-gold); }
 
 /* ---------- Tables ---------- */
-.table-wrap { position: relative; overflow-x: auto; border: 1px solid var(--line); border-radius: var(--radius-sm); background: rgba(0, 0, 0, .15); }
+.table-wrap { position: relative; overflow-x: auto; scrollbar-width: thin; scrollbar-color: var(--line-strong) transparent; border: 1px solid var(--line); border-radius: var(--radius-sm); background: rgba(0, 0, 0, .15); }
 table { width: 100%; border-collapse: collapse; font-size: .97rem; }
 th, td { padding: 10px 14px; text-align: left; border-bottom: 1px solid var(--line-soft); white-space: nowrap; }
 thead th { font-weight: 700; color: var(--ink-dim); background: var(--surface-2); position: sticky; top: 0; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; border-bottom-color: var(--line); }
@@ -1026,7 +1028,8 @@ span.item-icon { border-color: transparent; background: none; }
 
 /* section tabs under the house cards: stick below the header while you scroll a section */
 .ec-tabbar { position: sticky; top: var(--header-h); z-index: 30; margin: 18px -4px 0; padding: 8px 4px; background: linear-gradient(var(--bg) 75%, transparent); }
-.ec-tabs { position: relative; display: flex; gap: 4px; padding: 4px; overflow-x: auto; scrollbar-width: thin; background: var(--field); border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: 0 8px 20px rgba(0, 0, 0, .45); }
+/* one row that scrolls sideways when it doesn't fit; no scrollbar: arrows over a fade mark the hidden side (Economy.svelte) */
+.ec-tabs { position: relative; display: flex; gap: 4px; padding: 4px; overflow-x: auto; scrollbar-width: none; overscroll-behavior-x: contain; background: var(--field); border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: 0 8px 20px rgba(0, 0, 0, .45); }
 .ec-tabs button { flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 6px 14px; font: inherit; font-size: .95rem; font-weight: 700; white-space: nowrap; color: var(--ink-dim); background: none; border: 1px solid transparent; border-radius: 9px; cursor: pointer; }
 .ec-tabs button:hover { color: var(--ink); background: var(--surface-2); }
 .ec-tabs button.active { color: var(--gold-2); background: linear-gradient(#2a2219, #1c1712); border-color: var(--gold-dim); box-shadow: inset 0 -2px 0 var(--gold); }
@@ -1037,7 +1040,25 @@ span.item-icon { border-color: transparent; background: none; }
 .ec-panel > .panel, .ec-panel > section { margin-top: 10px; }
 .ec-tabs-area { scroll-margin-top: var(--header-h); }
 html[data-contrast] .ec-tabs button.active { background: #ffd257; color: #000; border-color: #fff; }
-@media (max-width: 700px) { .ec-tabs button { flex: 0 0 auto; padding: 6px 11px; font-size: .9rem; } }
+.ec-tabs::-webkit-scrollbar { display: none; }
+.ec-tabs-more {
+  position: absolute; top: 9px; bottom: 9px; width: 72px; z-index: 1; display: flex; align-items: center; padding: 0 8px;
+  border: 0; cursor: pointer; color: var(--gold-2);
+}
+.ec-tabs-more.left { left: 5px; justify-content: flex-start; border-radius: 11px 0 0 11px; background: linear-gradient(90deg, var(--field) 45%, transparent); }
+.ec-tabs-more.right { right: 5px; justify-content: flex-end; border-radius: 0 11px 11px 0; background: linear-gradient(270deg, var(--field) 45%, transparent); }
+.ec-tabs-more span {
+  display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%;
+  background: var(--surface-2); border: 1px solid var(--line-strong); box-shadow: 0 2px 8px rgba(0, 0, 0, .6);
+  transition: border-color .15s, background-color .15s;
+}
+.ec-tabs-more:hover span { border-color: var(--gold); background: var(--surface-3); }
+.ec-tabs-more.left .icon { transform: rotate(90deg); }
+.ec-tabs-more.right .icon { transform: rotate(-90deg); }
+@media (max-width: 700px) {
+  .ec-tabs button { flex: 0 0 auto; padding: 6px 11px; font-size: .9rem; }
+  .ec-tabs-more { width: 48px; padding: 0 5px; }
+}
 .ec-more { font: inherit; font-size: .85rem; font-weight: 700; color: var(--gold-2); background: none; border: 0; padding: 6px 4px; cursor: pointer; }
 .ec-more:hover { text-decoration: underline; }
 

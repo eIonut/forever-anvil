@@ -165,14 +165,33 @@
 
   $effect(() => { faction; treeScope; tab; if (groupData) tick().then(setupWowhead); });
 
-  // on narrow screens the tab strip scrolls sideways: keep the open tab in sight (without moving the page)
+  // when the tabs don't fit, the strip scrolls sideways: keep the open tab in sight (without moving the page)
   $effect(() => {
-    const strip = tabBar?.querySelector<HTMLElement>(".ec-tabs");
+    const strip = tabStrip;
     const btn = strip?.querySelector<HTMLElement>("#ec-tab-" + tab);
     if (!strip || !btn) return;
     const left = btn.offsetLeft - (strip.clientWidth - btn.offsetWidth) / 2;
     strip.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
   });
+
+  // The strip's scrollbar is hidden; instead an arrow (over a fade) shows at each edge that has more tabs past it.
+  let tabStrip: HTMLElement | undefined = $state();
+  let moreLeft = $state(false);
+  let moreRight = $state(false);
+  $effect(() => {
+    const strip = tabStrip;
+    if (!strip) return;
+    const edges = () => {
+      moreLeft = strip.scrollLeft > 2;
+      moreRight = strip.scrollLeft + strip.clientWidth < strip.scrollWidth - 2;
+    };
+    edges();
+    strip.addEventListener("scroll", edges, { passive: true });
+    const ro = new ResizeObserver(edges);
+    ro.observe(strip);
+    return () => { strip.removeEventListener("scroll", edges); ro.disconnect(); };
+  });
+  const scrollTabs = (dir: 1 | -1) => tabStrip?.scrollBy({ left: dir * tabStrip.clientWidth * 0.7, behavior: "smooth" });
 </script>
 
 <div class="wrap section" hidden={!emptyMsg}>
@@ -218,12 +237,15 @@
 
     <div class="ec-tabs-area">
     <div class="ec-tabbar" bind:this={tabBar}>
-      <div class="ec-tabs" role="tablist" aria-label="Market sections" tabindex="-1" onkeydown={tabKeys}>
+      <div class="ec-tabs" role="tablist" aria-label="Market sections" tabindex="-1" onkeydown={tabKeys} bind:this={tabStrip}>
         {#each TABS as [id, label, icon] (id)}
           <button type="button" role="tab" id="ec-tab-{id}" aria-selected={tab === id} aria-controls="ec-panel" tabindex={tab === id ? 0 : -1}
             class:active={tab === id} onclick={() => selectTab(id)}><Icon name={icon} size={20} />{label}</button>
         {/each}
       </div>
+      <!-- mouse helpers only: keyboard users move with the arrow keys, touch users swipe -->
+      {#if moreLeft}<button type="button" class="ec-tabs-more left" tabindex="-1" aria-hidden="true" title="More sections" onclick={() => scrollTabs(-1)}><span><Icon name="chevron" size={18} line /></span></button>{/if}
+      {#if moreRight}<button type="button" class="ec-tabs-more right" tabindex="-1" aria-hidden="true" title="More sections" onclick={() => scrollTabs(1)}><span><Icon name="chevron" size={18} line /></span></button>{/if}
     </div>
 
     <div id="ec-panel" class="ec-panel" role="tabpanel" aria-labelledby="ec-tab-{tab}">
