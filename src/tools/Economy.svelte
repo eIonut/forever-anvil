@@ -105,15 +105,68 @@
     setupWowhead();
   }
 
+  // The sections below the house cards, one tab each, so nothing is more than a click away.
+  // The open tab is in the address (/economy#flips: links open it) and remembered for the next visit.
+  const TABS = [
+    ["board", "Trade board", "crafting"],
+    ["movers", "Price changes & deals", "economy"],
+    ["flips", "Blackwater flips", "neutral"],
+    ["gaps", "Alliance vs Horde", "pvp"],
+    ["gold", "Where the gold is", "prices"],
+    ["jewels", "Crown jewels", "items"],
+    ["bazaar", "The bazaar", "flips"],
+  ] as const;
+  type TabId = (typeof TABS)[number][0];
+  const TAB_KEY = "codex-econ-tab";
+  const isTab = (t: string | null | undefined): t is TabId => !!t && TABS.some(([id]) => id === t);
+  let tab = $state<TabId>("board");
+  let tabBar: HTMLElement | undefined = $state();
+
+  function selectTab(t: TabId, focus = false) {
+    tab = t;
+    history.replaceState(history.state, "", "#" + t);
+    try { localStorage.setItem(TAB_KEY, t); } catch { /* storage blocked: not remembered */ }
+    if (focus) document.getElementById("ec-tab-" + t)?.focus();
+    // when the bar is stuck under the header, bring the new section's top into view
+    if (tabBar && tabBar.getBoundingClientRect().top <= parseFloat(getComputedStyle(tabBar).top) + 1) {
+      tick().then(() => tabBar?.parentElement?.scrollIntoView({ block: "start" }));
+    }
+  }
+
+  // arrow keys, Home and End move between tabs (the usual tab-list keys)
+  function tabKeys(e: KeyboardEvent) {
+    const i = TABS.findIndex(([id]) => id === tab);
+    const to = e.key === "ArrowRight" ? i + 1 : e.key === "ArrowLeft" ? i - 1 : e.key === "Home" ? 0 : e.key === "End" ? TABS.length - 1 : null;
+    if (to == null) return;
+    e.preventDefault();
+    selectTab(TABS[(to + TABS.length) % TABS.length][0], true);
+  }
+
   onMount(() => {
     const p = getMarketPrefs();
     region = p.region || "eu"; group = p.group || ""; faction = p.faction || "horde";
+    const fromHash = location.hash.slice(1);
+    let saved: string | null = null;
+    try { saved = localStorage.getItem(TAB_KEY); } catch { /* storage blocked */ }
+    if (isTab(fromHash)) tab = fromHash; else if (isTab(saved)) tab = saved;
     loadRegion();
     const timer = setInterval(() => (now = Date.now()), 30_000);
-    return () => clearInterval(timer);
+    // a link to another section of this page (/economy#flips) only changes the address: follow it
+    const onHash = () => { const h = location.hash.slice(1); if (isTab(h) && h !== tab) selectTab(h); };
+    window.addEventListener("hashchange", onHash);
+    return () => { clearInterval(timer); window.removeEventListener("hashchange", onHash); };
   });
 
-  $effect(() => { faction; treeScope; if (groupData) tick().then(setupWowhead); });
+  $effect(() => { faction; treeScope; tab; if (groupData) tick().then(setupWowhead); });
+
+  // on narrow screens the tab strip scrolls sideways: keep the open tab in sight (without moving the page)
+  $effect(() => {
+    const strip = tabBar?.querySelector<HTMLElement>(".ec-tabs");
+    const btn = strip?.querySelector<HTMLElement>("#ec-tab-" + tab);
+    if (!strip || !btn) return;
+    const left = btn.offsetLeft - (strip.clientWidth - btn.offsetWidth) / 2;
+    strip.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+  });
 </script>
 
 <div class="wrap section" hidden={!emptyMsg}>
@@ -156,9 +209,20 @@
       {/each}
     </section>
 
-    {#if current}
-      <TradeBoard houseItems={current.house.items} changes={series?.board?.[current.id]} {houseName} salesHours={current.house.salesHours} />
+    <div class="ec-tabs-area">
+    <div class="ec-tabbar" bind:this={tabBar}>
+      <div class="ec-tabs" role="tablist" aria-label="Market sections" tabindex="-1" onkeydown={tabKeys}>
+        {#each TABS as [id, label, icon] (id)}
+          <button type="button" role="tab" id="ec-tab-{id}" aria-selected={tab === id} aria-controls="ec-panel" tabindex={tab === id ? 0 : -1}
+            class:active={tab === id} onclick={() => selectTab(id)}><Icon name={icon} size={20} />{label}</button>
+        {/each}
+      </div>
+    </div>
 
+    <div id="ec-panel" class="ec-panel" role="tabpanel" aria-labelledby="ec-tab-{tab}">
+    {#if tab === "board" && current}
+      <TradeBoard houseItems={current.house.items} changes={series?.board?.[current.id]} {houseName} salesHours={current.house.salesHours} />
+    {:else if tab === "gold" && current}
       <section class="panel" aria-labelledby="ec-gold-title">
         <div class="section-head">
           <h2 id="ec-gold-title">Where the gold is</h2>
@@ -170,14 +234,21 @@
         <p class="faint ec-lead">Gold listed per kind of item, at typical prices. Bigger box, more gold.</p>
         <Treemap values={treeValues} scopeLabel={treeScope === "house" ? houseName + " auction house" : "whole ruleset"} />
       </section>
+    {:else if tab === "movers"}
+      <Movers {region} {group} houseId={current?.id ?? null} house={current?.house} />
+    {:else if tab === "flips"}
+      <BlackwaterFlips group={groupData} {faction} />
+    {:else if tab === "gaps"}
+      <FactionGaps group={groupData} />
+    {:else if tab === "jewels"}
+      <CrownJewels group={groupData} />
+    {:else if tab === "bazaar" && current}
+      <Bazaar house={current.house} {houseName} />
+    {:else}
+      <div class="panel"><p class="faint">Nothing to show for this auction house right now.</p></div>
     {/if}
-
-    <Movers {region} {group} houseId={current?.id ?? null} house={current?.house} />
-
-    <BlackwaterFlips group={groupData} {faction} />
-    <FactionGaps group={groupData} />
-    <CrownJewels group={groupData} />
-    {#if current}<Bazaar house={current.house} {houseName} />{/if}
+    </div>
+    </div>
   {/if}
 
   {@render children?.()}

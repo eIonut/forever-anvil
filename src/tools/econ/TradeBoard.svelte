@@ -33,13 +33,13 @@
           <h3 class="mini-head">{b.title}</h3>
           <table class="ec-board-table" id="ec-board-{b.k}">
             <caption class="sr-only">{b.title}: lowest price, typical price, change since about a day ago and units sold per day</caption>
-            <thead class="sr-only"><tr><th scope="col">Item</th><th scope="col">Lowest</th><th scope="col">Typical</th><th scope="col">Change</th><th scope="col">Sold per day</th></tr></thead>
+            <thead><tr><th scope="col">Item</th><th scope="col" title="The cheapest single listing">Lowest</th><th scope="col" title="Average of the cheapest 10% of units: what you would really pay">Typical</th><th scope="col" title="Change in the typical price since about a day ago"><span aria-hidden="true" class="ec-24h">24h</span><span class="sr-only">Change since about a day ago</span></th><th scope="col" title="Roughly how many sell per day">Sold</th></tr></thead>
             <tbody>
               {#each open[b.k] ? b.rows : b.rows.slice(0, SHOW) as r (r.id)}
                 <tr>
                   <th scope="row"><ItemLink id={r.id} name={itemName(r.id)} /></th>
-                  <td class="ec-dim" title="Lowest price"><Money c={r.a[0]} /></td>
-                  <td title="Typical price"><Money c={r.a[1]} /></td>
+                  <td class="ec-dim" title="Lowest price"><Money c={r.a[0]} short /></td>
+                  <td title="Typical price"><Money c={r.a[1]} short /></td>
                   <td>{#if r.chg != null}<span class="pct {r.chg >= 0 ? 'up' : 'down'}">{r.chg >= 0 ? "▲" : "▼"} {pctText(r.chg)}</span>{:else}<span class="faint">-</span>{/if}</td>
                   <td class="ec-dim ec-sold"><SoldPerDay a={r.a} hours={salesHours} /></td>
                 </tr>
@@ -53,6 +53,6 @@
         </div>
       {/each}
     </div>
-    <p class="faint" style="margin-top:10px">Each row: lowest price, typical price (the cheapest 10% of units), ▲▼ change in the typical price since about a day ago, and roughly how many sell per day.</p>
+    <p class="faint" style="margin-top:10px"><b>Lowest</b> is the cheapest single listing. <b>Typical</b> is the average of the cheapest 10% of units, what you would really pay for a few. <b>24h</b> is the change in the typical price since about a day ago, and <b>Sold</b> roughly how many sell each day.</p>
   {/if}
 </section>

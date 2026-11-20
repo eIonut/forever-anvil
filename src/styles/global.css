@@ -904,7 +904,14 @@ span.item-icon { border-color: transparent; background: none; }
 .ec-tiles .stat span { display: block; font-size: .85rem; }
 .ec-tiles .stat span:first-child { font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; color: var(--gold-dim); }
 @media (max-width: 960px) { .ec-tiles { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 520px) { .ec-tiles { grid-template-columns: 1fr; } }
+/* phones: two small tiles per row, so the section tabs come into view sooner */
+@media (max-width: 520px) {
+  .ec-tiles { gap: 8px; }
+  .ec-tiles .stat { padding: 10px; }
+  .ec-tiles .stat-icon > .icon { display: none; }
+  .ec-tiles .stat b { font-size: 1.3rem; }
+  .ec-tiles .stat span:last-child { display: none; }
+}
 
 /* the three houses */
 .ec-houses { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -918,7 +925,14 @@ span.item-icon { border-color: transparent; background: none; }
 .ec-mine-tag { font-family: var(--font); font-size: .68rem; letter-spacing: .08em; text-transform: uppercase; background: var(--gold); color: #1d1306; padding: 1px 7px; border-radius: 999px; font-weight: 700; }
 .ec-share { display: block; width: 80%; height: 6px; background: rgba(0,0,0,.45); border-radius: 3px; overflow: hidden; margin: 4px 0; }
 .ec-share i { display: block; height: 100%; background: var(--gold-dim); border-radius: 3px; }
-@media (max-width: 700px) { .ec-houses { grid-template-columns: 1fr; } }
+/* phones: the three houses side by side, name and auction count only */
+@media (max-width: 700px) {
+  .ec-houses { gap: 6px; }
+  .ec-house { padding: 10px 4px; gap: 2px; }
+  .ec-house-name { flex-direction: column; gap: 3px; font-size: .82rem; }
+  .ec-house b { font-size: 1.15rem; }
+  .ec-house-sub, .ec-share, .ec-mine-tag { display: none; }
+}
 
 /* tables under charts */
 .ec-table { margin-top: 10px; }
@@ -927,12 +941,34 @@ span.item-icon { border-color: transparent; background: none; }
 
 /* trade board */
 .ec-boards { display: grid; grid-template-columns: repeat(auto-fill, minmax(330px, 1fr)); gap: 10px 22px; align-items: start; }
+/* each group title centred over its table, between two thin gold rules */
+.ec-board > .mini-head { display: flex; align-items: center; gap: 12px; justify-content: center; text-align: center; margin: 14px 0 6px; color: var(--gold); }
+.ec-board > .mini-head::before, .ec-board > .mini-head::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, transparent, var(--gold-dim)); }
+.ec-board > .mini-head::after { background: linear-gradient(90deg, var(--gold-dim), transparent); }
 .ec-board-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
 .ec-board-table th, .ec-board-table td { padding: 4px 4px; border-bottom: 1px solid var(--line-soft); text-align: right; white-space: nowrap; }
 .ec-board-table th { text-align: left; font-weight: 400; white-space: normal; }
 .ec-board-table a.item-link { color: var(--ink); text-decoration: none; }
 .ec-board-table a.item-link:hover { color: var(--gold-2); text-decoration: underline; }
 .ec-board-table .ec-dim { opacity: .75; }
+.ec-board-table thead th { position: static; padding: 2px 4px 5px; background: none; text-align: right; font-size: .7rem; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--gold-dim); border-bottom: 1px solid var(--line); cursor: help; }
+.ec-board-table thead .ec-24h { text-transform: none; }
+.ec-board-table thead th:first-child { text-align: left; cursor: default; }
+
+/* section tabs under the house cards: stick below the header while you scroll a section */
+.ec-tabbar { position: sticky; top: var(--header-h); z-index: 30; margin: 18px -4px 0; padding: 8px 4px; background: linear-gradient(var(--bg) 75%, transparent); }
+.ec-tabs { position: relative; display: flex; gap: 4px; padding: 4px; overflow-x: auto; scrollbar-width: thin; background: var(--field); border: 1px solid var(--line-strong); border-radius: 12px; box-shadow: 0 8px 20px rgba(0, 0, 0, .45); }
+.ec-tabs button { flex: 1 0 auto; display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 44px; padding: 6px 14px; font: inherit; font-size: .95rem; font-weight: 700; white-space: nowrap; color: var(--ink-dim); background: none; border: 1px solid transparent; border-radius: 9px; cursor: pointer; }
+.ec-tabs button:hover { color: var(--ink); background: var(--surface-2); }
+.ec-tabs button.active { color: var(--gold-2); background: linear-gradient(#2a2219, #1c1712); border-color: var(--gold-dim); box-shadow: inset 0 -2px 0 var(--gold); }
+.ec-tabs button:focus-visible { outline: 3px solid var(--focus); outline-offset: -3px; }
+.ec-tabs .wow-icon { border-radius: 5px; box-shadow: 0 0 0 1px #000; }
+.ec-tabs button:not(.active) .wow-icon { filter: saturate(.6) brightness(.85); }
+.ec-panel { scroll-margin-top: calc(var(--header-h) + 76px); }
+.ec-panel > .panel, .ec-panel > section { margin-top: 10px; }
+.ec-tabs-area { scroll-margin-top: var(--header-h); }
+html[data-contrast] .ec-tabs button.active { background: #ffd257; color: #000; border-color: #fff; }
+@media (max-width: 700px) { .ec-tabs button { flex: 0 0 auto; padding: 6px 11px; font-size: .9rem; } }
 .ec-more { font: inherit; font-size: .85rem; font-weight: 700; color: var(--gold-2); background: none; border: 0; padding: 6px 4px; cursor: pointer; }
 .ec-more:hover { text-decoration: underline; }
 
