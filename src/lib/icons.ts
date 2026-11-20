@@ -74,6 +74,9 @@ export type IconName = keyof typeof ICONS;
 // The comment after each entry is the in-game icon name, for swapping it later.
 export const WOW_ICONS = {
   prices: "/img/wow/prices.jpg",       // inv_misc_coin_01: pile of gold coins
+  // My watchlist (menu, page banner, home card). The star buttons next to item names pass `line`,
+  // so they keep the line star.
+  star: "/img/wow/watchlist.jpg",      // inv_misc_spyglass_02: brass spyglass (keeping an eye on prices)
   economy: "/img/wow/economy.jpg",     // inv_misc_bag_10: coin sack
   flips: "/img/wow/flips.jpg",         // inv_misc_coin_17: a single gold coin (flip it)
   items: "/img/wow/items.jpg",         // inv_misc_bag_07: leather bag
