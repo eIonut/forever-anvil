@@ -1,0 +1,30 @@
+---
+import GuideLayout from "../../layouts/GuideLayout.astro";
+---
+<GuideLayout slug="talent-calculator" updated="2026-11-21">
+  <h2>Talent points and levels</h2>
+  <p>You get your first talent point at level 10 and one more every level after that, so a level 60 character has <b>51 points</b> to spend across the three trees of their class. The <a href="/talents">Talent calculator</a> uses WoW: Forever's own talent trees, so every talent, rank and requirement matches what you see in game.</p>
+  <p>Set <b>Level</b> to plan for a character that isn't 60 yet: the calculator then gives you only the points you'd have at that level. That's handy for planning which talents to pick first while you level.</p>
+
+  <h2>The rules of a tree</h2>
+  <ul class="gems">
+    <li><b>Rows unlock with points.</b> Each row needs 5 more points spent in that tree than the one above it: row 2 needs 5, row 3 needs 10, and so on down the tree.</li>
+    <li><b>Some talents need another one first.</b> An arrow points from a talent to the one that needs it, and the first must be at full rank before the second unlocks.</li>
+    <li><b>Ranks.</b> Most talents take several points; the small numbers show the rank you have and the most it can have.</li>
+  </ul>
+  <p>Click a talent to learn a rank; right-click to unlearn one. If you try something the rules don't allow, the calculator tells you why, for example that you need more points in the tree first. Select a talent to see what its current and next rank do.</p>
+
+  <h2>Planning a build</h2>
+  <ol>
+    <li>Pick your class.</li>
+    <li>Decide the deep talent you want at the bottom of your main tree: everything else is about reaching it.</li>
+    <li>Spend points down that tree, taking the talents that matter for your role on the way.</li>
+    <li>Spend what's left in the other trees' top rows, where cheap, strong talents often sit.</li>
+    <li>Check the point count in <b>Your build</b>, and use <b>Reset all</b> to try a different idea.</li>
+  </ol>
+  <p class="tip">Leveling and endgame builds are often different. Make one at level 40 for questing and one at 60 for dungeons and raids, and keep both links.</p>
+
+  <h2>Sharing a build</h2>
+  <p>Your whole build lives in the page address: class, every point and the level. Click <b>Copy build link</b> and paste it in your guild chat, a forum post or a note to yourself. Whoever opens it sees exactly your build, and can change it without changing yours. The calculator also remembers your last build in your browser, so it's there next time you visit.</p>
+  <p>Each class also has its own page, linked at the top of the <a href="/talents">Talent calculator</a>, so you can bookmark the one you play and go straight to it.</p>
+</GuideLayout>

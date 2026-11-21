@@ -1,0 +1,43 @@
+---
+import GuideLayout from "../../layouts/GuideLayout.astro";
+---
+<GuideLayout slug="profession-leveling" updated="2026-11-21">
+  <h2>Why leveling guides go out of date</h2>
+  <p>Most profession leveling guides are a fixed list: craft 40 of this, then 25 of that. They were right on the day they were written. On a live auction house, prices move every day, and the "cheap" recipe from the guide can easily cost three times as much as another one that gives the same skill points today.</p>
+  <p>The <a href="/leveling">Profession leveling</a> calculator doesn't use a fixed list. It prices every recipe at this hour's auction house prices and picks the cheapest one at every single skill level.</p>
+
+  <h2>Recipe colours and skill-up chances</h2>
+  <p>Every recipe has a colour that depends on your current skill:</p>
+  <ul class="gems">
+    <li><b class="sk-o">Orange</b>: every craft gives a skill point.</li>
+    <li><b class="sk-y">Yellow</b>: most crafts give a point.</li>
+    <li><b class="sk-g">Green</b>: some crafts do, fewer and fewer as you go.</li>
+    <li><b class="sk-x">Grey</b>: no more skill points.</li>
+  </ul>
+  <p>Between the yellow and grey skill, the chance falls in a straight line. Halfway from yellow to grey, it's about one point every two crafts. So a recipe whose materials cost 10 silver is not "10 silver per point" once it turns green: it may be 20 or 30 silver per point. The calculator works with this <b>expected</b> cost per skill point, which is why it often switches recipe earlier than a written guide would.</p>
+
+  <h2>Using the calculator</h2>
+  <ol>
+    <li>Pick your profession, your skill now and the skill you want (1 to 300 by default).</li>
+    <li>Choose what happens to what you make: <b>keep it</b> (only materials count), <b>sell it to a vendor</b>, or <b>sell it on the AH</b>. Selling the results takes their value off the cost, which can make a different recipe the cheapest.</li>
+    <li>Tick <b>Include patterns and plans</b> if you're willing to buy or hunt recipes that aren't taught by a trainer. The calculator then lists the patterns you'd need.</li>
+    <li>Read the <b>Step by step</b> table: which recipe to craft between which skills, how many times, and what it costs.</li>
+    <li>Use the <b>Shopping list</b>: every material for the whole route, with the auction house where it's cheapest.</li>
+  </ol>
+  <p class="tip">Materials are priced on your faction's auction house or on Blackwater, whichever is cheaper, because those are the two you can buy from. If Blackwater is cheaper for a material, the list says so.</p>
+
+  <h2>Things to know before you buy</h2>
+  <ul class="gems">
+    <li><b>Trainer fees aren't included.</b> You'll pay the trainer at each rank (Apprentice, Journeyman, Expert, Artisan) and for each new recipe.</li>
+    <li><b>Trainer recipes are counted from their yellow skill.</b> The trainer sets the exact skill you can learn them at, and that isn't in the game files. You may be able to learn some a little earlier, so the real cost can only be a bit lower, never higher.</li>
+    <li><b>The count is an average.</b> With yellow and green recipes, luck decides the exact number of crafts. Buy a few extra materials for the last recipe of each step.</li>
+    <li><b>Crafting your own materials</b> (smelting bars, curing leather) also gives points in some professions; the calculator doesn't count those.</li>
+  </ul>
+
+  <h2>Gathering professions</h2>
+  <p>Mining, Herbalism and Skinning level by gathering, not crafting, so they have no recipe route. They pair well with a crafting profession: the materials you gather are exactly the ones a crafting route needs, and the shopping list shows how much gold that saves you.</p>
+
+  <h2>Each profession has its own page</h2>
+  <p>Every crafting profession has a ready-made 1–300 page under <a href="/leveling">Profession leveling</a>, rebuilt every day from current prices. Those are handy to bookmark or share; the calculator is for when you're starting from a skill other than 1 or want to change the options.</p>
+  <p>Once you have the route, the <a href="/planner">Crafting planner</a> can turn it into one combined shopping list with anything else you plan to craft.</p>
+</GuideLayout>

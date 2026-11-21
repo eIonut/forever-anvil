@@ -1,0 +1,32 @@
+---
+import GuideLayout from "../../layouts/GuideLayout.astro";
+---
+<GuideLayout slug="vendor-flips" updated="2026-11-21">
+  <h2>What a vendor flip is</h2>
+  <p>Every item that can be sold to a merchant has a fixed vendor price, and any merchant pays it. Sometimes players list items on the auction house for <b>less</b> than that: they're in a hurry, they misread gold and silver, or they never checked. Buy those listings, walk to the nearest vendor, sell them, and the difference is yours. No waiting for a buyer, no deposit, no risk the price drops.</p>
+  <p>The <a href="/flips">Vendor flips</a> page checks every listing on your auction house against Blizzard's vendor price for the item and lists the ones that pay, with the profit per item and in total.</p>
+
+  <h2>How the list is filtered</h2>
+  <ul class="gems">
+    <li><b>Buyout only.</b> Listings you can only bid on are skipped: you can't be sure you'll win them.</li>
+    <li><b>A real margin.</b> A flip must earn at least 10 copper <b>and</b> at least 5% of the vendor price per item. A 2-copper profit on a 3-gold item isn't worth the walk, or the risk that the vendor price has changed.</li>
+    <li><b>Only the cheap units count.</b> "Units below vendor price" is how many you can actually flip. If 40 are listed but only 12 are under the vendor price, buying the other 28 loses money.</li>
+  </ul>
+
+  <h2>Doing it without getting burned</h2>
+  <ol>
+    <li><b>Be quick.</b> The list is a snapshot taken about once an hour, and other players hunt flips too. The cheapest listings are often bought within minutes.</li>
+    <li><b>Check the tooltip in game.</b> Hover the item in the auction house: the vendor price is shown in its tooltip. If it doesn't match, don't buy.</li>
+    <li><b>Mind your bags.</b> Big flips in many stacks fill bags fast. Every capital has merchants a short walk from the auctioneers, so sell between batches.</li>
+    <li><b>Start small.</b> Buy one stack, sell it, and confirm the gold arrived before you buy the rest.</li>
+  </ol>
+  <p class="tip">The page remembers your auction house, so it takes seconds to check whenever you're standing near an auctioneer. The total profit column tells you at a glance whether today's flips are worth the trip.</p>
+
+  <h2>Cross-house flips</h2>
+  <p>The same item can be much cheaper on the neutral Blackwater auction house than on your own faction's house. The <a href="/economy">Economy</a> page has a <b>Cross-house flips</b> list for that: it takes the cheapest Blackwater listing, compares it with the market price on your faction's house after the 5% auction house cut, and shows items where the profit is at least 50 copper and at least 10% of what you pay.</p>
+  <p>Unlike a vendor flip, this one isn't guaranteed. You still have to list the item and wait for a buyer, and you pay a deposit that you lose if it doesn't sell. To keep the list realistic, items with fewer than five listings on your house are left out: if almost nobody sells it, the market price is just a guess.</p>
+  <p>Next to it, <b>Faction price gaps</b> shows items where the Alliance and Horde markets disagree by 5% or more. You can't trade between factions directly, but the gap tells you which side is short of an item, and a friend or alt on the other faction can use Blackwater to move it across.</p>
+
+  <h2>What isn't counted</h2>
+  <p>None of the flip lists include auction deposits, the time spent, or the chance someone buys the listing before you. Treat them as a shortlist to check, not a promise.</p>
+</GuideLayout>

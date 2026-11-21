@@ -32,14 +32,14 @@ const config = {
   cfAnalyticsToken: "777094ec4e76454894b4aab0836d5bd9",
 
   // Contact email shown on the About page (optional).
-  contactEmail: "",
+  contactEmail: "paraforthewin@gmail.com",
 
   // Where the price tools load data from. "/api" = the Cloudflare Worker (worker/index.js) on the
   // live site; `npm run dev` answers the same addresses from the local ./out folder.
   pricesApi: "/api",
 
   // Date of the last content update (shown in the footer).
-  lastUpdated: "2026-11-19"
+  lastUpdated: "2026-11-21"
 };
 
 export default config;

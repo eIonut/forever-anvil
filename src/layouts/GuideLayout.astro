@@ -1,0 +1,62 @@
+---
+// The frame of every guide in src/pages/guides/: banner with breadcrumbs, the article, a button to
+// the tool it explains, and links to the other guides. Title, description and icon come from
+// src/data/guides.ts, so the page only passes its slug:
+//   <GuideLayout slug="vendor-flips"> <h2>…</h2><p>…</p> </GuideLayout>
+import BaseLayout from "./BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import AdSlot from "../components/AdSlot.astro";
+import Icon from "../components/Icon.astro";
+import { GUIDES, guideBySlug, guideUrl } from "../data/guides";
+
+interface Props {
+  slug: string;
+  /** date the text was last checked, YYYY-MM-DD */
+  updated: string;
+}
+
+const { slug, updated } = Astro.props;
+const g = guideBySlug(slug);
+if (!g) throw new Error(`Unknown guide "${slug}": add it to src/data/guides.ts`);
+const others = GUIDES.filter((x) => x.slug !== slug);
+const site = Astro.site ? Astro.site.href.replace(/\/$/, "") : "";
+const updatedText = new Date(updated + "T12:00:00Z").toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+
+const jsonld = [
+  { "@context": "https://schema.org", "@type": "Article", headline: g.title, description: g.desc,
+    dateModified: updated, mainEntityOfPage: site + guideUrl(slug),
+    author: { "@type": "Organization", name: "Forever Anvil", url: site + "/about" },
+    publisher: { "@type": "Organization", name: "Forever Anvil", url: site + "/" } },
+  { "@context": "https://schema.org", "@type": "BreadcrumbList", itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: site + "/" },
+    { "@type": "ListItem", position: 2, name: "Guides", item: site + "/guides" },
+    { "@type": "ListItem", position: 3, name: g.title },
+  ] },
+];
+---
+<BaseLayout title={`${g.title} | Forever Anvil`} description={g.desc} page="guides" jsonld={jsonld}>
+  <PageHero icon={g.icon} eyebrow="Guide" title={g.title} facts={[{ icon: "clock", text: `Updated ${updatedText}` }]}>
+    <Fragment slot="before"><nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/guides">Guides</a> › {g.title}</nav></Fragment>
+    {g.desc}
+    <Fragment slot="actions"><a class="btn" href={g.tool.href}>{g.tool.label}<Icon name="arrow" size={18} /></a></Fragment>
+  </PageHero>
+
+  <div class="wrap section">
+    <article class="panel prose">
+      <slot />
+      <p class="guide-cta"><a class="btn" href={g.tool.href}>{g.tool.label}<Icon name="arrow" size={18} /></a></p>
+      <p class="faint">Game data provided by Blizzard Entertainment. Forever Anvil is a fan site and is not affiliated with or endorsed by Blizzard.</p>
+    </article>
+  </div>
+
+  <div class="wrap"><AdSlot name="bottom" /></div>
+
+  <nav class="wrap section" aria-labelledby="more-guides">
+    <h2 id="more-guides">More guides</h2>
+    <ul class="guide-list">
+      {others.map((o) => (
+        <li><a href={guideUrl(o.slug)}><span class="guide-icon"><Icon name={o.icon} size={36} /></span><span><b>{o.title}</b><span class="faint">{o.desc}</span></span></a></li>
+      ))}
+    </ul>
+  </nav>
+</BaseLayout>

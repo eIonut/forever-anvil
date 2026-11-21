@@ -1,0 +1,37 @@
+---
+import GuideLayout from "../../layouts/GuideLayout.astro";
+---
+<GuideLayout slug="crafting-for-profit" updated="2026-11-21">
+  <h2>The one sum that matters</h2>
+  <p>A craft makes gold when what you sell it for, after the auction house takes its cut, is more than the materials cost you. That's all the <a href="/crafting">Craft profits</a> table does, for every recipe of every profession, at this hour's prices on the auction house you pick:</p>
+  <p class="tip"><b>Profit</b> = auction house price of the result × 0.95 (the 5% cut) − cost of all materials</p>
+  <p>Sort by profit and the best recipes rise to the top. The rest of this guide is about the things that sum can't see, because that's where crafters lose gold.</p>
+
+  <h2>Where the material prices come from</h2>
+  <p>Each material is priced at its <b>market price</b>: the average of the cheapest 10% of units listed on that auction house. Some materials, like threads, dyes, flux and vials, are sold by trade vendors and rarely appear on the auction house; for those we use Blizzard's vendor price. Open a recipe to see which source was used for each material.</p>
+  <p>If a recipe shows <b>"?"</b> instead of a profit, at least one material has no price at all: nobody is selling it right now and no vendor does. You'll need to farm it, or check again later.</p>
+  <p>Gathered your own materials? They still have a price. Herbs you picked could have been sold, so the table is right to count them: a craft that "costs nothing" because you farmed the ore can still earn less than selling the ore.</p>
+
+  <h2>Will it actually sell?</h2>
+  <p>A profit of 5 gold means nothing if nobody buys the item. The <b>Sold/day</b> column estimates how many of the crafted item sell per day on that auction house. Blizzard only tells us what's for sale, not what sold, so we work it out from the hourly snapshots of the last seven days. A stack that shrinks was partly bought. A listing that vanishes with hours still left was bought or cancelled, and if a cheaper listing of the same item is still up, we assume it was cancelled (usually to undercut) and don't count it. Listings that vanish near the end of their time may simply have expired, so they don't count either. The result is a cautious estimate: real sales are, if anything, a little higher.</p>
+  <ul class="gems">
+    <li><b>High profit, high sales</b>: the recipes everyone wants. Expect competition and undercutting.</li>
+    <li><b>High profit, low sales</b>: fine for a few at a time. Don't craft twenty.</li>
+    <li><b>Low profit, high sales</b>: steady small earners, good for skill-ups you need anyway.</li>
+  </ul>
+
+  <h2>Reading the skill numbers</h2>
+  <p>The <b>Skill</b> column shows four numbers in the game's colours. Orange is the skill you need to learn the recipe; then come the skills where it turns yellow, green and grey. A grey recipe no longer gives skill points. For trainer recipes the trainer decides the exact skill, so we show "≤" the highest it can be.</p>
+  <p>Under each recipe you'll see where it's learned: from a trainer, automatically, or from a pattern, plan or formula. Patterns link to Wowhead, which shows where they drop or who sells them. A profitable recipe from a rare drop is a profitable recipe few others can make.</p>
+
+  <h2>What the table leaves out</h2>
+  <ul class="gems">
+    <li><b>Deposits</b> on listings that don't sell.</li>
+    <li><b>Skill-ups</b>: a recipe that loses a little gold can still be the right choice while you level. See <a href="/guides/profession-leveling">leveling a profession</a>.</li>
+    <li><b>Procs and extra results</b> from recipes that sometimes make more than one item.</li>
+  </ul>
+
+  <h2>From a list to a shopping trip</h2>
+  <p>Found a few recipes worth making? Add them to the <a href="/planner">Crafting planner</a>. It adds up the materials of everything in your plan into one shopping list, says which to buy on the auction house and which from a vendor, and lets you type in what you already have in your bags so you only buy the rest. Copy the list and take it to the auctioneer.</p>
+  <p>Each recipe also has its own page under <a href="/recipe">Recipes by profession</a>, with its cost and profit on every auction house, which is handy for spotting the house where a craft pays best.</p>
+</GuideLayout>

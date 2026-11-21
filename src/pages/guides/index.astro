@@ -1,0 +1,30 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import PageHero from "../../components/PageHero.astro";
+import Icon from "../../components/Icon.astro";
+import { GUIDES, guideUrl } from "../../data/guides";
+
+const site = Astro.site ? Astro.site.href.replace(/\/$/, "") : "";
+const jsonld = {
+  "@context": "https://schema.org", "@type": "ItemList", name: "Forever Anvil guides",
+  itemListElement: GUIDES.map((g, i) => ({ "@type": "ListItem", position: i + 1, name: g.title, url: site + guideUrl(g.slug) })),
+};
+---
+<BaseLayout
+  title="WoW: Forever Gold, Crafting & Gear Guides | Forever Anvil"
+  description="Guides for WoW: Forever: reading auction house prices, vendor flips, crafting for profit, cheap profession leveling, Waylaid Crates, gear upgrades and talent builds."
+  page="guides"
+  jsonld={jsonld}
+>
+  <PageHero icon="guides" eyebrow="Guides" title="Guides">
+    How the auction house, crafting and gear work in WoW: Forever, and how to get the most out of each tool on this site.
+  </PageHero>
+
+  <div class="wrap section">
+    <ul class="guide-list">
+      {GUIDES.map((g) => (
+        <li><a href={guideUrl(g.slug)}><span class="guide-icon"><Icon name={g.icon} size={36} /></span><span><b>{g.title}</b><span class="faint">{g.desc}</span></span></a></li>
+      ))}
+    </ul>
+  </div>
+</BaseLayout>

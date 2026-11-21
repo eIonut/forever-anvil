@@ -11,6 +11,7 @@ import { itemCategories, loadCatalog, loadTalents, professions, MIN_PROFESSION_R
 import { categoryUrl, levelingUrl, professionUrl, talentClassUrl } from "../lib/urls";
 import { builtRoute, GATHERING } from "../data/leveling";
 import { moneyText, num } from "../lib/format";
+import { GUIDES, guideUrl } from "../data/guides";
 
 // "Browse" links to the hub pages, so every item, recipe and class is a few clicks from here
 const cat = loadCatalog();
@@ -177,6 +178,15 @@ const STEPS: { icon: IconName; title: string; text: string }[] = [
       </ul>
     </section>
   ))}
+
+  <section class="wrap section" aria-labelledby="guides-title">
+    <div class="group-head"><h2 id="guides-title">Guides</h2><p>How the auction house, crafting and gear work in WoW: Forever, and how to use each tool. <a href="/guides">All guides</a></p></div>
+    <ul class="guide-list">
+      {GUIDES.map((g) => (
+        <li><a href={guideUrl(g.slug)}><span class="guide-icon"><Icon name={g.icon} size={36} /></span><span><b>{g.title}</b><span class="faint">{g.desc}</span></span></a></li>
+      ))}
+    </ul>
+  </section>
 
   {BROWSE.length > 0 && (
     <section class="wrap section" aria-labelledby="browse-title">

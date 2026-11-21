@@ -3,26 +3,61 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import PageHero from "../components/PageHero.astro";
 import DonateBox from "../components/DonateBox.astro";
 import config from "../config.js";
+import { GUIDES, guideUrl } from "../data/guides";
 ---
 <BaseLayout
   title="About & Credits | Forever Anvil"
-  description="About Forever Anvil, an unofficial WoW: Forever fan site. Credits, sources and legal notices."
+  description="About Forever Anvil, an unofficial WoW: Forever fan site: who runs it, where the data comes from, how prices are worked out, how it's funded, credits and legal notices."
   page="about"
 >
   <PageHero icon="about" eyebrow="About" title="About Forever Anvil">
-    Fan-made tools for World of Warcraft: Forever.
+    Free, fan-made tools for World of Warcraft: Forever players who trade, craft and gear up.
   </PageHero>
 
   <div class="wrap section grid grid-2">
     <div class="panel">
       <h2>What this site is</h2>
-      <p>Forever Anvil is a small set of free tools for WoW: Forever: auction house prices, vendor flips, crafting profits and a crafting planner, a talent calculator and a character lookup.</p>
-      <p>Prices, recipes, talents and character profiles come from the official Blizzard API and are refreshed automatically.</p>
-      {config.contactEmail && (
-        <p id="contact">Spotted a mistake or want your guide listed? Email <a href={`mailto:${config.contactEmail}`}>{config.contactEmail}</a>.</p>
-      )}
+      <p>Forever Anvil is a set of free tools for WoW: Forever players who trade, craft and gear up: <a href="/prices">auction house prices</a> with 30-day history, <a href="/flips">vendor flips</a>, <a href="/crafting">craft profits</a>, a <a href="/leveling">profession leveling cost</a> calculator, a <a href="/planner">crafting planner</a>, <a href="/upgrades">gear upgrades</a> from the auction house, a <a href="/watchlist">watchlist</a> with target prices, a <a href="/talents">talent calculator</a> and a <a href="/character">character lookup</a>.</p>
+      <p>It's an independent fan project run by a WoW: Forever player, with no connection to Blizzard.</p>
+      <p>New to the site? The <a href="/guides">guides</a> explain how each tool works and how to use it to make gold or gear up.</p>
     </div>
     <DonateBox />
+  </div>
+
+  <div class="wrap section">
+    <div class="panel prose">
+      <h2>Where the data comes from</h2>
+      <p>Everything comes from Blizzard's official Developer API:</p>
+      <ul class="gems">
+        <li><b>Auction data</b> for every WoW: Forever auction house in Europe: the Alliance, Horde and neutral Blackwater houses of each ruleset. We download a full snapshot about once an hour.</li>
+        <li><b>Items, recipes and talents</b>: names, materials, vendor prices and talent trees. Recipe skill levels and where recipes are learned come from the game's own data files. These change rarely, so we refresh them every 25 days.</li>
+        <li><b>Character profiles</b>, fetched live when you look a character up, for Europe, Korea and Taiwan.</li>
+      </ul>
+      <p>Blizzard's terms let us keep auction data for 30 days, which is why price history goes back a month and no further.</p>
+
+      <h2>How the numbers are worked out</h2>
+      <ul class="gems">
+        <li><b>Market price</b> is the average of the cheapest 10% of units on sale. It's steadier than the lowest listing, which a single bargain can drag down.</li>
+        <li><b>Profits</b> take off the auction house's 5% cut. They don't include listing deposits, because those depend on whether the item sells.</li>
+        <li><b>Sales per day</b> are estimated from how listings change between hourly snapshots over the past week. Blizzard doesn't publish sales, so this is a cautious estimate.</li>
+      </ul>
+      <p>Each guide explains its tool's numbers in more detail. The methods are deliberately simple so you can check them against what you see in game.</p>
+
+      <h2>How the site is paid for</h2>
+      <p>Hosting and the hourly data job cost money. The site is free and has no paid features; it's paid for by advertising and by <a href={config.donateUrl} target="_blank" rel="noopener">donations</a> from players who find it useful. Advertisers have no say over the content, and ads never change a price, a ranking or a recommendation. See the <a href="/privacy">privacy policy</a> for how ads use cookies.</p>
+
+      <h2 id="contact">Contact</h2>
+      {config.contactEmail ? (
+        <p>Spotted a wrong price, a bug or a missing recipe? Want a character hidden, or have a question about privacy? Email <a href={`mailto:${config.contactEmail}`}>{config.contactEmail}</a>. Please include your region, ruleset and faction if it's about a price.</p>
+      ) : (
+        <p>Spotted a wrong price, a bug or a missing recipe? Want a character hidden, or have a question about privacy? Get in touch through our <a href={config.donateUrl} target="_blank" rel="noopener">Ko-fi page</a>. Please include your region, ruleset and faction if it's about a price.</p>
+      )}
+
+      <h2>Guides</h2>
+      <ul class="gems">
+        {GUIDES.map((g) => <li><a href={guideUrl(g.slug)}>{g.title}</a></li>)}
+      </ul>
+    </div>
   </div>
 
   <div class="wrap section" id="legal">
@@ -32,7 +67,7 @@ import config from "../config.js";
         <li><b>Not affiliated with Blizzard.</b> World of Warcraft, Warcraft and Blizzard Entertainment are trademarks or registered trademarks of Blizzard Entertainment, Inc. in the U.S. and/or other countries. This site is not endorsed or sponsored by Blizzard.</li>
         <li><b>Game data.</b> Auction, item, recipe, talent and character data is provided by Blizzard Entertainment through the Blizzard Developer API.</li>
         <li><b>Artwork.</b> The logo, ornaments and page design are original to this site. Item icons and hover tooltips come from <a href="https://www.wowhead.com/forever" target="_blank" rel="noopener">Wowhead</a>'s tooltip service; the menu, faction and ruleset icons are World of Warcraft game icons. Game imagery belongs to Blizzard Entertainment. Other line icons are from <a href="https://lucide.dev" target="_blank" rel="noopener">Lucide</a> (ISC licence).</li>
-        <li><b>Privacy.</b> Your settings, builds and crafting plan are stored only in your browser. Read the full <a href="/privacy">privacy policy</a>.</li>
+        <li><b>Privacy.</b> Your settings, builds, crafting plan and watchlist are stored only in your browser. Read the full <a href="/privacy">privacy policy</a>.</li>
         <li><b>Corrections.</b> Prices move fast. We try to be accurate, but always check the auction house before a big purchase.</li>
       </ul>
     </div>

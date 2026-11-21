@@ -73,6 +73,7 @@ export const FOOTER_TOOLS: NavLink[] = [
 
 /** Footer: about the site */
 export const FOOTER_SITE: NavLink[] = [
+  { href: "/guides", label: "Guides" },
   { href: "/about", label: "About & credits" },
   { href: "/privacy", label: "Privacy policy" },
 ];

@@ -4,42 +4,56 @@ import PageHero from "../components/PageHero.astro";
 ---
 <BaseLayout
   title="Privacy Policy | Forever Anvil"
-  description="Forever Anvil privacy policy: no accounts, no personal data collected, trackers saved only in your browser."
+  description="Forever Anvil privacy policy: no accounts, your saved builds and lists stay in your browser, and how Google AdSense uses cookies to show ads."
   page="privacy"
 >
   <PageHero icon="privacy" eyebrow="Privacy" title="Privacy policy">
-    Short version: we don't have accounts, we don't collect your personal data, and your saved builds and plans stay on your own device.
+    Short version: there are no accounts, we don't collect your personal data, and your saved builds, plans and watchlist stay on your own device. The site is paid for by ads from Google, which uses cookies as described below.
   </PageHero>
 
   <div class="wrap section">
     <div class="panel legal-text">
-      <p class="faint">Last updated: <time datetime="2026-11-20">November 20, 2026</time></p>
+      <p class="faint">Last updated: <time datetime="2026-11-21">November 21, 2026</time></p>
+
+      <h2>Who we are</h2>
+      <p>Forever Anvil (foreveranvil.com) is a free, unofficial fan site with tools for World of Warcraft: Forever, run by an independent player. In this policy "we" means the site's operator. You can reach us using the details on the <a href="/about#contact">About page</a>.</p>
 
       <h2>What stays on your device</h2>
-      <p>Your display settings, chosen region and filters, talent builds, crafting plan and watchlist (with any target prices) are saved in your browser's local storage. They never leave your device and we can't see them. Clearing your browser data deletes them.</p>
+      <p>Your display settings, chosen region, ruleset, faction and filters, talent builds, crafting plan and watchlist (with any target prices) are saved in your browser's local storage. They never leave your device and we can't see them. Clearing your browser's site data deletes them. These aren't cookies and aren't used for tracking or advertising.</p>
 
       <h2>What we don't collect</h2>
-      <p>Forever Anvil has no sign-up, no login and no contact forms. We don't set analytics cookies and don't track you across sites.</p>
+      <p>Forever Anvil has no sign-up, no login and no contact forms. We don't ask for your name or email, we don't set analytics cookies, and we don't sell or share data about you.</p>
 
-      <h2>Third-party services</h2>
-      <p>When you load a page, your browser contacts these services directly. They may receive your IP address and browser details under their own privacy policies:</p>
+      <h2>Advertising and cookies</h2>
+      <p>We show ads served by <b>Google AdSense</b> to pay for hosting. Ads never affect the prices, rankings or recommendations on the site.</p>
       <ul class="gems">
-        <li><b>Hosting provider (Cloudflare)</b>: serves the pages and may keep standard server logs for security.</li>
-        <li><b>Cloudflare Web Analytics</b>: counts visits and which pages are viewed, without cookies and without identifying you. It records things like the page, the referring site, your country and your browser type. <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare privacy policy</a></li>
-        <li><b>Wowhead</b>: provides spell icons and hover tooltips on some pages. <a href="https://www.wowhead.com/privacy" target="_blank" rel="noopener">Wowhead privacy policy</a></li>
-        <li><b>Google AdSense</b> (if ads are enabled): may use cookies to show and measure ads. Where the law requires it, you'll be asked for consent first. See <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">how Google uses data from sites that use its services</a>; you can manage ad personalisation at <a href="https://adssettings.google.com" target="_blank" rel="noopener">Google Ad Settings</a>.</li>
-        <li><b>Donation platform</b> (if you choose to donate): handled entirely by that platform; we never see your payment details.</li>
+        <li>Third-party vendors, including Google, use cookies to serve ads based on your prior visits to this website or other websites.</li>
+        <li>Google's use of advertising cookies enables it and its partners to serve ads to you based on your visits to this site and/or other sites on the Internet.</li>
+        <li>You may opt out of personalised advertising by visiting <a href="https://adssettings.google.com" target="_blank" rel="noopener">Google Ads Settings</a>. You can also opt out of some third-party vendors' use of cookies for personalised advertising at <a href="https://www.aboutads.info/choices/" target="_blank" rel="noopener">www.aboutads.info</a> (US) or <a href="https://www.youronlinechoices.eu/" target="_blank" rel="noopener">www.youronlinechoices.eu</a> (Europe).</li>
+        <li>If you opt out of personalised ads, you'll still see ads, but they'll be based on things like the page you're reading rather than on your browsing history.</li>
+      </ul>
+      <p>If you visit from the European Economic Area, the UK or Switzerland, you'll be asked for your consent through Google's consent message before any advertising cookies are used for personalised ads, and you can say no. You can change your choice later from the same message, or by clearing this site's cookies in your browser so the question appears again.</p>
+      <p>To learn more, see <a href="https://policies.google.com/technologies/partner-sites" target="_blank" rel="noopener">how Google uses information from sites that use its services</a> and <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener">how Google uses cookies in advertising</a>.</p>
+
+      <h2>Other third-party services</h2>
+      <p>When you load a page, your browser also contacts these services directly. They may receive your IP address and browser details under their own privacy policies:</p>
+      <ul class="gems">
+        <li><b>Cloudflare</b> hosts the site and may keep standard server logs for security. <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">Cloudflare privacy policy</a></li>
+        <li><b>Cloudflare Web Analytics</b> counts visits and which pages are viewed, without cookies and without identifying you. It records things like the page, the referring site, your country and your browser type.</li>
+        <li><b>Wowhead</b> provides item icons and hover tooltips on some pages. <a href="https://www.wowhead.com/privacy" target="_blank" rel="noopener">Wowhead privacy policy</a></li>
+        <li><b>Ko-fi</b>, only if you choose to donate: payments are handled entirely by Ko-fi and we never see your payment details.</li>
       </ul>
       <p>The site's fonts are served by our own hosting, so loading a page doesn't contact a font service.</p>
 
       <h2>Game data from Blizzard</h2>
-      <p>The tools show data from the Blizzard Developer API, such as auction prices and public character profiles. That data is provided by Blizzard Entertainment, is kept for no more than 30 days, and is never sold or passed to advertisers. The character lookup sends the name you type to Blizzard to fetch that public profile; we keep a copy for at most 15 minutes and don't save what you searched. You can ask us to hide a character, and we will stop showing it and delete any cached copy.</p>
+      <p>The tools show data from the Blizzard Developer API, such as auction prices and public character profiles. That data is provided by Blizzard Entertainment, is kept for no more than 30 days, and is never sold or passed to advertisers.</p>
+      <p>The character lookup and gear upgrade tools send the name you type to Blizzard to fetch that character's public profile. We keep a copy for at most 15 minutes so repeat lookups are quick, and we don't save what you searched or who searched it. If you'd like a character hidden, contact us and we will stop showing it and delete any cached copy.</p>
 
       <h2>Children</h2>
-      <p>Forever Anvil is not aimed at children under 13.</p>
+      <p>Forever Anvil is not aimed at children under 13, and we don't knowingly collect information from them.</p>
 
-      <h2>Your rights and contact</h2>
-      <p>Because we don't store personal data about you, there is usually nothing for us to hand over or delete. For any privacy question or removal request, contact us using the details on the <a href="/about">About page</a>.</p>
+      <h2>Your rights</h2>
+      <p>Depending on where you live (for example under the GDPR in the EU and UK), you have rights to access, correct or delete personal data about you and to object to how it's used. Because we don't store personal data about you, there is usually nothing for us to hand over or delete. For advertising cookies, use the consent and opt-out options above, or contact Google directly. For any other privacy question or removal request, contact us using the details on the <a href="/about#contact">About page</a>.</p>
 
       <h2>Changes</h2>
       <p>If this policy changes, we'll update the date at the top of this page.</p>

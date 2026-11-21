@@ -1,0 +1,35 @@
+---
+import GuideLayout from "../../layouts/GuideLayout.astro";
+---
+<GuideLayout slug="auction-house-prices" updated="2026-11-21">
+  <h2>Three auction houses per ruleset</h2>
+  <p>Each WoW: Forever ruleset (PvP, Normal, Roleplay and RP-PvP) has its own economy, and inside it there are three separate auction houses: the <b>Alliance</b> one in the Alliance cities, the <b>Horde</b> one in the Horde cities, and the neutral <b>Blackwater</b> auction house run by the goblins. Listings never move between them. Copper Ore can cost twice as much on the Horde auction house as on the Alliance one in the same ruleset, and both can differ from Blackwater.</p>
+  <p>That's why every price on Forever Anvil belongs to one house. Pick your region, ruleset and faction once at the top of any price page and the site remembers it in your browser. If you're not sure which ruleset your realm is on, check the realm list in game: the type column shows it.</p>
+  <p>Alliance and Horde players can only trade with each other through Blackwater. If you want to buy from the other faction, or sell to it, that's the house to use.</p>
+
+  <h2>Market price vs lowest price</h2>
+  <p>The <b>lowest price</b> is simply the cheapest single listing right now. It's useful when you're buying one item, but it's a poor guide to what something is worth: one player dumping a single stack below value, or one stray listing, moves it a lot.</p>
+  <p>The <b>market price</b> is the average price of the cheapest 10% of all units on sale. If 200 Linen Cloth are listed, it averages the cheapest 20. That ignores the silly listings at the top and doesn't swing on one bargain at the bottom, so it's the number to use when you're deciding what to list at or whether a craft pays.</p>
+  <p class="tip"><b>Rule of thumb:</b> when the lowest price is far below the market price, someone is underpricing and it may be a buying chance. When the two are close, the market is settled and you'll have to match the lowest price to sell quickly.</p>
+
+  <h2>Quantity listed and price history</h2>
+  <p>The quantity column tells you how many units are on sale. A low price on an item with thousands listed is the real going rate; a high price on an item with three listed may only be one seller's wish. Open any item to see its <a href="/item">price page</a>, with up to 30 days of market-price history on every house, so you can tell a temporary spike from a lasting change.</p>
+  <p>Prices are taken from Blizzard's official API about once an hour. Blizzard's terms let us keep auction data for 30 days, so history never goes back further than that.</p>
+
+  <h2>Sell on the auction house or to a vendor?</h2>
+  <p>Many items, especially grey trash, cloth and low-level gear, sell to a vendor for a fixed price. The <b>Sell where?</b> column compares the two options for you: the market price minus the auction house's 5% cut, against what a vendor pays. If the vendor wins, don't bother listing: you'd earn less and wait longer for it.</p>
+  <p>Two things this comparison leaves out, so keep them in mind:</p>
+  <ul class="gems">
+    <li><b>The deposit.</b> Listing an item costs a deposit that you get back only if it sells. Cheap items that might not sell can lose you money.</li>
+    <li><b>Whether it sells at all.</b> A listed price is what sellers are asking, not what buyers pay. Check the quantity and, on recipe pages, the estimated sales per day.</li>
+  </ul>
+
+  <h2>A quick routine before you sell</h2>
+  <ol>
+    <li>Look up the item on <a href="/prices">Auction prices</a> for your house.</li>
+    <li>Compare market price and lowest price. Undercut the lowest only if it's close to the market price.</li>
+    <li>Check the 30-day history on its item page: if the price is unusually low today, hold your stock for a few days.</li>
+    <li>If the <b>Sell where?</b> column says vendor, sell it to the next merchant you pass.</li>
+    <li>Selling materials? Check Blackwater too, and if you trade often, <a href="/guides/watchlist">add the item to your watchlist</a>.</li>
+  </ol>
+</GuideLayout>
