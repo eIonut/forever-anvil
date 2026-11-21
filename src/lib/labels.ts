@@ -2,6 +2,7 @@
 
 export const REGION_NAMES: Record<string, string> = {
   eu: "Europe",
+  us: "Americas",
   kr: "Korea",
   tw: "Taiwan",
 };

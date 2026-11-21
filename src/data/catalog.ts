@@ -85,7 +85,7 @@ const readJSON = <T>(name: string): T | null => {
   try { return JSON.parse(fs.readFileSync(path.join(OUT, name), "utf8")) as T; } catch { return null; }
 };
 
-interface Meta { groups?: string[]; rulesets?: Record<string, string> }
+interface Meta { groups?: string[]; rulesets?: Record<string, string>; likely?: Record<string, string> }
 interface PricesFile { updated: string; houses: Record<string, { faction: string; items: Record<string, [number, number, number, number]> }> }
 interface RecipesFile { professions: { name: string; recipes: [number, string, string | null, number | null, string | null, number, [number, number, string][], RecipeInfo?][] }[] }
 
@@ -108,12 +108,14 @@ export function loadCatalog(): Catalog {
 
   for (const region of regions) {
     const meta = readJSON<Meta>(`meta_${region}.json`)!;
-    Object.assign(names, readJSON(`items_${region}.json`) || {});
+    // the first region's entry wins, unless it has no name and a later region's does
+    for (const [id, e] of Object.entries(readJSON<Catalog["names"]>(`items_${region}.json`) || {})) if (!names[id]?.[0]) names[id] = e;
     for (const g of meta.groups || []) {
       const file = readJSON<PricesFile>(`prices_${region}_${g}.json`);
       if (!file) continue;
       if (!updated || file.updated > updated) updated = file.updated;
-      const label = meta.rulesets?.[g] || `Group ${g}`;
+      // a ruleset only worked out from the data (meta.likely) shows its name, dimmed like an unconfirmed one
+      const label = meta.rulesets?.[g] || meta.likely?.[g] || `Group ${g}`;
       const confirmed = !!meta.rulesets?.[g];
       for (const [houseId, h] of Object.entries(file.houses)) {
         for (const [id, a] of Object.entries(h.items)) {
@@ -149,7 +151,7 @@ export function loadCatalog(): Catalog {
       if (ruleset && !primaryHouse) primaryHouse = { region, houseId: String(g.houses.alliance), label: ruleset };
       if (!(meta.groups || []).includes(g.id)) continue;
       for (const [faction, hid] of Object.entries(g.houses)) {
-        houses.push({ region, houseId: String(hid), label: ruleset || `Group ${g.id}`, confirmed: !!ruleset, faction });
+        houses.push({ region, houseId: String(hid), label: ruleset || meta.likely?.[g.id] || `Group ${g.id}`, confirmed: !!ruleset, faction });
       }
     }
   }

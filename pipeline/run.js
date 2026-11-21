@@ -29,6 +29,7 @@ import { updateEconomy } from "./economy.js";
 import { updateSales } from "./sales.js";
 import { fetchRecipeInfo } from "./recipeinfo.js";
 import { fetchCrates } from "./crates.js";
+import { buildHome } from "../src/lib/homesummary.js";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, "").split("=")));
@@ -242,7 +243,13 @@ async function main() {
   // confirmed ruleset names per group, so the site can label its group picker up front
   meta.rulesets = {};
   for (const g of GROUPS) if (latestByGroup[g.id] && g.ruleset && g.ruleset[region]) meta.rulesets[g.id] = g.ruleset[region];
+  // names worked out from the data but not checked in game yet (pipeline/houses.js): shown with a "?"
+  meta.likely = {};
+  for (const g of GROUPS) if (latestByGroup[g.id] && !meta.rulesets[g.id] && g.likely && g.likely[region]) meta.likely[g.id] = g.likely[region];
   meta.recipesDay = recipes.day;
+
+  // the home page's cards for every auction house, in one small file (src/lib/homesummary.js)
+  await store.putJSON(`home:${region}`, buildHome({ region, updated: new Date(now).toISOString(), groups: latestByGroup, recipes, items, meta }));
   await store.putJSON(`meta:${region}`, meta);
 
   log(`Done. API calls: ${api.callCount()}, store writes: ${store.writeCount()}, items seen: ${seenItems.size}`);

@@ -19,7 +19,7 @@
 
   const REGIONS = [
     { value: "eu", label: "Europe" },
-    // Americas ("us") is left out until it can be tested; the pipeline can still build it.
+    { value: "us", label: "Americas" },
   ];
   const HOUSES = [
     { value: "alliance", label: "Alliance", hint: "" },

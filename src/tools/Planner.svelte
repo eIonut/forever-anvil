@@ -62,7 +62,7 @@
       if (x[6].length) map[x[0]] = { id: x[0], name: x[1], prof: p.name, item: x[3], itemName: x[4], q: x[5], r: x[6] };
     }
     byId = map;
-    groups = (meta.groups || []).map((g) => ({ value: g, label: groupLabel(meta.rulesets, g) }));
+    groups = (meta.groups || []).map((g) => ({ value: g, label: groupLabel(meta, g) }));
     if (!(meta.groups || []).includes(group)) group = meta.groups![0];
     await loadGroup();
   }

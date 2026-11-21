@@ -58,6 +58,7 @@ const GROUPS: Group[] = [
       { href: "/watchlist", icon: "star", title: "My watchlist", desc: "Star the items you buy and sell, see this hour's price and weekly change, and get flagged at your target price.", shows: ["Target-price flags", "Cheapest house"] },
       { href: "/economy", icon: "economy", title: "Economy", desc: "The state of your ruleset's three auction houses at a glance.", shows: ["Material prices", "Gold by category", "Cross-house flips"] },
       { href: "/flips", icon: "flips", title: "Vendor flips", desc: "Listings priced below what a vendor pays. Buy them, sell to any vendor, keep the difference.", shows: ["Profit per item", "Units worth buying"] },
+      { href: "/disenchant", icon: "disenchant", title: "Disenchant flips", desc: "Gear listed below what its dust, essences and shards sell for. Buy, disenchant, sell the materials.", shows: ["Expected value", "By Enchanting skill"] },
       { href: "/waylaid-crates", icon: "crates", title: "Waylaid Crates", desc: "Which crate turns the least gold into Merchant's Favor, and the cheapest bundle to fill it.", shows: ["Gold per Favor", "Every bundle priced"] },
       { href: "/item", icon: "items", title: "Item price pages", desc: "Every traded item A–Z, each with its own page of prices and crafting uses.", shows: ["Prices per auction house", "What it's used in"] },
     ],
@@ -134,7 +135,7 @@ const STEPS: { icon: IconName; title: string; text: string }[] = [
       <p>Upgrades for every slot that your class can use at your level, on your faction's auction house or Blackwater, cheapest first.</p>
       <form class="spot-form" action="/upgrades" method="get">
         <label class="sr-only" for="spot-region">Region</label>
-        <select class="input" id="spot-region" name="r"><option value="eu">Europe</option><option value="kr">Korea</option><option value="tw">Taiwan</option></select>
+        <select class="input" id="spot-region" name="r"><option value="eu">Europe</option><option value="us">Americas</option><option value="kr">Korea</option><option value="tw">Taiwan</option></select>
         <label class="sr-only" for="spot-name">Character name</label>
         <input class="input" id="spot-name" name="n" placeholder="Firstname Lastname" autocomplete="off" maxlength="40" required />
         <button class="btn" type="submit">Find upgrades</button>

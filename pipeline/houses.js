@@ -15,12 +15,19 @@
 //   EU  D = RP-PvP (2026-11-19, by elimination, not price-checked: EU has four rulesets, and PvP,
 //                  Normal and Roleplay are A, B and C; E is empty. Check in game if prices ever look off)
 
+//
+// Likely, not checked in game (`likely`, shown with a "?" on the site):
+//   US (2026-11-21). The API lists the same four rulesets in the US as in EU (1 PvP, 2 Normal,
+//   3 Roleplay, 15 Roleplay PvP) and the same auction house ids, and EU's houses follow that ruleset
+//   order (110 PvP, 111 Normal, 119 Roleplay, 123 RP-PvP). The US groups also have EU's shape:
+//   A and B large (~380–400k listings), C and D small (~90k), E empty. To confirm, a US player
+//   compares a few prices in game with tools/house-compare.js, then moves the name to `ruleset`.
 const GROUPS = [
-  { id: "A", houses: { alliance: 110, horde: 113, neutral: 116 }, ruleset: { eu: "PvP" }, note: "large" },
-  { id: "B", houses: { alliance: 111, horde: 114, neutral: 117 }, ruleset: { eu: "Normal" }, note: "large" },
+  { id: "A", houses: { alliance: 110, horde: 113, neutral: 116 }, ruleset: { eu: "PvP" }, likely: { us: "PvP" }, note: "large" },
+  { id: "B", houses: { alliance: 111, horde: 114, neutral: 117 }, ruleset: { eu: "Normal" }, likely: { us: "Normal" }, note: "large" },
   { id: "E", houses: { alliance: 112, horde: 115, neutral: 118 }, ruleset: {}, note: "empty, probably Hardcore (not launched)" },
-  { id: "C", houses: { alliance: 119, horde: 120, neutral: 121 }, ruleset: { eu: "Roleplay" }, note: "small" },
-  { id: "D", houses: { alliance: 123, horde: 124, neutral: 125 }, ruleset: { eu: "RP-PvP" }, note: "small" }
+  { id: "C", houses: { alliance: 119, horde: 120, neutral: 121 }, ruleset: { eu: "Roleplay" }, likely: { us: "Roleplay" }, note: "small" },
+  { id: "D", houses: { alliance: 123, horde: 124, neutral: 125 }, ruleset: { eu: "RP-PvP" }, likely: { us: "RP-PvP" }, note: "small" }
 ];
 
 // Any ruleset ID works in the auction URL (it doesn't filter); 1 exists in every region.

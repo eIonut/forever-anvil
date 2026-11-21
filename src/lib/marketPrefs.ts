@@ -14,8 +14,8 @@ export interface MarketPrefs {
   dir?: number;
 }
 
-/** Regions the price tools offer (Americas is off until it can be tested). */
-const REGIONS = ["eu"];
+/** Regions the price tools offer (the same as MarketSelects.svelte). */
+const REGIONS = ["eu", "us"];
 
 export function getMarketPrefs(): MarketPrefs {
   const p = load<MarketPrefs>(MARKET_KEY) || {};

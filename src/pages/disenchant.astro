@@ -1,0 +1,29 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import Disenchant from "../tools/Disenchant.svelte";
+---
+<BaseLayout
+  title="WoW: Forever Disenchant Flips: Gear Worth More as Enchanting Mats | Forever Anvil"
+  description="WoW: Forever gear on the auction house that costs less than the dust, essences and shards it disenchants into. Expected value per item, updated hourly for every faction."
+  page="disenchant" image="flips"
+>
+  <PageHero icon="disenchant" eyebrow="Gold & auction house" title="Disenchant flips" facts={[{ icon: "clock", text: "Snapshot about every hour" }, { icon: "prices", text: "Expected value of every drop" }, { icon: "crafting", text: "Filter by Enchanting skill" }]}>
+    Green, blue and purple gear listed for <b>less than its enchanting materials sell for</b>. Buy it, disenchant it, sell the dust, essences and shards.
+  </PageHero>
+
+  <Disenchant client:load>
+    <div class="panel pr-help">
+      <h2>Good to know</h2>
+      <ul class="gems">
+        <li><b>It's an average, not a promise.</b> Disenchanting is random: a green item usually gives dust, sometimes an essence, now and then a shard. "Materials worth" is what one item gives on average, so a flip pays off over several items, not every single one.</li>
+        <li>Which materials an item can give follows WoW: Forever's game files, which use Classic's disenchanting brackets (by quality, item level, and armor or weapon). The drop chances are Classic's published table; Blizzard doesn't publish Forever's own.</li>
+        <li>Materials are valued at this auction house's market price, after the 5% Auction House cut. Materials with fewer than 3 listings don't count, so one odd listing can't make a flip.</li>
+        <li>The skill shown is the Enchanting skill Classic needs for that item level. A few items, like some quest rewards, can't be disenchanted at all: check the tooltip in game.</li>
+        <li>Only the cheapest listing of each item is counted. Other players see these too, so they can be gone by the time you look.</li>
+      </ul>
+      <p>Also see <a href="/flips">vendor flips</a> (listings below what a vendor pays) and the <a href="/prices">auction prices</a> of the materials.</p>
+      <p class="faint">Data provided by Blizzard Entertainment. Forever Anvil is not affiliated with or endorsed by Blizzard.</p>
+    </div>
+  </Disenchant>
+</BaseLayout>

@@ -126,7 +126,7 @@
     }
     emptyMsg = "";
     recipes = rec;
-    groups = meta.groups.map((g) => ({ value: g, label: groupLabel(meta.rulesets, g) }));
+    groups = meta.groups.map((g) => ({ value: g, label: groupLabel(meta, g) }));
     if (!meta.groups.includes(group)) group = meta.groups[0];
     if (!profs.some((p) => String(p.id) === String(prof))) prof = String(profs[0].id);
     const deepQ = new URLSearchParams(location.search).get("q");

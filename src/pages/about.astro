@@ -17,7 +17,7 @@ import { GUIDES, guideUrl } from "../data/guides";
   <div class="wrap section grid grid-2">
     <div class="panel">
       <h2>What this site is</h2>
-      <p>Forever Anvil is a set of free tools for WoW: Forever players who trade, craft and gear up: <a href="/prices">auction house prices</a> with 30-day history, <a href="/flips">vendor flips</a>, <a href="/crafting">craft profits</a>, a <a href="/leveling">profession leveling cost</a> calculator, a <a href="/planner">crafting planner</a>, <a href="/upgrades">gear upgrades</a> from the auction house, a <a href="/watchlist">watchlist</a> with target prices, a <a href="/talents">talent calculator</a> and a <a href="/character">character lookup</a>.</p>
+      <p>Forever Anvil is a set of free tools for WoW: Forever players who trade, craft and gear up: <a href="/prices">auction house prices</a> with 30-day history, <a href="/flips">vendor flips</a> and <a href="/disenchant">disenchant flips</a>, <a href="/crafting">craft profits</a>, a <a href="/leveling">profession leveling cost</a> calculator, a <a href="/planner">crafting planner</a>, <a href="/upgrades">gear upgrades</a> from the auction house, a <a href="/watchlist">watchlist</a> with target prices, a <a href="/talents">talent calculator</a> and a <a href="/character">character lookup</a>.</p>
       <p>It's an independent fan project run by a WoW: Forever player, with no connection to Blizzard.</p>
       <p>New to the site? The <a href="/guides">guides</a> explain how each tool works and how to use it to make gold or gear up.</p>
     </div>
@@ -29,9 +29,9 @@ import { GUIDES, guideUrl } from "../data/guides";
       <h2>Where the data comes from</h2>
       <p>Everything comes from Blizzard's official Developer API:</p>
       <ul class="gems">
-        <li><b>Auction data</b> for every WoW: Forever auction house in Europe: the Alliance, Horde and neutral Blackwater houses of each ruleset. We download a full snapshot about once an hour.</li>
+        <li><b>Auction data</b> for every WoW: Forever auction house in Europe and the Americas: the Alliance, Horde and neutral Blackwater houses of each ruleset. We download a full snapshot about once an hour.</li>
         <li><b>Items, recipes and talents</b>: names, materials, vendor prices and talent trees. Recipe skill levels and where recipes are learned come from the game's own data files. These change rarely, so we refresh them every 25 days.</li>
-        <li><b>Character profiles</b>, fetched live when you look a character up, for Europe, Korea and Taiwan.</li>
+        <li><b>Character profiles</b>, fetched live when you look a character up, for Europe, the Americas, Korea and Taiwan.</li>
       </ul>
       <p>Blizzard's terms let us keep auction data for 30 days, which is why price history goes back a month and no further.</p>
 

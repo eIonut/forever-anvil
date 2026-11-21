@@ -38,27 +38,59 @@ function encodeSnapshot(listings, tMs) {
   return { v: 2, t: tMs, d, i, q, p, l };
 }
 
-/** units sold per item between a snapshot and the current listings: { [itemId]: units } */
+/**
+ * units sold per item between a snapshot and the current listings: { [itemId]: units }
+ *
+ * A vanished auction is NOT counted as bought when:
+ *   - a cheaper auction of the item that was already up is still there (buyers take the cheapest
+ *     first, so this one was cancelled), or
+ *   - it was relisted: a new auction of the same item and quantity appeared at the same or a lower
+ *     price. That's the usual undercut ("cancel at 46g 59s 99c, list again at 46g 59s 98c"), which
+ *     would otherwise count every price war as a stream of sales. Each new auction explains at most
+ *     one vanished one.
+ */
 function countSales(prev, listings) {
   const now = new Map();
   for (const a of listings) if (a.id) now.set(a.id, a.quantity || 1);
-  const n = prev.d.length, ids = new Array(n);
+  const n = prev.d.length, ids = new Array(n), before = new Set();
   // cheapest auction per item that was there before and is still there
   const survivorMin = new Map();
   for (let k = 0, id = 0; k < n; k++) {
     id += prev.d[k];
     ids[k] = id;
+    before.add(id);
     const p = prev.p[k];
     if (p >= 0 && now.has(id)) { const m = survivorMin.get(prev.i[k]); if (m === undefined || p < m) survivorMin.set(prev.i[k], p); }
   }
+  // auctions that weren't there before, per "item:quantity", unit prices lowest first
+  const fresh = new Map();
+  for (const a of listings) {
+    if (!a.id || !a.item || !a.item.id || before.has(a.id)) continue;
+    const u = unitPrice(a);
+    if (u == null) continue;
+    const key = a.item.id + ":" + (a.quantity || 1);
+    (fresh.get(key) || fresh.set(key, []).get(key)).push(Math.round(u));
+  }
+  for (const list of fresh.values()) list.sort((x, y) => x - y);
+  // the dearest new auction at or below this price (the closest undercut), removed so it's used once
+  const relisted = (item, qty, price) => {
+    const list = fresh.get(item + ":" + qty);
+    if (!list || !list.length || list[0] > price) return false;
+    let lo = 0, hi = list.length - 1;
+    while (lo < hi) { const mid = (lo + hi + 1) >> 1; if (list[mid] <= price) lo = mid; else hi = mid - 1; }
+    list.splice(lo, 1);
+    return true;
+  };
+  // dearest vanished auctions first, so each relist is matched with the auction it most likely replaced
+  const order = [...Array(n).keys()].sort((x, y) => prev.p[y] - prev.p[x]);
   const sold = {};
-  for (let k = 0; k < n; k++) {
+  for (const k of order) {
     const item = prev.i[k], was = prev.q[k], left = now.get(ids[k]);
     let units = 0;
     if (left !== undefined) { if (left < was) units = was - left; }   // part of a stack bought
     else if (Number(prev.l[k]) >= TL.LONG && prev.p[k] >= 0) {         // gone, couldn't have expired
       const cheaper = survivorMin.get(item);
-      if (cheaper === undefined || prev.p[k] <= cheaper) units = was;  // a cheaper one is still up → cancelled
+      if ((cheaper === undefined || prev.p[k] <= cheaper) && !relisted(item, was, prev.p[k])) units = was;
     }
     if (units > 0) sold[item] = (sold[item] || 0) + units;
   }
@@ -95,7 +127,10 @@ async function updateSales(store, region, houseId, listings, nowMs, dataMs) {
   const stateKey = `salesstate:${region}:${houseId}`, daysKey = `salesdays:${region}:${houseId}`;
   let prev = await store.getJSON(stateKey);
   if (prev && prev.v !== 2) prev = null; // older format without prices
-  const days = (await store.getJSON(daysKey)) || { d: {} };
+  // v2: counted with relist detection. Older counts included undercut relists as sales, so they're
+  // dropped once and the 7-day average starts again (it shows numbers again after one run).
+  let days = await store.getJSON(daysKey);
+  if (!days || days.v !== 2) days = { v: 2, d: {} };
   const today = dayNumber(nowMs);
   if (prev && dataMs && dataMs === prev.t) {
     addToDays(days, today, 0, {}); // Blizzard hasn't refreshed since last run: nothing new

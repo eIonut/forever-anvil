@@ -1,6 +1,6 @@
 # Forever Anvil: unofficial WoW: Forever tools
 
-A static website with tools for WoW: Forever: auction prices, a watchlist with target-price flags (starred items, saved in the browser; the home page shows them with this hour's flips, fastest sellers and best crafts for the visitor's auction house), an economy overview (materials ledger, gold by category, cross-house flips), vendor flips, the cheapest Merchant's Favor from Waylaid Crates, crafting profits and planner, a talent calculator and a character lookup. Built with [Astro](https://astro.build); the interactive tools are [Svelte](https://svelte.dev) components. See [docs/astro-migration-plan.md](docs/astro-migration-plan.md) for how the site moved to Astro.
+A static website with tools for WoW: Forever: auction prices, a watchlist with target-price flags (starred items, saved in the browser; the home page shows them with this hour's flips, fastest sellers and best crafts for the visitor's auction house), an economy overview (materials ledger, gold by category, cross-house flips), vendor flips, disenchant flips (gear cheaper than the enchanting materials it gives), the cheapest Merchant's Favor from Waylaid Crates, crafting profits and planner, a talent calculator and a character lookup. Built with [Astro](https://astro.build); the interactive tools are [Svelte](https://svelte.dev) components. See [docs/astro-migration-plan.md](docs/astro-migration-plan.md) for how the site moved to Astro.
 
 ## Run it locally
 
@@ -68,6 +68,9 @@ To try the Worker locally: `npm run build`, then `npx wrangler dev` (it reads th
 - **Text on a page:** edit its file in `src/pages/` (e.g. `src/pages/about.astro`).
 - **The menu or footer links:** `src/lib/nav.ts`.
 - **A tool:** its file in `src/tools/` (e.g. `src/tools/Flips.svelte`). The math it uses is in `src/lib/pricemath.js`; run `npm test` after changing it.
+- **The disenchanting table** (what gear turns into, and how often): `src/lib/demath.js`.
+- **The home page's market cards:** `src/lib/homesummary.js`. The price job saves them as one small file per region (`/api/home/<region>`), so the home page doesn't download the full price files.
+- **Server group names** (PvP, Normal…): `pipeline/houses.js`. EU names are checked in game; the Americas names are likely (worked out from Blizzard's data) and show a "?" until someone checks them in game and moves them from `likely` to `ruleset`.
 - **A new page:** add a `.astro` file in `src/pages/` that uses `BaseLayout` with a title and description; it gets the header, footer, SEO tags and a sitemap entry automatically.
 - **Colours and styles:** `src/styles/global.css`.
 
@@ -101,7 +104,9 @@ Create a free Ko-fi / Buy Me a Coffee / Patreon page, then set `donateUrl` in `s
 
 ## Publish
 
-Run `npm run prices`, then `npm run build`, and upload the `dist/` folder to a static host. The plan is Cloudflare Pages (free), with a GitHub Actions job that runs both commands daily and deploys; see [docs/phase2-plan.md](docs/phase2-plan.md). Then buy a domain (about $10/year) and point it at the host.
+Publishing is automatic: every push to `main` runs the GitHub workflow (`.github/workflows/site.yml`), which builds the site and deploys it to the Cloudflare Worker at https://foreveranvil.com (`npx wrangler deploy`, plus `wrangler.www.jsonc` for the `www.` redirect). The same workflow rebuilds and deploys once a day, and runs the price job every hour.
+
+To publish by hand without pushing: GitHub → Actions → "Prices and deploy" → Run workflow (leave "Also rebuild and deploy the site" ticked). Deploying from your own computer also works (`npm run build`, then `npx wrangler deploy`), but needs `npx wrangler login` first and skips the price data, which lives in Workers KV. Setup and day-to-day notes: [docs/launch-checklist.md](docs/launch-checklist.md).
 
 ## Credits
 

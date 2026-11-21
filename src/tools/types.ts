@@ -3,6 +3,8 @@
 export interface Meta {
   groups?: string[];
   rulesets?: Record<string, string>;
+  /** group → ruleset worked out from the data but not yet checked in game (see pipeline/houses.js) */
+  likely?: Record<string, string>;
 }
 
 /** Per item on one auction house: [lowest, market, units listed, listings, estimated units sold per day (absent = none seen)] */
@@ -35,6 +37,30 @@ export type RecipeRow = [number, string, string, number | null, string | null, n
 
 export interface Recipes {
   professions: { id: number; name: string; recipes: RecipeRow[] }[];
+}
+
+/** One auction house's home-page cards (home_<region>.json, src/lib/homesummary.js) */
+export interface HomeHouse {
+  houseId: string;
+  salesHours: number;
+  flips: Flip[];
+  flipTotal: number;
+  /** [itemId, soldPerDay, market, goldPerDay] */
+  sellers: [number, number, number, number][];
+  /** [recipeId, recipeName, profession, craftedItemId, profit] */
+  crafts: [number, string, string, number, number][];
+  prices: Record<string, ItemPrice>;
+}
+
+export interface HomeSummary {
+  v: number;
+  region: string;
+  updated: string;
+  groups: string[];
+  rulesets?: Record<string, string>;
+  likely?: Record<string, string>;
+  markets: Record<string, { updated: string; houses: Record<string, HomeHouse> }>;
+  items: Record<string, any>;
 }
 
 /** The auction house of one faction in a group, with its id */

@@ -71,9 +71,17 @@ export function getCachedJSON<T = any>(url: string, maxAgeMs = 30 * 60 * 1000): 
 /** Message when the data files can't be loaded: different on the live site and on your computer. */
 export const noDataMessage = (live: string, local: string) => (import.meta.env.DEV ? local : live);
 
-/** "PvP" once confirmed by an in-game check, otherwise "Group B, ruleset not confirmed yet" */
-export function groupLabel(rulesets: Record<string, string> | undefined, g: string): string {
-  return rulesets?.[g] || "Group " + g + " · ruleset not confirmed yet";
+/**
+ * The name of a server group, from the price job's meta file:
+ *   "PvP" once confirmed by an in-game check,
+ *   "PvP · probably; not checked in game yet" when only worked out from the data (meta.likely),
+ *   "Group B · ruleset not confirmed yet" otherwise.
+ * The picker chips show the part before " · " and flag the rest with a "?".
+ */
+export function groupLabel(meta: { rulesets?: Record<string, string>; likely?: Record<string, string> } | null | undefined, g: string): string {
+  if (meta?.rulesets?.[g]) return meta.rulesets[g];
+  if (meta?.likely?.[g]) return meta.likely[g] + " · probably; not checked in game yet";
+  return "Group " + g + " · ruleset not confirmed yet";
 }
 
 /** Is it better to sell on the auction house or to a vendor? (The AH keeps 5% of the sale price.) */

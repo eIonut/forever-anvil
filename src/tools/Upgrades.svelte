@@ -54,7 +54,7 @@
   const slots = $derived(status === "ready" ? findUpgrades(character, gear as never, itemSource.items as never, houses, { maxPrice: budget || null }) : []);
   const wornName = (id: number) => gear.find((g) => g.id === id)?.name || itemSource.items[id]?.[0] || "Item #" + id;
   const wornGear = (id: number) => gear.find((g) => g.id === id);
-  const rulesetName = $derived(meta?.rulesets?.[group] || "Group " + group);
+  const rulesetName = $derived(meta?.rulesets?.[group] || meta?.likely?.[group] || "Group " + group);
 
   onMount(async () => {
     const saved = loadStore<{ budget?: number }>(PREFS_KEY);
@@ -63,7 +63,8 @@
     useItems(region, items);
     meta = m;
     const want = rulesetKey(character.ruleset);
-    const g = Object.entries(m?.rulesets || {}).find(([, name]) => rulesetKey(name) === want)?.[0];
+    // confirmed names first, then the likely ones (Americas, see pipeline/houses.js)
+    const g = Object.entries({ ...m?.likely, ...m?.rulesets }).find(([, name]) => rulesetKey(name) === want)?.[0];
     if (!m?.groups?.length || !items || !g || !m.groups.includes(g) || (faction !== "horde" && faction !== "alliance")) { status = "none"; return; }
     group = g;
     groupData = await getJSON<GroupPrices>(priceUrl("prices", region, g));

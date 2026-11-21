@@ -11,7 +11,8 @@ import ItemTitleIcon from "../../components/ItemTitleIcon.astro";
 import Money from "../../components/Money.astro";
 import PriceChart from "../../components/PriceChart.astro";
 import Wowhead from "../../components/Wowhead.astro";
-import { loadCatalog, nameIsShared, primaryPrices, primaryRow, similarItems } from "../../data/catalog";
+import { loadCatalog, nameIsShared, priceOn, primaryPrices, primaryRow, similarItems } from "../../data/catalog";
+import { disenchantOf, disenchantValue } from "../../lib/demath.js";
 import { craftProfit } from "../../lib/pricemath.js";
 import { FACTIONS, REGION_NAMES } from "../../lib/labels";
 import { capitalize, moneyText, num } from "../../lib/format";
@@ -65,6 +66,14 @@ const jsonld = {
 // Similar items: same category, closest in price (A–Z neighbours when unlisted). Gives every item
 // page links from its neighbours, not only from the big A–Z list, and visitors somewhere to go next.
 const similar = similarItems(c, String(id));
+
+// Disenchanting (src/lib/demath.js): what it gives and its average worth, with material prices from the
+// same auction house as the summary above, so the two compare fairly
+const de = disenchantOf(c.names[id]);
+const deHouse = main ? priceOn(c, main.region, main.houseId) : priceAt;
+const deWorth = de ? disenchantValue(de, (m: number) => deHouse(m).ah) : null;
+const deNet = deWorth && deWorth.complete ? Math.round(deWorth.value * 0.95) : null;
+const dePct = (x: number) => Math.round(x * 1000) / 10 + "%";
 ---
 <BaseLayout title={`${titleName} Price, WoW: Forever | Forever Anvil`} description={description} page="items" image="items" jsonld={jsonld}>
   <section class="page-hero page-hero-item"><div class="wrap"><div class="hero-frame">
@@ -108,6 +117,19 @@ const similar = similarItems(c, String(id));
 
     {main && (
       <section class="panel"><h2>Price history (30 days)</h2><PriceChart points={chartPoints} label={marketLabel} /></section>
+    )}
+
+    {de && (
+      <section class="panel">
+        <h2>Disenchanting</h2>
+        <ul class="recipe-list">
+          {de.drops.map((d) => <li>{dePct(d.chance)} chance: {d.min === d.max ? d.min : `${d.min}–${d.max}`}× <ItemLink id={d.id} name={c.names[d.id]?.[0] || "Item " + d.id} /></li>)}
+        </ul>
+        {deNet != null && (
+          <p>On average one {name} gives materials worth about <b><Money c={deNet} /></b> after the 5% AH cut{main ? ` on ${main.label} ${FACTIONS[main.faction]}` : ""}.{main && main.min < deNet ? <Fragment> The cheapest listing (<Money c={main.min} />) is <b>below that</b>: see <a href="/disenchant">disenchant flips</a>.</Fragment> : null}</p>
+        )}
+        <p class="faint" style="margin-top:8px">{de.skill ? `Needs about ${de.skill} Enchanting. ` : ""}Drop chances follow Classic's disenchanting table, which WoW: Forever's game files match by item level and quality.</p>
+      </section>
     )}
 
     {made.length > 0 && (

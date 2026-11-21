@@ -149,7 +149,7 @@
 
 <form class="panel ch-form" onsubmit={(e) => { e.preventDefault(); lookup(); }}>
   <div><label class="field-label" for="ch-region">Region</label>
-    <select class="input" id="ch-region" bind:value={region}><option value="eu">Europe</option><option value="kr">Korea</option><option value="tw">Taiwan</option></select></div>
+    <select class="input" id="ch-region" bind:value={region}><option value="eu">Europe</option><option value="us">Americas</option><option value="kr">Korea</option><option value="tw">Taiwan</option></select></div>
   <div class="ch-name"><label class="field-label" for="ch-name">Character name</label>
     <input class="input" id="ch-name" placeholder="Firstname Lastname" autocomplete="off" maxlength="40" aria-describedby="ch-hint" bind:value={name} bind:this={nameBox} /></div>
   <button class="btn" type="submit" disabled={view.kind === "loading"} aria-busy={view.kind === "loading"}>{#if view.kind === "loading"}<span class="spinner spinner-on-gold" aria-hidden="true"></span>Looking up…{:else}Look up{/if}</button>

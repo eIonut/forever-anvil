@@ -81,7 +81,7 @@
       return;
     }
     emptyMsg = "";
-    groups = meta.groups.map((g) => ({ value: g, label: groupLabel(meta.rulesets, g) }));
+    groups = meta.groups.map((g) => ({ value: g, label: groupLabel(meta, g) }));
     if (!meta.groups.includes(group)) group = meta.groups[0];
     await loadGroup();
   }

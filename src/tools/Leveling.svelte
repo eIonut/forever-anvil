@@ -112,8 +112,8 @@
     }
     emptyMsg = "";
     recipes = rec;
-    rulesets = meta.rulesets || {};
-    groups = meta.groups.map((g) => ({ value: g, label: groupLabel(meta.rulesets, g) }));
+    rulesets = { ...meta.likely, ...meta.rulesets };
+    groups = meta.groups.map((g) => ({ value: g, label: groupLabel(meta, g) }));
     if (!meta.groups.includes(group)) group = meta.groups[0];
     if (!profs.some((p) => p.id === prof)) prof = profs.find((p) => p.name === "Blacksmithing")?.id ?? profs[0]?.id ?? null;
     await loadGroup();

@@ -24,6 +24,24 @@ test("a vanished auction dearer than one still up was cancelled, not bought", ()
   assert.deepEqual(countSales(encodeSnapshot(bid, 0), []), {});
 });
 
+test("a cancel-and-relist undercut isn't a sale", () => {
+  // the cheapest shield is cancelled and listed again 1g cheaper (a new auction id): nothing sold
+  const before = [A(1, 9, 1, "LONG", 4659997), A(2, 9, 1, "VERY_LONG", 4659999)];
+  const after = [A(2, 9, 1, "VERY_LONG", 4659999), A(3, 9, 1, "VERY_LONG", 4559997)];
+  assert.deepEqual(countSales(encodeSnapshot(before, 0), after), {});
+  // relisted at the same price: also not a sale
+  assert.deepEqual(countSales(encodeSnapshot([A(1, 9, 1, "LONG", 500)], 0), [A(4, 9, 1, "VERY_LONG", 500)]), {});
+});
+
+test("new auctions that don't look like a relist leave sales counted", () => {
+  // listed dearer, or a different stack size: the vanished auction still counts as bought
+  assert.deepEqual(countSales(encodeSnapshot([A(1, 9, 1, "LONG", 500)], 0), [A(4, 9, 1, "VERY_LONG", 600)]), { 9: 1 });
+  assert.deepEqual(countSales(encodeSnapshot([A(1, 5, 20, "LONG", 50)], 0), [A(4, 5, 5, "VERY_LONG", 40)]), { 5: 20 });
+  // one new auction explains only one vanished auction: two gone, one relist → one sold
+  const before = [A(1, 9, 1, "LONG", 500), A(2, 9, 1, "LONG", 500)];
+  assert.deepEqual(countSales(encodeSnapshot(before, 0), [A(4, 9, 1, "VERY_LONG", 490)]), { 9: 1 });
+});
+
 test("snapshot keeps ids as deltas, in id order, with unit prices", () => {
   const snap = encodeSnapshot([A(300, 1, 1, "LONG", 7), { id: 100, item: { id: 2 }, quantity: 4, time_left: "SHORT", buyout: 400 }], 5);
   assert.deepEqual(snap, { v: 2, t: 5, d: [100, 200], i: [2, 1], q: [4, 1], p: [100, 7], l: "02" });
