@@ -1,6 +1,7 @@
 <script lang="ts">
   // Disenchant flips: gear listed on the AH for less than its enchanting materials sell for
-  // (src/lib/demath.js). Worked out here from the hourly prices and the item list.
+  // (src/lib/demath.js). The price job counts every listing (house.deflips); prices files from before
+  // that are worked out here from each item's cheapest listing.
   import Freshness from "./Freshness.svelte";
   import type { Snippet } from "svelte";
   import Loading from "./Loading.svelte";
@@ -28,10 +29,11 @@
   let loading = $state(true), empty = $state(false);
   let maxSkill = $state(0);
 
-  const all = $derived(groupData ? disenchantFlips(houseOf(groupData, faction)?.house.items || {}, itemSource.items) : []);
+  const house = $derived(houseOf(groupData, faction)?.house || null);
+  const all = $derived(house ? disenchantFlips(house.deflips || null, house.items, itemSource.items) : []);
   // epics have no known skill (null): they stay in the list unless a skill limit is picked
   const flips = $derived(maxSkill ? all.filter((f) => f.skill != null && f.skill <= maxSkill) : all);
-  const total = $derived(flips.reduce((s, f) => s + f.profit, 0));
+  const total = $derived(flips.reduce((s, f) => s + f.total, 0));
   const save = () => saveMarketPrefs({ region, group, faction });
   const pct = (c: number) => Math.round(c * 1000) / 10 + "%";
   const qty = (d: { min: number; max: number }) => (d.min === d.max ? String(d.min) : d.min + "–" + d.max);
@@ -82,26 +84,27 @@
   </div>
   <Freshness {region} updated={groupData?.updated} />
   <p class="fl-summary" aria-live="polite">
-    {#if loading}<Loading text="Working out disenchant values…" />{:else if flips.length}<b>{flips.length}</b> item{flips.length > 1 ? "s" : ""} cost less than their materials sell for, about <Money c={total} /> expected profit if you bought one of each.{:else}No disenchant flips on this auction house right now. Check back after the next hourly update.{/if}
+    {#if loading}<Loading text="Working out disenchant values…" />{:else if flips.length}<b>{flips.length}</b> item{flips.length > 1 ? "s" : ""} listed for less than their materials sell for, about <Money c={total} /> expected profit if you bought every listing worth buying.{:else}No disenchant flips on this auction house right now. Check back after the next hourly update.{/if}
   </p>
   <div class="table-wrap">
     <table class="prices pr-table de-table">
       <caption class="sr-only">Gear listed below its expected disenchant value</caption>
-      <thead><tr><th scope="col">Item</th><th scope="col">Disenchants into</th><th scope="col" class="num">Cheapest on AH</th><th scope="col" class="num">Materials worth</th><th scope="col" class="num">Expected profit</th></tr></thead>
+      <thead><tr><th scope="col">Item</th><th scope="col">Disenchants into</th><th scope="col" class="num">Cheapest on AH</th><th scope="col" class="num">Materials worth</th><th scope="col" class="num">Units worth buying</th><th scope="col" class="num">Expected profit</th></tr></thead>
       <tbody>
-        {#if loading}<SkeletonRows rows={6} cols={5} />{:else}
+        {#if loading}<SkeletonRows rows={6} cols={6} />{:else}
           {#each flips.slice(0, SHOW) as f (f.id)}
             <tr>
               <th scope="row"><ItemLink id={f.id} name={name(f.id)} copy watch /><span class="faint de-meta">item level {itemSource.items[f.id]?.[11] ?? "?"}{#if f.skill}{" · skill " + f.skill}{/if}</span></th>
               <td class="de-drops" data-label="Disenchants into">{#each f.drops as d (d.id)}<span class="de-drop">{pct(d.chance)} · {qty(d)}× <ItemLink id={d.id} name={name(d.id)} /></span>{/each}</td>
               <td class="num" data-label="Cheapest"><Money c={f.cost} /></td>
               <td class="num" data-label="Materials worth"><Money c={f.value} /></td>
-              <td class="num" data-label="Profit"><b class="pct up">+<Money c={f.profit} /></b></td>
+              <td class="num" data-label="Units">{f.units.toLocaleString()}</td>
+              <td class="num" data-label="Profit"><b class="pct up">+<Money c={f.total} /></b>{#if f.units > 1}<span class="faint de-each"><Money c={f.profit} /> each at the cheapest</span>{/if}</td>
             </tr>
           {:else}
-            <tr><td colspan="5" class="empty">Nothing to disenchant for profit here right now.</td></tr>
+            <tr><td colspan="6" class="empty">Nothing to disenchant for profit here right now.</td></tr>
           {/each}
-          {#if flips.length > SHOW}<tr><td colspan="5" class="empty">And {flips.length - SHOW} more with smaller profits.</td></tr>{/if}
+          {#if flips.length > SHOW}<tr><td colspan="6" class="empty">And {flips.length - SHOW} more with smaller profits.</td></tr>{/if}
         {/if}
       </tbody>
     </table>
@@ -119,4 +122,5 @@
   .de-drops { line-height: 1.5; }
   .de-drop { display: block; font-size: 0.92em; }
   .de-meta { display: block; font-size: 0.85em; }
+  .de-each { display: block; font-size: 0.82em; }
 </style>

@@ -1,7 +1,7 @@
 // Tests for the disenchanting table and flips (src/lib/demath.js).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { MATS, disenchantTable, disenchantOf, disenchantValue, disenchantFlips } from "../src/lib/demath.js";
+import { MATS, disenchantTable, disenchantOf, disenchantValue, disenchantFlips, computeDisenchantFlips } from "../src/lib/demath.js";
 
 const sum = (t) => Math.round(t.drops.reduce((s, d) => s + d.chance, 0) * 1e6) / 1e6;
 
@@ -45,18 +45,31 @@ test("expected value: chance × average quantity × price", () => {
   assert.deepEqual(disenchantValue(t, (id) => (id === MATS.largeGlowing ? null : prices[id])), { value: 2025, complete: false });
 });
 
-test("disenchant flips: cheapest listing below the materials' worth after the AH cut", () => {
-  const items = {
-    1: ["Cheap Boots", 1, 0, null, "uncommon", "Armor", 0, null, "Cloth", "FEET", 30, 38],
-    2: ["Dear Boots", 1, 0, null, "uncommon", "Armor", 0, null, "Cloth", "FEET", 30, 38],
-    3: ["Grey Boots", 1, 0, null, "poor", "Armor", 0, null, "Cloth", "FEET", 30, 38],
-  };
-  const house = {
-    1: [1500, 1600, 1, 1], 2: [5000, 5000, 1, 1], 3: [1, 1, 1, 1],
-    [MATS.visionDust]: [1000, 1000, 50, 10], [MATS.greaterMystic]: [3000, 3000, 50, 10], [MATS.largeGlowing]: [4000, 4000, 50, 10],
-  };
-  const flips = disenchantFlips(house, items);
-  assert.deepEqual(flips.map((f) => [f.id, f.cost, f.value, f.profit]), [[1, 1500, 2114, 614]]); // 2225 × 0.95 = 2114
+const ITEMS = {
+  1: ["Cheap Boots", 1, 0, null, "uncommon", "Armor", 0, null, "Cloth", "FEET", 30, 38],
+  2: ["Dear Boots", 1, 0, null, "uncommon", "Armor", 0, null, "Cloth", "FEET", 30, 38],
+  3: ["Grey Boots", 1, 0, null, "poor", "Armor", 0, null, "Cloth", "FEET", 30, 38],
+};
+// worth of a Boots: 2225 (see above) × 0.95 = 2114
+const HOUSE = {
+  1: [1500, 1600, 3, 2], 2: [5000, 5000, 1, 1], 3: [1, 1, 1, 1],
+  [MATS.visionDust]: [1000, 1000, 50, 10], [MATS.greaterMystic]: [3000, 3000, 50, 10], [MATS.largeGlowing]: [4000, 4000, 50, 10],
+};
+
+test("price job: every listing below the materials' worth counts, with units and total", () => {
+  const L = (id, quantity, unit) => ({ item: { id }, quantity, unit_price: unit });
+  const listings = [L(1, 1, 1500), L(1, 2, 1900), L(1, 1, 2100), L(2, 1, 5000), L(3, 1, 1)];
+  // 1500 and 1900 (×2) pay; 2100 doesn't (needs 5% of 2114 = 106c profit); Dear Boots costs more; grey can't be disenchanted
+  // total: (2114 − 1500) + 2 × (2114 − 1900) = 614 + 428
+  assert.deepEqual(computeDisenchantFlips(listings, HOUSE, ITEMS), [[1, 3, 1042, 1500, 2114]]);
   // a thin material market (under 3 listings) doesn't count as priced: no flip
-  assert.deepEqual(disenchantFlips({ ...house, [MATS.largeGlowing]: [4000, 4000, 1, 1] }, items), []);
+  assert.deepEqual(computeDisenchantFlips(listings, { ...HOUSE, [MATS.largeGlowing]: [4000, 4000, 1, 1] }, ITEMS), []);
+});
+
+test("page: uses the price job's rows, or the cheapest listings when there are none", () => {
+  const fromJob = disenchantFlips([[1, 3, 1042, 1500, 2114]], HOUSE, ITEMS);
+  assert.deepEqual(fromJob.map((f) => [f.id, f.units, f.total, f.cost, f.value, f.profit, f.skill]), [[1, 3, 1042, 1500, 2114, 614, 100]]);
+  assert.equal(fromJob[0].drops.length, 3);
+  const fallback = disenchantFlips(null, HOUSE, ITEMS);
+  assert.deepEqual(fallback.map((f) => [f.id, f.units, f.total, f.cost]), [[1, 1, 614, 1500]]);
 });

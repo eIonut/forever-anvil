@@ -66,6 +66,11 @@
   // focus="upgrades" (the /upgrades page): the AH upgrades come first, right under the character's name
   let { focus = null }: { focus?: "upgrades" | null } = $props();
 
+  // every region Blizzard has profiles for; /upgrades offers only those with auction prices (the price job's)
+  const ALL_REGIONS = [{ v: "eu", l: "Europe" }, { v: "us", l: "Americas" }, { v: "kr", l: "Korea" }, { v: "tw", l: "Taiwan" }];
+  const PRICE_REGIONS = ["eu", "us"];
+  const regions = $derived(focus === "upgrades" ? ALL_REGIONS.filter((r) => PRICE_REGIONS.includes(r.v)) : ALL_REGIONS);
+
   let region = $state("eu"), name = $state("");
   let view = $state.raw<{ kind: "none" } | { kind: "loading"; name: string } | { kind: "error"; message: string } | { kind: "ok"; d: Result }>({ kind: "none" });
   let renderFailed = $state(false);
@@ -120,7 +125,8 @@
 
   onMount(() => {
     const params = new URLSearchParams(location.search);
-    region = params.get("r") || load<{ region?: string }>("codex-char")?.region || "eu";
+    const want = params.get("r") || load<{ region?: string }>("codex-char")?.region || "eu";
+    region = regions.some((r) => r.v === want) ? want : "eu";
     name = (params.get("n") || "").replace(/-/g, " ");
     if (name) lookup();
   });
@@ -149,7 +155,7 @@
 
 <form class="panel ch-form" onsubmit={(e) => { e.preventDefault(); lookup(); }}>
   <div><label class="field-label" for="ch-region">Region</label>
-    <select class="input" id="ch-region" bind:value={region}><option value="eu">Europe</option><option value="us">Americas</option><option value="kr">Korea</option><option value="tw">Taiwan</option></select></div>
+    <select class="input" id="ch-region" bind:value={region}>{#each regions as r (r.v)}<option value={r.v}>{r.l}</option>{/each}</select></div>
   <div class="ch-name"><label class="field-label" for="ch-name">Character name</label>
     <input class="input" id="ch-name" placeholder="Firstname Lastname" autocomplete="off" maxlength="40" aria-describedby="ch-hint" bind:value={name} bind:this={nameBox} /></div>
   <button class="btn" type="submit" disabled={view.kind === "loading"} aria-busy={view.kind === "loading"}>{#if view.kind === "loading"}<span class="spinner spinner-on-gold" aria-hidden="true"></span>Looking up…{:else}Look up{/if}</button>

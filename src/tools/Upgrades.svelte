@@ -47,7 +47,9 @@
   let budget = $state(200000);
   let meta = $state.raw<Meta | null>(null);
   let groupData = $state.raw<GroupPrices | null>(null);
-  let group = $state(""), status = $state<"loading" | "ready" | "none">("loading");
+  let group = $state(""), status = $state<"loading" | "ready" | "none" | "noregion">("loading");
+  // regions the price job collects auction data for (Korea and Taiwan have character profiles only)
+  const PRICE_REGIONS = ["eu", "us"];
 
   const faction = $derived(String(character.faction || "").toLowerCase());
   const houses = $derived(groupData ? Object.entries(groupData.houses).filter(([, h]) => h.faction === faction || h.faction === "neutral").map(([id, h]) => ({ id, ...h })) : []);
@@ -59,6 +61,7 @@
   onMount(async () => {
     const saved = loadStore<{ budget?: number }>(PREFS_KEY);
     if (saved && BUDGETS.some((b) => b.v === saved.budget)) budget = saved.budget!;
+    if (!PRICE_REGIONS.includes(region)) { status = "noregion"; return; }
     const [m, items] = await Promise.all([getJSON<Meta>(priceUrl("meta", region)), getCachedJSON<Record<string, ItemInfo>>(priceUrl("items", region))]);
     useItems(region, items);
     meta = m;
@@ -83,8 +86,10 @@
 <section class="up" class:up-first-sec={first} aria-labelledby="up-title">
   <h3 id="up-title" class="ch-h">Upgrades on the Auction House</h3>
   {#if status === "loading"}<Loading text="Checking the auction houses for upgrades…" />
+  {:else if status === "noregion"}
+    <p class="faint">We only collect auction prices for Europe and the Americas, so we can't look for upgrades for {region === "kr" ? "Korean" : region === "tw" ? "Taiwanese" : "this region's"} characters.</p>
   {:else if status === "none"}
-    <p class="faint">We don't have auction prices for this character's ruleset{region !== "eu" && region !== "us" ? " or region" : ""} yet, so we can't look for upgrades.</p>
+    <p class="faint">We don't have auction prices for this character's ruleset yet, so we can't look for upgrades.</p>
   {:else}
     <p class="up-intro">Gear for sale right now on {rulesetName} ({HOUSE_NAMES[faction]} and Blackwater) with a <b>higher item level</b> than what {character.class ? "this " + character.class.toLowerCase() : "they"} wear{character.class ? "s" : ""}, that the class can use at level {character.level}.</p>
     <div class="control-row up-row">

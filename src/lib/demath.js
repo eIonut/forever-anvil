@@ -1,5 +1,7 @@
+import { unitPrice } from "./pricemath.js";
+
 // Disenchanting: what an item turns into, what that's worth, and AH listings worth buying to disenchant.
-// Shared by the item pages (built on the server) and the Disenchant flips tool (src/tools/Flips.svelte).
+// Shared by the item pages (built on the server) and the Disenchant flips tool (src/tools/Disenchant.svelte), and the price job (pipeline/run.js).
 //
 // Which table an item uses (armor or weapon, green/blue/purple, item-level range) comes from WoW: Forever's
 // own game files (the ItemDisenchantLoot table on wago.tools, build 1.60.1, checked 2026-11-21): its ranges
@@ -113,29 +115,87 @@ export function disenchantValue(table, priceOf) {
   return { value: Math.round(value), complete };
 }
 
+// A flip must earn at least this much per item (the same rule as vendor flips, pricemath.js computeFlips)
+const FLIP_RULE = { minListings: 3, minProfit: 10, minPct: 0.05 };
+
 /**
- * Listings on one auction house worth buying to disenchant: the cheapest listing costs less than the
- * materials sell for after the AH's 5% cut. Materials use this house's market price. Thin material
- * markets (fewer than minListings listings) don't count as priced, so one odd listing can't create a flip.
- * houseItems: { [itemId]: [min, market, qty, listings, sold?] }; items: the item cache.
- * Returns [{ id, cost, value, profit, skill, drops }] best profit first.
+ * Each item's disenchant worth on one auction house, after the AH's 5% cut on the materials.
+ * Materials use this house's market price; thin material markets (fewer than minListings listings)
+ * don't count as priced, so one odd listing can't create a flip. Items with an unpriced material are left out.
+ * Returns a function id → { net, table } or null (memoised).
  * @param {Record<string, (number | undefined)[]>} houseItems
  * @param {Record<string, any[]>} items
- * @param {{ minListings?: number, minProfit?: number }} [opts]
- * @returns {{ id: number, cost: number, value: number, profit: number, skill: number | null, drops: DisenchantDrop[] }[]}
  */
-export function disenchantFlips(houseItems, items, { minListings = 3, minProfit = 1 } = {}) {
-  const priceOf = (id) => { const a = houseItems[id]; return a && a[3] >= minListings ? a[1] : null; };
-  const out = [];
-  for (const [id, a] of Object.entries(houseItems || {})) {
-    const t = disenchantOf(items[id]);
-    if (!t) continue;
-    const v = disenchantValue(t, priceOf);
-    if (!v || !v.complete) continue;
-    const net = Math.round(v.value * 0.95);
-    const profit = net - a[0];
-    if (profit < minProfit) continue;
-    out.push({ id: Number(id), cost: a[0], value: net, profit, skill: t.skill, drops: t.drops });
+function worthOn(houseItems, items, minListings = FLIP_RULE.minListings) {
+  const priceOf = (id) => { const a = houseItems[id]; return a && (a[3] || 0) >= minListings ? (a[1] ?? null) : null; };
+  const memo = new Map();
+  return (id) => {
+    if (memo.has(id)) return memo.get(id);
+    const table = disenchantOf(items[id]);
+    const v = disenchantValue(table, priceOf);
+    const r = table && v && v.complete ? { net: Math.round(v.value * 0.95), table } : null;
+    memo.set(id, r);
+    return r;
+  };
+}
+
+/** Is buying at unit worth it for something worth net? */
+const pays = (unit, net) => unit <= net - Math.max(FLIP_RULE.minProfit, net * FLIP_RULE.minPct);
+
+/**
+ * The price job's disenchant flips for one auction house, from every listing (like vendor flips):
+ * rows [itemId, unitsWorthBuying, totalProfit, cheapestUnit, worthEach] best total first.
+ * listings: raw auctions; houseItems: that house's aggregated prices; items: the item cache.
+ * @param {{ item?: { id: number }, quantity?: number, unit_price?: number, buyout?: number }[]} listings
+ * @param {Record<string, (number | undefined)[]>} houseItems
+ * @param {Record<string, any[]>} items
+ * @returns {[number, number, number, number, number][]}
+ */
+export function computeDisenchantFlips(listings, houseItems, items, top = 200) {
+  const worth = worthOn(houseItems, items);
+  /** @type {Map<number, [number, number, number, number, number]>} */
+  const byItem = new Map();
+  for (const l of listings) {
+    const id = l.item && l.item.id;
+    const unit = id ? unitPrice(l) : null;
+    if (!id || unit == null) continue;
+    const w = worth(id);
+    if (!w || !pays(unit, w.net)) continue;
+    const q = l.quantity || 1;
+    let e = byItem.get(id);
+    if (!e) byItem.set(id, (e = [id, 0, 0, unit, w.net]));
+    e[1] += q;
+    e[2] += (w.net - unit) * q;
+    if (unit < e[3]) e[3] = unit;
   }
-  return out.sort((x, y) => y.profit - x.profit);
+  return [...byItem.values()].map((e) => /** @type {[number, number, number, number, number]} */ ([e[0], e[1], Math.round(e[2]), Math.round(e[3]), e[4]]))
+    .sort((a, b) => b[2] - a[2]).slice(0, top);
+}
+
+/**
+ * Disenchant flips for the page. rows: the price job's rows for this house (computeDisenchantFlips), or
+ * null when the prices file doesn't have them yet; then they're worked out from each item's cheapest
+ * listing only (one unit each). Returns [{ id, units, total, cost, value, profit, skill, drops }] best total first.
+ * @param {[number, number, number, number, number][] | null | undefined} rows
+ * @param {Record<string, (number | undefined)[]>} houseItems
+ * @param {Record<string, any[]>} items
+ * @returns {{ id: number, units: number, total: number, cost: number, value: number, profit: number, skill: number | null, drops: DisenchantDrop[] }[]}
+ */
+export function disenchantFlips(rows, houseItems, items) {
+  if (!rows) {
+    const worth = worthOn(houseItems, items);
+    rows = [];
+    for (const [id, a] of Object.entries(houseItems || {})) {
+      const w = worth(id), min = a[0];
+      if (w && min != null && pays(min, w.net)) rows.push([Number(id), 1, w.net - min, min, w.net]);
+    }
+    rows.sort((a, b) => b[2] - a[2]);
+  }
+  const out = [];
+  for (const [id, units, total, cost, value] of rows) {
+    const t = disenchantOf(items[id]);
+    if (!t) continue; // not in this visitor's item list
+    out.push({ id, units, total, cost, value, profit: value - cost, skill: t.skill, drops: t.drops });
+  }
+  return out;
 }

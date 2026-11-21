@@ -3,6 +3,8 @@
 // The page's own prices are a daily snapshot; this line says how fresh the LIVE prices are, from the
 // price job's meta file: "Live prices updated 12 min ago · all 12 EU auction houses, every hour · ...".
 // Plain script (no Svelte), so these 10,000+ pages stay light. The tools use src/tools/Freshness.svelte.
+// region: the region to show when the visitor hasn't picked one; once they have (on any price tool),
+// the line follows their choice, and updates when they switch region on the same page.
 // brief: leave out "straight from Blizzard, no addon needed" where the page already says it (home page)
 interface Props { region?: string; brief?: boolean }
 const { region = "eu", brief = false } = Astro.props;
@@ -20,6 +22,7 @@ const { region = "eu", brief = false } = Astro.props;
   import { priceUrl } from "../lib/api";
   import { autoRefresh } from "../lib/autorefresh";
   import { onPage } from "../lib/page";
+  import { getMarketPrefs, MARKET_EVENT } from "../lib/marketPrefs";
 
   const NAMES: Record<string, string> = { eu: "EU", us: "US", kr: "Korean", tw: "Taiwanese" };
   const short = (ms: number) => {
@@ -32,7 +35,7 @@ const { region = "eu", brief = false } = Astro.props;
 
   /** Fill in (or update) one freshness line from the price job's meta file */
   function update(el: HTMLElement) {
-    const region = el.dataset.region || "eu";
+    const region = getMarketPrefs().region || el.dataset.region || "eu";
     return fetch(priceUrl("meta", region))
       .then((r) => (r.ok ? r.json() : null))
       .then((m: { lastRun?: string; houses?: number; groups?: string[] } | null) => {
@@ -64,5 +67,6 @@ const { region = "eu", brief = false } = Astro.props;
     lines.forEach(update);
     const stop = autoRefresh(() => Promise.all(lines.map(update)));
     signal.addEventListener("abort", stop);
+    window.addEventListener(MARKET_EVENT, () => lines.forEach(update), { signal });
   });
 </script>

@@ -18,6 +18,8 @@ export interface House {
   listings: number;
   items: Record<string, ItemPrice>;
   flips?: Flip[];
+  /** disenchant flips: [itemId, unitsWorthBuying, totalProfit, cheapestUnit, worthEach] (src/lib/demath.js) */
+  deflips?: Flip[];
   /** hours of auction changes behind the sold-per-day estimates (last 7 days); absent/0 = still collecting */
   salesHours?: number;
 }

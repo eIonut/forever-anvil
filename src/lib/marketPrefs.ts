@@ -24,7 +24,12 @@ export function getMarketPrefs(): MarketPrefs {
   return p;
 }
 
+/** Fired on window after the choice changes, e.g. so the freshness line (LiveFreshness.astro) follows the region */
+export const MARKET_EVENT = "market-change";
+
 /** Update some fields and keep the rest. */
 export function saveMarketPrefs(changes: MarketPrefs): void {
+  const before = getMarketPrefs().region;
   save(MARKET_KEY, { ...getMarketPrefs(), ...changes });
+  if (typeof window !== "undefined" && changes.region && changes.region !== before) window.dispatchEvent(new Event(MARKET_EVENT));
 }

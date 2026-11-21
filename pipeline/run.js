@@ -30,6 +30,7 @@ import { updateSales } from "./sales.js";
 import { fetchRecipeInfo } from "./recipeinfo.js";
 import { fetchCrates } from "./crates.js";
 import { buildHome } from "../src/lib/homesummary.js";
+import { computeDisenchantFlips } from "../src/lib/demath.js";
 
 const ROOT = path.join(import.meta.dirname, "..");
 const args = Object.fromEntries(process.argv.slice(2).map((a) => a.replace(/^--/, "").split("=")));
@@ -91,7 +92,9 @@ async function main() {
       // estimated units sold per day (pipeline/sales.js) as the 5th number of each item; absent = none seen
       const sales = await updateSales(store, region, houseId, listings, now, dataMs);
       for (const [id, n] of Object.entries(sales.perDay)) if (houseItems[id] && n > 0) houseItems[id][4] = n;
-      groupOut.houses[houseId] = { faction, listings: listings.length, items: houseItems, flips: computeFlips(listings, vendorPays), salesHours: sales.hours };
+      groupOut.houses[houseId] = { faction, listings: listings.length, items: houseItems, flips: computeFlips(listings, vendorPays),
+        // listings below what their enchanting materials sell for (src/lib/demath.js)
+        deflips: computeDisenchantFlips(listings, houseItems, items), salesHours: sales.hours };
       groupListings += listings.length;
     }
     if (!groupListings) { log(`Group ${g.id}: empty, skipped`); continue; }
