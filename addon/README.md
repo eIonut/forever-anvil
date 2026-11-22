@@ -7,6 +7,15 @@ The site's prices inside the game. Version 1 is a read-only helper (see [docs/ad
 - **Profession window:** profit per craft next to each recipe.
 - **Settings:** Esc → Options → AddOns → Forever Anvil, or `/fa options`. `/fa` shows which house you're on.
 
+Version 2 adds personal tools (plan milestone A3):
+
+- **Upgrades:** `Upgrade +X` on tooltips and auction rows, from your equipped gear, class and level (`M.UpgradeFor`, a port of `src/lib/upgrades.js`).
+- **Leveling helper:** `skill-up` on the known recipe with the cheapest reagents per expected skill point (`src/lib/levelmath.js` rule; each recipe's yellow and grey skill ship in the data).
+- **Waylaid crates:** Favor and cheapest fill on the crate's tooltip (`src/lib/cratemath.js`).
+- **Watchlist and shopping list:** kept in game (each window has an editor; Alt-click watches an item; "Add to shopping list" in the profession window adds a recipe's reagents), or imported from the site's "Copy for the addon" buttons (`src/lib/addonstring.js`) with `/fa import`, or `/fa watch <item> [price]` in game. `Target` and `Need X` tags in the auction house; `/fa list` and `/fa watch` open their windows.
+- **Prices window** (`Prices.lua`, `/fa prices [search]`): the site's `/prices` page in game. Search, categories and sorting are `M.PriceRows` (tested against the page's rules); item names, quality, category and icons ship in the data (`items`, `encodeItems` in `pipeline/addon-data.js`, about 280 KB for Europe), because the game only knows the names of items it has loaded.
+- **Minimap button and menu** (`Minimap.lua`): status, lists, quick switches and settings. The crest texture `ForeverAnvil/Media/Icon.tga` is made from `public/img/logo.svg` by `node tools/addon-icon.js` (the game loads TGA, not PNG or SVG).
+
 ## Folders
 
 | Folder | What it is |
@@ -43,3 +52,4 @@ The site's prices inside the game. Version 1 is a read-only helper (see [docs/ad
 - Guessing the ruleset from the realm name (so far it's been set by hand with `/fa ruleset`).
 - The neutral (Blackwater) house, used while you're at the auction house in Stranglethorn, Tanaris or Winterspring.
 - Vendor-flip tags (none were on the market while testing; disenchant tags are confirmed).
+- All of version 2: which profession-info call gives your skill (`GetChildProfessionInfo`, then `GetBaseProfessionInfo`), that recipe IDs are spell IDs (the shipped skill levels are keyed by spell), equipped item levels from `GetInventoryItemLink`, `GetItemCount` counting the bank, the `BasicFrameTemplateWithInset` windows, the shopping list's click-to-search, Alt-click to watch (hooks `HandleModifiedItemClick`), shift-click into the windows' item boxes (hooks `ChatEdit_InsertLink`), the "Add to shopping list" button beside the craft buttons, the prices window (item icons from shipped file IDs, the `UI-SortArrow` and scroll-knob textures, mouse-wheel scrolling), the list rows' pencil and X textures, and the minimap button (the TGA icon, its position on this client's minimap, the menu closing when you click elsewhere).

@@ -3,6 +3,7 @@
 -- vendor's price when a reagent isn't on the AH). Grey "?" when something has no price.
 -- Two windows: the modern one (Blizzard_Professions, which the Forever client uses) and the classic one
 -- (Blizzard_TradeSkillUI). Recipes that make no item (enchants) show nothing.
+-- Since version 2: the recipe that levels you cheapest right now is tagged "skill-up" (see below).
 local _, ns = ...
 local M = ns.Math
 
@@ -26,17 +27,50 @@ local function profitText(profit)
 end
 
 ---------------------------------------------------------------------------------------------------
+-- Leveling helper (src/lib/levelmath.js): of the recipes you know, the one whose reagents cost least per
+-- expected skill point at your skill right now is marked "skill-up". The chance uses the recipe's yellow
+-- and grey skill from the game files (shipped in the data); without them, an orange recipe counts as sure.
+local SKILL_TAG = "|cff40c0ffskill-up|r "
+local DIFFICULTY = { optimal = 0, medium = 1, easy = 2, trivial = 3 } -- classic names → modern numbers
+
+-- chance (0–1) that one craft of a recipe you know gives a point, or nil when it can't be told.
+-- You know it, so the skill a pattern needs (and the site's "trainer recipes from yellow") doesn't matter.
+function ns.RecipeChance(spellID, skill, difficulty)
+  local info = ns.SkillInfo(spellID)
+  if info then return M.SkillUpChance(0, info[2], info[3], skill) end
+  if difficulty == 0 then return 1 end
+  if difficulty == 3 then return 0 end
+end
+
+-- best = { key, cost, chance } for the current list, recomputed when the skill or the known recipes change
+local skillUp = { key = nil, best = nil, per = nil }
+function ns.ResetSkillUp() skillUp.key = nil end
+
+-- entries(): { { key, cost|nil, chance|nil }, … } for every known recipe; key: what the row is matched by
+local function bestSkillUp(stamp, entries)
+  if skillUp.key == stamp then return skillUp.best, skillUp.per end
+  local best, per = M.CheapestSkillUp(entries())
+  skillUp.key, skillUp.best, skillUp.per = stamp, best, per
+  return best, per
+end
+
+local function chanceText(chance, cost)
+  if not chance or chance <= 0 then return "" end
+  return ("  |cff40c0ffskill-up %d%%%s|r"):format(math.floor(chance * 100 + 0.5),
+    cost and (", " .. M.ShortMoney(cost / chance, true) .. " per point") or "")
+end
+
+---------------------------------------------------------------------------------------------------
 -- Modern window
 
--- cost, complete, profit for a recipe ID; profit false when it makes no item, nil when unpriced
-function ns.SchematicProfit(recipeID)
+-- The reagents every craft of a recipe needs (not optional or finishing ones): { {itemID, count}, … } and the
+-- schematic, or nil when the game doesn't say
+function ns.SchematicReagents(recipeID)
   local s = C_TradeSkillUI.GetRecipeSchematic(recipeID, false)
   if not s then return nil end
-  if not s.outputItemID then return 0, true, false end
   local basicType = Enum and Enum.CraftingReagentType and Enum.CraftingReagentType.Basic
   local reagents = {}
   for _, slot in ipairs(s.reagentSlotSchematics or {}) do
-    -- only the reagents every craft needs (not optional or finishing ones)
     local needed = slot.required
     if needed == nil then needed = basicType == nil or slot.reagentType == basicType end
     if needed then
@@ -45,9 +79,89 @@ function ns.SchematicProfit(recipeID)
       reagents[#reagents + 1] = { r.itemID, slot.quantityRequired or 1 }
     end
   end
+  return reagents, s
+end
+
+-- "Add to shopping list" with a box for how many crafts, beside the window's craft buttons.
+-- current() → materials of one craft ({ {itemID, count}, … }) and the recipe's name, or nil
+local function shoppingButton(parent, anchor, current)
+  local add = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
+  add:SetSize(140, 22)
+  if anchor then add:SetPoint("RIGHT", anchor, "LEFT", -10, 0) else add:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 60, 8) end
+  add:SetText("Add to shopping list")
+  local count = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
+  count:SetSize(34, 20)
+  count:SetPoint("RIGHT", add, "LEFT", -6, 0)
+  count:SetAutoFocus(false)
+  count:SetNumeric(true)
+  count:SetMaxLetters(4)
+  count:SetText("1")
+  count:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+  count:SetScript("OnEnterPressed", function(self) self:ClearFocus(); add:Click() end)
+  add:SetScript("OnClick", function()
+    ns.Safe("shopping", function()
+      local mats, name = current()
+      if not (mats and #mats > 0) then ns.Print("pick a recipe with reagents first."); return end
+      ns.AddToShopping(mats, M.ParseCount(count:GetText()) or 1, name)
+      count:SetText("1")
+      count:ClearFocus()
+    end)
+  end)
+  add:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_TOP")
+    GameTooltip:AddLine("Forever Anvil")
+    GameTooltip:AddLine("Adds this recipe's reagents, times the number in the box, to your shopping list. It ticks them off as they reach your bags.", 1, 1, 1, true)
+    GameTooltip:Show()
+  end)
+  add:SetScript("OnLeave", function() GameTooltip:Hide() end)
+  return add, count
+end
+
+-- cost, complete, profit for a recipe ID; profit false when it makes no item, nil when unpriced
+function ns.SchematicProfit(recipeID)
+  local reagents, s = ns.SchematicReagents(recipeID)
+  if not reagents then return nil end
+  if not s.outputItemID then -- an enchant: reagents only (they count for the leveling helper)
+    local cost, complete = M.CraftProfit(reagents, ns.ReagentCost)
+    return cost, complete, false
+  end
   local lo = s.quantityMin or 1
   local made = (lo + (s.quantityMax or lo)) / 2
   return M.CraftProfit(reagents, ns.ReagentCost, ns.Market(s.outputItemID), made)
+end
+
+-- your skill in the open profession: level, max (nil when the game doesn't say)
+local function modernSkill()
+  local T = C_TradeSkillUI
+  for _, fn in ipairs({ T.GetChildProfessionInfo, T.GetBaseProfessionInfo }) do
+    if fn then
+      local ok, info = pcall(fn)
+      if ok and type(info) == "table" and info.skillLevel and info.maxSkillLevel and info.maxSkillLevel > 0 then
+        return info.skillLevel, info.maxSkillLevel, info.professionName or info.parentProfessionName
+      end
+    end
+  end
+end
+
+-- the cheapest known recipe per skill point in the modern window: { recipeID, cost, chance }, cost per point
+local function modernSkillUp()
+  if not (ns.db.show.skillup and ns.House() and C_TradeSkillUI.GetAllRecipeIDs and C_TradeSkillUI.GetRecipeInfo) then return nil end
+  local skill, max, name = modernSkill()
+  if not skill or skill >= max then return nil end
+  return bestSkillUp((name or "?") .. ":" .. skill, function()
+    local entries = {}
+    for _, id in ipairs(C_TradeSkillUI.GetAllRecipeIDs() or {}) do
+      local info = C_TradeSkillUI.GetRecipeInfo(id)
+      if info and info.learned then
+        local chance = ns.RecipeChance(id, skill, info.relativeDifficulty)
+        if chance and chance > 0 then
+          local cost, complete = ns.SchematicProfit(id)
+          if cost and complete then entries[#entries + 1] = { id, cost, chance } end
+        end
+      end
+    end
+    return entries
+  end)
 end
 
 local function recipeRow(frame, node)
@@ -55,9 +169,15 @@ local function recipeRow(frame, node)
   t:SetText("")
   local data = node and node.GetData and node:GetData()
   local info = data and data.recipeInfo
-  if not (info and info.recipeID and ns.db.show.craft and ns.House()) then return end
-  local _, _, profit = ns.SchematicProfit(info.recipeID)
-  t:SetText(profitText(profit))
+  if not (info and info.recipeID and ns.House()) then return end
+  local text = ""
+  if ns.db.show.craft then
+    local _, _, profit = ns.SchematicProfit(info.recipeID)
+    text = profitText(profit)
+  end
+  local best = modernSkillUp()
+  if best and best[1] == info.recipeID then text = SKILL_TAG .. text end
+  t:SetText(text)
 end
 
 local function initModern()
@@ -75,14 +195,30 @@ local function initModern()
     local line = form:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     line:SetPoint("TOPRIGHT", form, "TOPRIGHT", -12, -12)
     line:SetJustifyH("RIGHT")
+    local selected -- the recipe on the form, for "Add to shopping list"
+    shoppingButton(page, page.CreateAllButton, function()
+      if not selected then return nil end
+      local info = C_TradeSkillUI.GetRecipeInfo and C_TradeSkillUI.GetRecipeInfo(selected)
+      return ns.SchematicReagents(selected), info and info.name
+    end)
     hooksecurefunc(form, "Init", function(_, recipeInfo)
+      selected = recipeInfo and recipeInfo.recipeID
       ns.Safe("profession", function()
         line:SetText("")
-        if not (recipeInfo and recipeInfo.recipeID and ns.db.show.craft and ns.House()) then return end
+        if not (recipeInfo and recipeInfo.recipeID and ns.House()) then return end
         local cost, complete, profit = ns.SchematicProfit(recipeInfo.recipeID)
-        if profit == false or not cost then return end
-        line:SetText("|cffe6a23cForever Anvil|r  profit " .. profitText(profit)
-          .. "  |cff999999reagents " .. (complete and "" or "~") .. M.ShortMoney(cost, true) .. "|r")
+        if not cost then return end
+        local s = ""
+        if ns.db.show.craft and profit ~= false then
+          s = "  profit " .. profitText(profit) .. "  |cff999999reagents " .. (complete and "" or "~") .. M.ShortMoney(cost, true) .. "|r"
+        end
+        if ns.db.show.skillup then
+          local skill, max = modernSkill()
+          if skill and skill < max then
+            s = s .. chanceText(ns.RecipeChance(recipeInfo.recipeID, skill, recipeInfo.relativeDifficulty), complete and cost or nil)
+          end
+        end
+        if s ~= "" then line:SetText("|cffe6a23cForever Anvil|r" .. s) end
       end)
     end)
   end
@@ -92,9 +228,8 @@ end
 -- Classic window
 
 -- cost, complete, profit (or nil) for one recipe in the open window
-function ns.RecipeProfit(index)
-  local product = ns.ItemID(GetTradeSkillItemLink(index))
-  if not product then return 0, true, false end
+-- { {itemID, count}, … } for one craft of a recipe in the open classic window, or nil
+local function classicReagents(index)
   local reagents = {}
   for r = 1, GetTradeSkillNumReagents(index) do
     local _, _, count = GetTradeSkillReagentInfo(index, r)
@@ -102,13 +237,48 @@ function ns.RecipeProfit(index)
     if not id or not count then return nil end
     reagents[#reagents + 1] = { id, count }
   end
+  return reagents
+end
+
+function ns.RecipeProfit(index)
+  local product = ns.ItemID(GetTradeSkillItemLink(index))
+  local reagents = classicReagents(index)
+  if not reagents then return nil end
+  if not product then -- an enchant: reagents only
+    local cost, complete = M.CraftProfit(reagents, ns.ReagentCost)
+    return cost, complete, false
+  end
   local lo, hi = GetTradeSkillNumMade(index)
   local made = ((lo or 1) + (hi or lo or 1)) / 2
   return M.CraftProfit(reagents, ns.ReagentCost, ns.Market(product), made)
 end
 
+-- the cheapest recipe per skill point in the classic window: { index, cost, chance }
+local function classicSkillUp()
+  if not (ns.db.show.skillup and GetTradeSkillLine and GetNumTradeSkills) then return nil end
+  local name, skill, max = GetTradeSkillLine()
+  if not (skill and max) or skill >= max then return nil end
+  return bestSkillUp((name or "?") .. ":" .. skill .. ":" .. GetNumTradeSkills(), function()
+    local entries = {}
+    for i = 1, GetNumTradeSkills() do
+      local _, kind = GetTradeSkillInfo(i)
+      if kind and kind ~= "header" then
+        local link = GetTradeSkillRecipeLink and GetTradeSkillRecipeLink(i)
+        local spell = link and tonumber(link:match("enchant:(%d+)"))
+        local chance = ns.RecipeChance(spell, skill, DIFFICULTY[kind])
+        if chance and chance > 0 then
+          local cost, complete = ns.RecipeProfit(i)
+          if cost and complete then entries[#entries + 1] = { i, cost, chance } end
+        end
+      end
+    end
+    return entries
+  end)
+end
+
 local function updateClassic()
-  local on = ns.db and ns.db.show.craft and ns.House()
+  local on = ns.db and ns.House()
+  local best = on and classicSkillUp()
   for i = 1, (TRADE_SKILLS_DISPLAYED or 8) do
     local button = _G["TradeSkillSkill" .. i]
     if button then
@@ -118,13 +288,25 @@ local function updateClassic()
       if on and button:IsShown() and index and index > 0 then
         local _, kind = GetTradeSkillInfo(index)
         if kind and kind ~= "header" then
-          local _, _, profit = ns.RecipeProfit(index)
-          t:SetText(profitText(profit))
+          local text = ""
+          if ns.db.show.craft then
+            local _, _, profit = ns.RecipeProfit(index)
+            text = profitText(profit)
+          end
+          if best and best[1] == index then text = SKILL_TAG .. text end
+          t:SetText(text)
         end
       end
     end
   end
 end
+
+-- learning a recipe or gaining a point changes the pick
+local events = CreateFrame("Frame")
+for _, e in ipairs({ "TRADE_SKILL_LIST_UPDATE", "SKILL_LINES_CHANGED", "NEW_RECIPE_LEARNED" }) do
+  pcall(events.RegisterEvent, events, e)
+end
+events:SetScript("OnEvent", function() ns.ResetSkillUp() end)
 
 -- Hooks whichever profession window exists, once. Runs when a profession UI addon loads and again when the
 -- window opens (TRADE_SKILL_SHOW, in Core.lua), so it works however and whenever the client loads that UI.
@@ -135,6 +317,13 @@ function ns.InitProfession()
   elseif type(TradeSkillFrame_Update) == "function" and GetTradeSkillInfo then
     ns.professionUI = "classic"
     hooksecurefunc("TradeSkillFrame_Update", function() ns.Safe("profession", updateClassic) end)
+    if TradeSkillFrame and GetTradeSkillSelectionIndex then
+      shoppingButton(TradeSkillFrame, TradeSkillCreateAllButton, function()
+        local index = GetTradeSkillSelectionIndex()
+        if not index or index == 0 then return nil end
+        return classicReagents(index), (GetTradeSkillInfo(index))
+      end)
+    end
   elseif TradeSkillFrame then
     ns.professionUI = "classic, unsupported"
     ns.Print("this profession window isn't supported yet, so craft profits aren't shown. Tooltips still work.")

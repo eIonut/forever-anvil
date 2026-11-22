@@ -13,6 +13,12 @@ local CHECKS = {
   { "flips", "Auction house: tag vendor and disenchant flips" },
   { "deAll", "Auction house: also show the disenchant value (grey) on rows that aren't flips" },
   { "craft", "Profession window: profit per craft" },
+  { "skillup", "Profession window: mark the cheapest recipe to level with" },
+  { "upgrades", "Tooltip and auction house: upgrades over your gear (higher item level)" },
+  { "crates", "Tooltip: Waylaid crates' Favor and cheapest fill" },
+  { "watch", "Watchlist: tooltip target and auction house tags (/fa watch)" },
+  { "shopping", "Shopping list: window at the auction house and \"Need\" tags (/fa list)" },
+  { "minimap", "Minimap button (click: menu, right-click: settings, drag: move)" },
 }
 
 local panel, category
@@ -37,9 +43,12 @@ local function build()
     local label = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
     label:SetPoint("LEFT", cb, "RIGHT", 4, 0)
     label:SetText(c[2])
-    cb:SetScript("OnClick", function(self) ns.db.show[c[1]] = self:GetChecked() and true or false end)
+    cb:SetScript("OnClick", function(self)
+      ns.db.show[c[1]] = self:GetChecked() and true or false
+      if ns.OnSetting then ns.OnSetting(c[1]) end
+    end)
     boxes[c[1]] = cb
-    y = y - 28
+    y = y - 23
   end
 
   local rsLabel = panel:CreateFontString(nil, "ARTWORK", "GameFontNormal")
@@ -64,7 +73,8 @@ local function build()
   about:SetText("Prices are the same hourly snapshots as " .. ns.SITE .. ", from the version of this addon you have installed: "
     .. "update it often for fresh prices. Flips and profits are estimates; check before you buy. "
     .. "Every buy, post and craft is still your own click.\n\n"
-    .. "More tools (crafting planner, upgrades, watchlist, talents) at " .. ns.SITE .. ".\n\n"
+    .. "Browse every price with /fa prices. Bring your watchlist and crafting plan over with \"Copy for the addon\" on the site and /fa import.\n\n"
+    .. "More tools (crafting planner, leveling routes, talents) at " .. ns.SITE .. ".\n\n"
     .. "Data provided by Blizzard Entertainment. Forever Anvil is not made or endorsed by Blizzard.")
 
   function panel.refresh()

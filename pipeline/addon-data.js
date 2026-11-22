@@ -8,7 +8,9 @@
 // What ships (see docs/addon-plan.md, section 2): per auction house the current
 // [min, market, units listed, listings, sold per day] of each item, one median market per item across the
 // region's houses, and the vendor buy price of crafting reagents (used when a reagent isn't on the AH).
-// Item names, quality, item level and vendor sell price are left out: the game client already has them.
+// Since version 2 also: each recipe's skill levels (leveling helper), the Waylaid crates (crate tooltips), and
+// the names, quality, category and icon of the items on sale (the in-game prices window searches by name,
+// and the game only knows the names of items it has loaded).
 //
 // Each house is one string ("id,min,market,qty,listings,sold;…", sold empty when unknown) that the addon
 // decodes only for the house you're on, so the other houses cost a little memory and no time.
@@ -18,6 +20,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { GROUPS } from "./houses.js";
 import { NO_DISENCHANT } from "../src/data/nodisenchant.js";
+import { crateInfo, crateFavor, CONFIRMED_TIERS } from "../src/lib/cratemath.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const INTERFACE = "16001"; // WoW: Forever client 1.60.1 (docs/addon-plan.md A0: confirm with /dump select(4, GetBuildInfo()))
@@ -53,7 +56,62 @@ export function regionMedians(houseItemsList) {
   return out;
 }
 
-const luaStr = (s) => JSON.stringify(s); // the strings here are digits, commas, semicolons and plain names: JSON quoting is valid Lua
+/**
+ * Recipe skill levels as "spell,required,yellow,grey;…" (required empty for trainer recipes), by spell id:
+ * the modern profession window's recipe id is the recipe's spell. From recipes_<region>.json rows, whose
+ * info is [required|null, yellow, grey, source, teachItemId, spellId] (pipeline/recipeinfo.js).
+ */
+export function encodeSkill(recipes) {
+  const by = new Map();
+  for (const p of (recipes && recipes.professions) || []) for (const r of p.recipes || []) {
+    const info = r[7];
+    if (!info || !info[5] || !info[2] || !info[1]) continue;
+    by.set(info[5], `${info[5]},${info[0] ?? ""},${info[1]},${info[2]};`);
+  }
+  return [...by.keys()].sort((a, b) => a - b).map((k) => by.get(k)).join("");
+}
+
+/**
+ * Waylaid crates as "crate,favor,confirmed|item:qty,item:qty;…": the Merchant's Favor one crate pays
+ * (src/lib/cratemath.js; confirmed 0 while players haven't confirmed that tier's Favor in game) and the
+ * bundles that fill it. From crates_<region>.json: [[crateId, name, level, [[itemId|null, qty, name], …]], …]
+ */
+export function encodeCrates(file) {
+  let s = "";
+  for (const [id, name, , bundles] of (file && file.crates) || []) {
+    const info = crateInfo(name);
+    if (!info) continue;
+    const list = (bundles || []).filter(([item, qty]) => item && qty > 0).map(([item, qty]) => `${item}:${qty}`).join(",");
+    s += `${id},${crateFavor(info)},${info.tier < CONFIRMED_TIERS ? 1 : 0}|${list};`;
+  }
+  return s;
+}
+
+const QUALITY = ["poor", "common", "uncommon", "rare", "epic", "legendary"];
+// item class → the prices page's category (src/lib/itemfilters.ts CATEGORIES), one letter each
+const CATEGORY = { Weapon: "w", Armor: "a", Consumable: "c", "Trade Goods": "t", Recipe: "r", Container: "b", Quiver: "b", Projectile: "p" };
+
+/**
+ * Names and kinds of the items on the region's auction houses, for the in-game prices window (its search
+ * needs names the game hasn't loaded yet): "id,quality,category,requiredLevel,icon,name" lines, sorted by id.
+ * Category is one letter (CATEGORY; "o" for other). From the item cache entry
+ * [name, vendorSells, day, vendorBuys, quality, class, icon, _, subclass, invType, requiredLevel, itemLevel].
+ */
+export function encodeItems(cache, ids) {
+  let s = "";
+  for (const id of [...ids].sort((a, b) => a - b)) {
+    const e = cache[id];
+    if (!e || !e[0]) continue;
+    const q = QUALITY.indexOf(e[4]);
+    const req = typeof e[10] === "number" ? e[10] : "";
+    s += `${id},${q < 0 ? "" : q},${CATEGORY[e[5]] || "o"},${req},${e[6] || ""},${String(e[0]).replace(/[\r\n]/g, " ")}\n`;
+  }
+  return s;
+}
+
+// JSON quoting is valid Lua for these strings: digits, punctuation and names (quotes and backslashes escaped,
+// newlines written as \n). JSON writes \u escapes, which Lua 5.1 lacks, only for control characters: names have none.
+const luaStr = (s) => JSON.stringify(s);
 
 const readJSON = (file) => {
   try { return JSON.parse(fs.readFileSync(file, "utf8")); } catch { return null; }
@@ -95,6 +153,10 @@ export function buildRegion(region, inDir) {
     if (e && e[3] > 0) vendorStr += `${id},${e[3]};`;
   }
 
+  const crates = readJSON(path.join(inDir, `crates_${region}.json`));
+  const onSale = new Set();
+  for (const h of houses) for (const id of Object.keys(h.items)) onSale.add(Number(id));
+
   const R = region.toUpperCase();
   const lines = [
     "-- Generated by pipeline/addon-data.js from Blizzard API data. Do not edit: it's rebuilt for every release.",
@@ -113,6 +175,11 @@ export function buildRegion(region, inDir) {
     `  vendorBuy = ${luaStr(vendorStr)},`,
     // items the game won't disenchant though they fit the rules (src/data/nodisenchant.js)
     `  noDisenchant = ${luaStr([...NO_DISENCHANT].sort((a, b) => a - b).join(";") + ";")},`,
+    // skill levels of every recipe, by its spell (the game's recipe id), for the leveling helper
+    `  skill = ${luaStr(encodeSkill(recipes))},`,
+    `  crates = ${luaStr(encodeCrates(crates))},`,
+    // names, quality, category, level and icon of every item on sale, for the prices window (version 2)
+    `  items = ${luaStr(encodeItems(cache, onSale))},`,
     "}",
     ""
   ];
@@ -150,7 +217,7 @@ async function downloadRegion(site, region, dir) {
   };
   await get("meta");
   const meta = readJSON(path.join(dir, `meta_${region}.json`));
-  await Promise.all([...(meta.groups || []).map((g) => get("prices", g)), get("items"), get("recipes")]);
+  await Promise.all([...(meta.groups || []).map((g) => get("prices", g)), get("items"), get("recipes"), get("crates")]);
 }
 
 async function main() {

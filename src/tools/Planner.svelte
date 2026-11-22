@@ -6,6 +6,7 @@
   import Loading from "./Loading.svelte";
   import { onMount, tick } from "svelte";
   import { planShoppingList } from "../lib/pricemath.js";
+  import { shoppingString } from "../lib/addonstring.js";
   import { copyText, getCachedJSON, getJSON, groupLabel, priceUrl } from "../lib/api";
   import { notify } from "../lib/notify";
   import { askConfirm } from "../lib/dialog";
@@ -117,6 +118,13 @@
     }
   }
 
+  // every material the plan needs (not just what's left to buy): the addon counts what's in your bags and bank
+  async function copyForAddon() {
+    if (await copyText(shoppingString(mats), "Copy this, then type /fa import in game and paste it:")) {
+      notify("Copied: in game, type /fa import and paste it");
+    }
+  }
+
   onMount(() => {
     const p = getMarketPrefs();
     region = p.region || "eu"; group = p.group || ""; faction = p.faction || "alliance";
@@ -166,7 +174,7 @@
       </section>
 
       <section class="panel" aria-labelledby="pl-mat-title">
-        <div class="section-head"><h2 id="pl-mat-title">Shopping list</h2><button type="button" class="btn btn-sm" hidden={!toBuy.length} onclick={copy}>{copyLabel}</button></div>
+        <div class="section-head"><h2 id="pl-mat-title">Shopping list</h2><div class="pl-copy"><button type="button" class="btn btn-ghost btn-sm" hidden={!mats.length} onclick={copyForAddon} title="For the Forever Anvil addon: type /fa import in game and paste it">Copy for the addon</button><button type="button" class="btn btn-sm" hidden={!toBuy.length} onclick={copy}>{copyLabel}</button></div></div>
         <div class="table-wrap">
           <table class="prices">
             <caption class="sr-only">Materials needed for your plan</caption>

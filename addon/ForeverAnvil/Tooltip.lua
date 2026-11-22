@@ -1,5 +1,6 @@
 -- Item tooltips: market and lowest price on your auction house, sold per day, region median,
--- disenchant value and vendor price. Works with both tooltip systems the client may have.
+-- disenchant value and vendor price; since version 2 also a crate's Favor and cheapest fill, your watchlist
+-- target, what your shopping list still needs, and upgrades over your gear. Works with both tooltip systems.
 local _, ns = ...
 local M = ns.Math
 
@@ -39,6 +40,38 @@ local function addLines(tt, itemID)
   if show.vendor then
     local sell = ns.VendorSell(itemID)
     if sell then add("Vendor", money(sell)) end
+  end
+  if show.crates then
+    local crate, fill = ns.Crate(itemID)
+    if crate then
+      local favor = (crate.confirmed and "" or "~") .. (crate.favor % 1 == 0 and string.format("%d", crate.favor) or tostring(crate.favor))
+      add("Merchant's Favor", favor, GOLD)
+      if fill then
+        local name = ns.ItemInfo(fill.item) or ("item " .. fill.item)
+        add("Cheapest fill", fill.qty .. " " .. name .. ", " .. money(fill.cost))
+        add("Per Favor", money(math.floor(fill.cost / crate.favor + 0.5)))
+      elseif id then
+        add("Cheapest fill", "|cff999999not enough on sale|r")
+      end
+    end
+  end
+  if show.watch then
+    local target = ns.WatchTarget(itemID)
+    if target then
+      local at = target > 0 and p and p[1] and p[1] <= target
+      add("Watchlist", target > 0 and ("target " .. money(target) .. (at and "  |cff33dd55at target|r" or "")) or "watched", GOLD)
+    end
+  end
+  if show.shopping then
+    local need, total = ns.ShoppingNeed(itemID)
+    if need then add("Shopping list", need > 0 and ("need " .. need .. " of " .. total) or ("|cff33dd55you have all " .. total .. "|r"), GOLD) end
+  end
+  if show.upgrades then
+    local slot, gain, wearing = ns.Upgrade(itemID)
+    if slot then
+      local what = wearing and ("over your " .. ns.SLOT_NAMES[slot]) or ("empty " .. ns.SLOT_NAMES[slot] .. " slot")
+      add("Upgrade", "|cff33dd55+" .. gain .. " item level|r  |cff999999" .. what .. "|r", { 0.4, 0.8, 1 })
+    end
   end
   if #lines == 0 then return end
 

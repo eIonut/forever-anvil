@@ -776,6 +776,7 @@ table.prices td.dim { color: var(--ink-faint); }
 .pl-list > li { display: grid; grid-template-columns: 1fr 90px auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line-soft); }
 .pl-list > li.empty { display: block; }
 .pl-list .pl-qty .input, .pl-have { width: 80px; padding: 6px 8px; }
+.pl-copy { display: flex; flex-wrap: wrap; gap: 8px; }
 .pl-totals dl { margin: 0; display: grid; gap: 10px; }
 .pl-totals dt { color: var(--ink-dim); font-size: .92rem; }
 .pl-totals dd { margin: 2px 0 0; font-size: 1.25rem; font-weight: 700; }

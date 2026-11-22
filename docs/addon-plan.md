@@ -2,7 +2,7 @@
 
 Goal: bring the site's tools into the game as a free addon, with our main strength intact: Blizzard API prices for every auction house, refreshed hourly. No other addon has that.
 
-Status: plan only (2026-11-22). Nothing built yet.
+Status (2026-11-22): A0–A2 done (version 1 released). A3, version 2, built on the `addon-v2` branch and waiting for in-game testing. The talents import string moves to A4 with the talent helper that uses it.
 
 ---
 
