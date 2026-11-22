@@ -219,13 +219,21 @@ local function initModern()
     local line = form:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
     -- Under the recipe's name, beside its icon, where the form has room for two lines. (In the form's top right
     -- corner the line ran over the form's buttons, then into the name, then into the window's border.)
-    if form.OutputText then
-      line:SetPoint("TOPLEFT", form.OutputText, "BOTTOMLEFT", 0, -6)
-      line:SetJustifyH("LEFT")
-    else
-      line:SetPoint("TOPRIGHT", form, "TOPRIGHT", -12, -12)
-      line:SetJustifyH("RIGHT")
+    -- Recipes that need a tool or place ("Requires: Cooking Fire") show that under the name: then under it.
+    local function place()
+      line:ClearAllPoints()
+      if type(form.OutputText) == "table" then
+        local below = form.OutputText
+        local tools = form.RequiredTools
+        if type(tools) == "table" and tools:IsShown() and (tools:GetText() or "") ~= "" then below = tools end
+        line:SetPoint("TOPLEFT", below, "BOTTOMLEFT", 0, -4)
+        line:SetJustifyH("LEFT")
+      else
+        line:SetPoint("TOPRIGHT", form, "TOPRIGHT", -12, -12)
+        line:SetJustifyH("RIGHT")
+      end
     end
+    place()
     local selected -- the recipe on the form, for "Add to shopping list"
     shoppingButton(page, page.CreateAllButton, function()
       if not selected then return nil end
@@ -236,6 +244,7 @@ local function initModern()
       selected = recipeInfo and recipeInfo.recipeID
       ns.Safe("profession", function()
         line:SetText("")
+        place()
         if not (recipeInfo and recipeInfo.recipeID and ns.House()) then return end
         local cost, complete, profit = ns.SchematicProfit(recipeInfo.recipeID)
         if not cost then return end

@@ -345,7 +345,16 @@ test("smoke: modern profession and auction windows show profits and flips", () =
     C_Timer = nil
     local form = ProfessionsFrame.CraftingPage.SchematicForm
     form:Init({ recipeID = 1 })
-    texts[#texts + 1] = "form: " .. form.fs.text
+    texts[#texts + 1] = "form: " .. form.fs.text .. " (no name text: top right)"
+    -- under the recipe's name, or under "Requires: Cooking Fire" when the recipe shows one
+    local line = form.fs
+    form.OutputText = { name = "name" }
+    form.RequiredTools = { name = "tools", IsShown = function() return true end, GetText = function() return "" end }
+    form:Init({ recipeID = 1 })
+    local first = line.anchor.name
+    form.RequiredTools.GetText = function() return "Requires: Cooking Fire" end
+    form:Init({ recipeID = 1 })
+    texts[#texts + 1] = "placed under: " .. first .. ", then " .. line.anchor.name
     texts[#texts + 1] = "ui: " .. ns.professionUI .. ", " .. ns.auctionUI
     return table.concat(texts, "\\n")`, { HOUSE: house, "Core.lua": src("Core.lua"), "Tooltip.lua": src("Tooltip.lua"), "Auction.lua": src("Auction.lua"), "Profession.lua": src("Profession.lua") });
   // 10000 × 0.95 − (8 × 275 Heavy Leather + 2 × 100 vendor thread); the optional reagent doesn't count
@@ -370,7 +379,8 @@ test("smoke: modern profession and auction windows show profits and flips", () =
     "full names, wrong position: [] via number -> name",
     "reused, before the next frame: []",
     "reused, after: |cff33dd55Vendor +|r|cffc7c7cf1s|r |cffeda55f20c|r via number -> name",
-    "form: |cffe6a23cForever Anvil|r  profit |cff33dd55+71s|r  |cff999999reagents 24s|r",
+    "form: |cffe6a23cForever Anvil|r  profit |cff33dd55+71s|r  |cff999999reagents 24s|r (no name text: top right)",
+    "placed under: name, then tools",
     "ui: modern, modern",
   ]);
 });
