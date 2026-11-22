@@ -1,7 +1,7 @@
 <script lang="ts">
-  // "Updated 12 min ago · all 12 EU auction houses, every hour · from Blizzard, no addon needed"
+  // "Updated 12 min ago · all 12 EU auction houses, every hour · from Blizzard, no scanning needed"
   // Shown on every price view. Our edge over scan-based sites is that every auction house is read from
-  // Blizzard's API every hour, with nobody needing to run an addon, so we say so wherever prices appear.
+  // Blizzard's API every hour, with nobody needing to scan the auction house in game, so we say so wherever prices appear.
   //   updated: when the prices on screen were taken (a tool's group file). Left out on pages built once a
   //            day (item, recipe pages): then it reads the price job's last run from the meta file.
   //   live:    on those static pages, label it as the live prices (the page itself is a daily snapshot).
@@ -46,7 +46,7 @@
       <span class="fr-sep" aria-hidden="true">·</span><span>the hourly update is running late, so prices may have moved</span>
     {:else}
       {#if houses}<span class="fr-sep" aria-hidden="true">·</span><span>all {houses} {REGION_NAMES[region] || region.toUpperCase()} auction houses, every hour</span>{/if}
-      <span class="fr-sep" aria-hidden="true">·</span><span>straight from Blizzard, no addon needed</span>
+      <span class="fr-sep" aria-hidden="true">·</span><span>straight from Blizzard, no scanning needed</span>
     {/if}
   </p>
 {/if}

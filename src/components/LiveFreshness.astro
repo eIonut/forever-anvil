@@ -5,7 +5,7 @@
 // Plain script (no Svelte), so these 10,000+ pages stay light. The tools use src/tools/Freshness.svelte.
 // region: the region to show when the visitor hasn't picked one; once they have (on any price tool),
 // the line follows their choice, and updates when they switch region on the same page.
-// brief: leave out "straight from Blizzard, no addon needed" where the page already says it (home page)
+// brief: leave out "straight from Blizzard, no scanning needed" where the page already says it (home page)
 interface Props { region?: string; brief?: boolean }
 const { region = "eu", brief = false } = Astro.props;
 ---
@@ -13,7 +13,7 @@ const { region = "eu", brief = false } = Astro.props;
   <span class="fr-dot" aria-hidden="true"></span>
   <span>Live prices updated <time></time></span>
   <span class="fr-sep" aria-hidden="true">·</span><span class="fr-houses"></span>
-  {!brief && <Fragment><span class="fr-sep fr-ok" aria-hidden="true">·</span><span class="fr-ok">straight from Blizzard, no addon needed</span></Fragment>}
+  {!brief && <Fragment><span class="fr-sep fr-ok" aria-hidden="true">·</span><span class="fr-ok">straight from Blizzard, no scanning needed</span></Fragment>}
   <span class="fr-late" hidden>· the hourly update is running late, so prices may have moved</span>
   <a href="/prices">See live prices</a>
 </p>

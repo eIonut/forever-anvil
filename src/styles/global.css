@@ -1365,7 +1365,7 @@ html[data-contrast] .ec-cell { background: #141414; border-color: #8a8a8a; }
    Hide the icon together with its tooltip. */
 .wowhead-tooltip[style*="visibility: hidden"] .whtt-tooltip-icon { visibility: hidden !important; }
 
-/* "Updated 12 min ago · all 12 EU auction houses, every hour · straight from Blizzard, no addon needed"
+/* "Updated 12 min ago · all 12 EU auction houses, every hour · straight from Blizzard, no scanning needed"
    (src/tools/Freshness.svelte in the tools, src/components/LiveFreshness.astro on daily-built pages) */
 .freshness { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 8px; margin: 10px 0; font-size: .9rem; color: var(--ink-dim); }
 .freshness .fr-dot { width: 8px; height: 8px; border-radius: 50%; background: #5fd36a; box-shadow: 0 0 0 3px rgba(95, 211, 106, .18); flex: none; }
