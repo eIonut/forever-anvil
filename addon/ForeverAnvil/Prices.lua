@@ -63,10 +63,11 @@ local function refreshDetail()
     d.line1:SetText("|cff999999Not on this auction house right now.|r")
   end
   local bits = {}
+  -- kept short: with all three it must fit on one line beside the buttons ("Region median" and "Vendor pays" wrapped)
   local med, n = ns.RegionMedian(id)
-  if med then bits[#bits + 1] = "Region median " .. priceText(med) .. " (" .. n .. " houses)" end
+  if med then bits[#bits + 1] = "Region " .. priceText(med) .. " (" .. n .. " houses)" end
   local sell = ns.VendorSell(id)
-  if sell then bits[#bits + 1] = "Vendor pays " .. priceText(sell) end
+  if sell then bits[#bits + 1] = "Vendor " .. priceText(sell) end
   local de = ns.Disenchant(id)
   if de then bits[#bits + 1] = "Disenchant ~" .. priceText(de) end
   d.line2:SetText("|cffbbbbbb" .. table.concat(bits, " · ") .. "|r")

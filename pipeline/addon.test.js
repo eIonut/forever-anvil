@@ -1336,7 +1336,7 @@ test("smoke: prices window searches, filters, sorts, switches house and acts on 
     "by name: Linen Cloth, Silk Cloth, Wool Cloth",
     "alliance: Linen Cloth; PvP alliance, lit true/false",
     "detail: |cffffffffWorn Shortsword|r | Market 60s · Lowest 50s · 1 listed in 1 listings | |cffbbbbbb|r | row marked true",
-    "detail: |cffffffffLinen Cloth|r | Market 15c · Lowest 12c · 400 listed in 30 listings · Sold 120/day | |cffbbbbbbRegion median 17c (3 houses)|r",
+    "detail: |cffffffffLinen Cloth|r | Market 15c · Lowest 12c · 400 listed in 30 listings · Sold 120/day | |cffbbbbbbRegion 17c (3 houses)|r",
     "watch: Linen Cloth added to your watchlist. Set a target price in |cffffffff/fa watch|r. 0, button Unwatch",
     "unwatch: nil, button Watch",
     "add: shopping list: 2× Linen Cloth (5 in all). 2589=5, shopping window true",
