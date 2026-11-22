@@ -69,7 +69,7 @@ const similar = similarItems(c, String(id));
 
 // Disenchanting (src/lib/demath.js): what it gives and its average worth, with material prices from the
 // same auction house as the summary above, so the two compare fairly
-const de = disenchantOf(c.names[id]);
+const de = disenchantOf(c.names[id], id);
 const deHouse = main ? priceOn(c, main.region, main.houseId) : priceAt;
 const deWorth = de ? disenchantValue(de, (m: number) => deHouse(m).ah) : null;
 const deNet = deWorth && deWorth.complete ? Math.round(deWorth.value * 0.95) : null;

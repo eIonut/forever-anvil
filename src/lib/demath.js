@@ -1,4 +1,5 @@
 import { unitPrice } from "./pricemath.js";
+import { NO_DISENCHANT } from "../data/nodisenchant.js";
 
 // Disenchanting: what an item turns into, what that's worth, and AH listings worth buying to disenchant.
 // Shared by the item pages (built on the server) and the Disenchant flips tool (src/tools/Disenchant.svelte), and the price job (pipeline/run.js).
@@ -90,11 +91,21 @@ export function disenchantTable(quality, itemClass, itemLevel) {
 }
 
 /**
- * The table for an item-cache entry ([name, …, quality(4), itemClass(5), …, itemLevel(11)]), or null
+ * Can the game disenchant this item at all? Some items that fit the rules are marked "can't be disenchanted"
+ * in the game files (e.g. the enchanter-made wands; src/data/nodisenchant.js, from tools/no-disenchant.js).
+ * @param {number | string | null | undefined} id
+ */
+export const canDisenchant = (id) => !NO_DISENCHANT.has(Number(id));
+
+/**
+ * The table for an item-cache entry ([name, …, quality(4), itemClass(5), …, itemLevel(11)]), or null.
+ * Pass the item id too, so items the game won't disenchant get null.
  * @param {any[] | null | undefined} entry
+ * @param {number | string} [id]
  * @returns {DisenchantTable | null}
  */
-export const disenchantOf = (entry) => (entry ? disenchantTable(entry[4], entry[5], entry[11]) : null);
+export const disenchantOf = (entry, id) =>
+  (entry && (id == null || canDisenchant(id)) ? disenchantTable(entry[4], entry[5], entry[11]) : null);
 
 /**
  * Expected value of disenchanting one item: each drop's chance × average quantity × the material's price.
@@ -131,7 +142,7 @@ function worthOn(houseItems, items, minListings = FLIP_RULE.minListings) {
   const memo = new Map();
   return (id) => {
     if (memo.has(id)) return memo.get(id);
-    const table = disenchantOf(items[id]);
+    const table = disenchantOf(items[id], id);
     const v = disenchantValue(table, priceOf);
     const r = table && v && v.complete ? { net: Math.round(v.value * 0.95), table } : null;
     memo.set(id, r);
@@ -193,7 +204,7 @@ export function disenchantFlips(rows, houseItems, items) {
   }
   const out = [];
   for (const [id, units, total, cost, value] of rows) {
-    const t = disenchantOf(items[id]);
+    const t = disenchantOf(items[id], id);
     if (!t) continue; // not in this visitor's item list
     out.push({ id, units, total, cost, value, profit: value - cost, skill: t.skill, drops: t.drops });
   }

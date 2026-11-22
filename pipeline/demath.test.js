@@ -1,7 +1,8 @@
 // Tests for the disenchanting table and flips (src/lib/demath.js).
 import test from "node:test";
 import assert from "node:assert/strict";
-import { MATS, disenchantTable, disenchantOf, disenchantValue, disenchantFlips, computeDisenchantFlips } from "../src/lib/demath.js";
+import { MATS, canDisenchant, disenchantTable, disenchantOf, disenchantValue, disenchantFlips, computeDisenchantFlips } from "../src/lib/demath.js";
+import { noDisenchantIds } from "../tools/no-disenchant.js";
 
 const sum = (t) => Math.round(t.drops.reduce((s, d) => s + d.chance, 0) * 1e6) / 1e6;
 
@@ -72,4 +73,25 @@ test("page: uses the price job's rows, or the cheapest listings when there are n
   assert.equal(fromJob[0].drops.length, 3);
   const fallback = disenchantFlips(null, HOUSE, ITEMS);
   assert.deepEqual(fallback.map((f) => [f.id, f.units, f.total, f.cost]), [[1, 1, 614, 1500]]);
+});
+
+// Items the game files mark "can't be disenchanted" (src/data/nodisenchant.js): Greater Magic Wand fits every
+// rule (green weapon, item level 23) but the game refuses it ("not a valid item", checked in game 2026-11-22).
+test("items the game won't disenchant: no table, no flip, dropped from the job's rows", () => {
+  const wand = ["Greater Magic Wand", 200, 0, 10000, "uncommon", "Weapon", 0, null, "Wands", "RANGEDRIGHT", 13, 23];
+  assert.equal(canDisenchant(11288), false);
+  assert.equal(canDisenchant(1), true);
+  assert.equal(disenchantOf(wand, 11288), null);
+  assert.ok(disenchantOf(wand, 999999)); // the same item under another id would be fine
+  const items = { ...ITEMS, 11288: ITEMS[1] };
+  const L = (id, quantity, unit) => ({ item: { id }, quantity, unit_price: unit });
+  assert.deepEqual(computeDisenchantFlips([L(11288, 1, 1500)], HOUSE, items), []);
+  // rows from an older price job that still list it are dropped on the page
+  assert.deepEqual(disenchantFlips([[11288, 1, 614, 1500, 2114]], HOUSE, items), []);
+});
+
+test("no-disenchant list: flag 0x8000 on green, blue and purple equippable items only", () => {
+  const row = (ID, Flags_0, OverallQualityID, InventoryType) => ({ ID: String(ID), Flags_0: String(Flags_0), OverallQualityID: String(OverallQualityID), InventoryType: String(InventoryType) });
+  const rows = [row(11288, 32768, 2, 26), row(2584, 0, 2, 16), row(5, 32768 | 4, 3, 5), row(6, 32768, 1, 5), row(7, 32768, 2, 0), row(8, 32768, 5, 5)];
+  assert.deepEqual(noDisenchantIds(rows), [5, 11288]);
 });
