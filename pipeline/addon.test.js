@@ -1435,7 +1435,7 @@ test("smoke: settings page groups every switch and opens the windows", () => {
     out[#out + 1] = "missing: " .. table.concat(missing, ",") .. "; extra: " .. table.concat(extra, ",")
     local heads = {}
     for _, s in ipairs(texts) do
-      for _, h in ipairs({ "Tooltips", "Profession window", "Auction house", "Your gear and lists", "Minimap", "Open", "Ruleset for this realm" }) do
+      for _, h in ipairs({ "Tooltips", "Profession window", "Auction house", "Your gear and lists", "Minimap and chat", "Open", "Ruleset for this realm" }) do
         if s == h then heads[#heads + 1] = s end
       end
     end
@@ -1456,7 +1456,7 @@ test("smoke: settings page groups every switch and opens the windows", () => {
     return table.concat(out, "\\n")`, { "Core.lua": src("Core.lua"), "Lists.lua": src("Lists.lua"), "Prices.lua": src("Prices.lua"), "Options.lua": src("Options.lua") });
   assert.deepEqual(out.split("\n"), [
     "missing: ; extra: ",
-    "sections: Tooltips, Profession window, Auction house, Your gear and lists, Minimap, Open, Ruleset for this realm",
+    "sections: Tooltips, Profession window, Auction house, Your gear and lists, Minimap and chat, Open, Ruleset for this realm",
     "checked: vendor false, flips true; status PvP, horde auction house.",
     "flips after a click: false",
     "hover: Vendor price per item / Off by default: the game's own tooltip already shows the stack's sell price.",
@@ -1492,7 +1492,7 @@ test("translations cover every text, with matching placeholders", () => {
   }
   const opt = fs.readFileSync(path.join(ADDON, "Options.lua"), "utf8");
   const optTables = opt.slice(opt.indexOf("local LEFT = {"), opt.indexOf("local panel, category"));
-  const keys = new Set(["market", "min", "sold", "region", "de", "vendor", "crates", "craft", "skillup", "flips", "deAll", "upgrades", "watch", "shopping", "minimap"]);
+  const keys = new Set(["market", "min", "sold", "region", "de", "vendor", "crates", "craft", "skillup", "flips", "deAll", "upgrades", "watch", "shopping", "minimap", "updates"]);
   for (const m of optTables.matchAll(/"((?:[^"\\]|\\.)*)"/g)) if (!keys.has(unq(m[1]))) used.add(unq(m[1]));
   const mm = fs.readFileSync(path.join(ADDON, "Minimap.lua"), "utf8");
   for (const m of mm.matchAll(/sectionLabel\(fr, "([^"]+)"|actionRow\(fr, y, "[^"]+", "([^"]+)"|\{ "([^"]+)", \{ "/g)) used.add(m[1] || m[2] || m[3]);
@@ -1934,5 +1934,114 @@ test("smoke: upgrades window ranks gear for your spec, hides other specs' gear, 
     "picked: Assassination!, Combat *, Subtlety; saved 1; Level 30 Rogue  Assassination (your pick)",
     "back: saved nil",
     "no stats: [Head] Old Helm | ilvl 25 |  / Fine Helm | +9 ilvl 34 | 15g / Leather Helm | +7 ilvl 32 | 70s / Sage's Helm | +5 ilvl 30 | 50s / [Ring] nothing worn |  |  / Agile Band  Blackwater | +26 ilvl 26 | 40s || 4 upgrades for 2 slots  ranked by item level",
+  ]);
+});
+
+// Old prices (Freshness.lua): a note at login when the prices are over a day old, and copies in a guild or group
+// telling each other the time of their prices, so a player with older ones hears about newer ones.
+test("price times sent between copies parse, and newer or older needs a whole release between them", () => {
+  const out = runLua(`
+    local t = M.ParseSync(M.SyncMessage(1700000000.7))
+    return table.concat({ tostring(t), tostring(M.ParseSync("1:1700000000:2.4")), tostring(M.ParseSync("2:5")), tostring(M.ParseSync(nil)),
+      tostring(M.SyncVerdict(1000000, 1000000 + 6 * 3600)), tostring(M.SyncVerdict(1000000, 1000000 - 6 * 3600)),
+      tostring(M.SyncVerdict(1000000, 1000000 + 600)), tostring(M.SyncVerdict(nil, 5)) }, " ")`);
+  assert.equal(out, "1700000000 1700000000 nil nil newer older nil nil");
+});
+
+test("smoke: old prices get a note at login, and copies in a guild tell each other about newer prices", () => {
+  const src = (f) => fs.readFileSync(path.join(ADDON, f), "utf8");
+  const out = runLua(`
+    local noop = function() end
+    local function frame()
+      local fr = setmetatable({}, { __index = function(_, k) if k:match("^%u") and not k:match("^On") then return noop end end })
+      function fr:SetScript(k, fn) rawset(self, k, fn) end
+      return fr
+    end
+    local chat, sent, timers, now = {}, {}, {}, os.time()
+    CreateFrame = frame
+    UIParent = frame()
+    DEFAULT_CHAT_FRAME = { AddMessage = function(_, m) chat[#chat + 1] = (m:gsub("^|cffe6a23cForever Anvil|r: ", "")) end }
+    SlashCmdList = {}
+    hooksecurefunc = noop
+    GetCurrentRegion = function() return 3 end
+    GetRealmName = function() return "Forever PvP" end
+    UnitFactionGroup = function() return "Horde" end
+    UnitName = function() return "Me" end
+    IsInGuild = function() return true end
+    IsInGroup = function() return false end
+    IsInRaid = function() return false end
+    C_AddOns = { IsAddOnLoaded = function() return false end, LoadAddOn = noop }
+    C_Item = { GetItemInfo = function() return nil end, GetItemCount = function() return 0 end }
+    C_Timer = { After = function(_, fn) timers[#timers + 1] = fn end }
+    local prefix
+    C_ChatInfo = { RegisterAddonMessagePrefix = function(p) prefix = p end,
+      SendAddonMessage = function(p, text, channel) sent[#sent + 1] = channel .. " " .. text end }
+    time = function() return now end
+    local function runTimers() local t = timers; timers = {}; for _, fn in ipairs(t) do fn() end end
+    local H = 3600
+    local function login(age, notesOff)
+      chat, sent, timers = {}, {}, {}
+      local ns = { Math = M, L = setmetatable({}, { __index = function(_, k) return k end }) }
+      ForeverAnvilDB = notesOff and { show = { updates = false } } or nil
+      ForeverAnvilData = { EU = { region = "eu", updated = now - age,
+        rulesets = { { name = "PvP", group = "A", likely = false, alliance = 110, horde = 113, neutral = 116 } },
+        houses = { [113] = { group = "A", faction = "horde", data = "" } },
+        regionMedian = "", vendorBuy = "", noDisenchant = "", skill = "", crates = "", items = "" } }
+      for _, f in ipairs({ "Core.lua", "Freshness.lua" }) do assert(load(_G[f], "=" .. f))("ForeverAnvil", ns) end
+      ns.frame.OnEvent(ns.frame, "ADDON_LOADED", "ForeverAnvil")
+      ns.frame.OnEvent(ns.frame, "PLAYER_LOGIN")
+      ns.freshnessFrame.OnEvent(ns.freshnessFrame, "PLAYER_LOGIN")
+      runTimers()
+      return function(text, channel, sender) ns.freshnessFrame.OnEvent(ns.freshnessFrame, "CHAT_MSG_ADDON", prefix, text, channel, sender) end,
+        ForeverAnvilData.EU.updated
+    end
+    local out = {}
+    local function log(label) out[#out + 1] = label .. ": chat [" .. table.concat(chat, " | ") .. "] sent [" .. table.concat(sent, ", ") .. "]"; chat, sent = {}, {} end
+
+    -- 30 hours old: a note, and the time goes to the guild; a newer copy after that adds no second note
+    local hear, ours = login(30 * H)
+    log("old login (" .. tostring(prefix) .. ")")
+    hear("1:" .. (ours + 24 * H), "GUILD", "Fresh-Forever")
+    log("then newer")
+
+    -- 8 hours old: no note; our own message and same-time copies are quiet
+    hear, ours = login(8 * H)
+    log("current login")
+    hear("1:" .. ours, "GUILD", "Me-Forever")
+    hear("1:" .. ours, "GUILD", "Same-Forever")
+    log("same")
+    -- an older copy: we answer a few seconds later, unless a copy as new as ours answers first
+    now = now + 30
+    hear("1:" .. (ours - 6 * H), "GUILD", "Behind-Forever")
+    hear("1:" .. ours, "GUILD", "Quick-Forever")
+    runTimers()
+    log("older, answered by someone else")
+    hear("1:" .. (ours - 6 * H), "GUILD", "Behind-Forever")
+    runTimers()
+    log("older, we answer")
+    hear("1:" .. (ours - 6 * H), "WHISPER", "Behind-Forever")
+    hear("2:" .. (ours + 6 * H), "GUILD", "Future-Forever")
+    runTimers()
+    log("whisper and unknown format")
+    hear("1:" .. (ours + 6 * H), "GUILD", "Fresh-Forever")
+    hear("1:" .. (ours + 12 * H), "PARTY", "Fresher-Forever")
+    log("newer, twice")
+
+    -- the switch off: no notes, but the time still goes out
+    hear = login(30 * H, true)
+    hear("1:" .. (now + H), "GUILD", "Fresh-Forever")
+    log("notes off")
+    return table.concat(out, "\\n")`, { "Core.lua": src("Core.lua"), "Freshness.lua": src("Freshness.lua") });
+  const lines = out.split("\n").map((l) => l.replace(/1:\d+/g, "1:T"));
+  assert.deepEqual(lines, [
+    "old login (ForeverAnvil): chat [your prices were last updated 30h ago. Update the addon in your CurseForge or Wago app, or turn on auto-update there, for fresh ones.] sent [GUILD 1:T]",
+    "then newer: chat [] sent []",
+    "current login: chat [] sent [GUILD 1:T]",
+    "same: chat [] sent []",
+    "older, answered by someone else: chat [] sent []",
+    "older, we answer: chat [] sent [GUILD 1:T]",
+    "whisper and unknown format: chat [] sent []",
+    "newer, twice: chat [Fresh has newer prices than you (updated 2h ago). Update the addon in your CurseForge or Wago app to get them.] sent []",
+    "notes off: chat [] sent [GUILD 1:T]",
   ]);
 });

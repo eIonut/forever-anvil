@@ -31,8 +31,9 @@ local RIGHT = {
     { "watch", "Watchlist", "Your target price on tooltips, and Target tags in the auction house. /fa watch opens the list." },
     { "shopping", "Shopping list", "A window beside the auction house while you still need materials, and Need X tags. /fa list opens the list." },
   },
-  { "Minimap",
+  { "Minimap and chat",
     { "minimap", "Minimap button", "Click: menu. Right-click: these settings. Drag: move it. /fa minimap brings it back." },
+    { "updates", "Old price notes", "A note in chat when your prices are over a day old, or when someone in your guild or group has newer ones. New prices come with addon updates: turn on auto-update in your CurseForge or Wago app to always have them." },
   },
 }
 

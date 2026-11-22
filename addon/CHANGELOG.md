@@ -1,3 +1,8 @@
+## 2.3
+
+- **Old price notes**: new prices come with addon updates, so the addon now tells you when yours are old. At login, a note in chat when your prices are over a day old. Copies of the addon in your guild and group also tell each other how new their prices are (one tiny hidden message), so you get a note when someone has newer ones. You see nothing while your prices are current. Turn the notes off under Minimap and chat in the settings.
+- Tip: turn on auto-update in your CurseForge or Wago app to get fresh prices 4 times a day without thinking about it.
+
 ## 2.2
 
 - **Upgrades for you** (`/fa upgrades`, or the minimap menu): gear on your auction house and the neutral one that's better for your spec than what you wear, slot by slot. The spec comes from your talents (the tree with the most points), or pick another. Items are ranked by their stats with that spec's weights, and gear made for other specs (intellect for a rogue, strength for a mage) is hidden unless you ask for it. Each line shows the stats that count for you (+7 Agi +4 Sta), the level it needs and the cheapest price; "of the …" items roll their stats when they drop and are marked random. Pick a budget (1g, 5g, 20g, 100g or any price). Click to search the auction house, Ctrl-click to try it on. The menu shows how many slots have an upgrade.

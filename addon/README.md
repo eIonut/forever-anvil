@@ -15,6 +15,7 @@ Version 2 adds personal tools (plan milestone A3):
 - **Watchlist and shopping list:** kept in game (each window has an editor; Alt-click watches an item; the bag button right of Create All in the profession window adds a recipe's reagents for the number in the quantity box), or imported from the site's "Copy for the addon" buttons (`src/lib/addonstring.js`) with `/fa import`, or `/fa watch <item> [price]` in game. `Target` and `Need X` tags in the auction house; `/fa list` and `/fa watch` open their windows.
 - **Prices window** (`Prices.lua`, `/fa prices [search]`): the site's `/prices` page in game. Search, categories and sorting are `M.PriceRows` (tested against the page's rules); item names, quality, category and icons ship in the data (`items`, `encodeItems` in `pipeline/addon-data.js`, about 280 KB for Europe), because the game only knows the names of items it has loaded.
 - **Minimap button and menu** (`Minimap.lua`): status, lists, quick switches and settings. The crest texture `ForeverAnvil/Media/Icon.tga` is made from `public/img/logo.svg` by `node tools/addon-icon.js` (the game loads TGA, not PNG or SVG).
+- **Old price notes** (`Freshness.lua`): a chat note at login when the prices are over a day old, and when a copy in your guild or group has newer ones (copies send each other the time of their prices on the hidden addon channel, prefix `ForeverAnvil`, message `1:<unix time>`).
 
 Version 2.1:
 

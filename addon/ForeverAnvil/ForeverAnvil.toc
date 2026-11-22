@@ -24,5 +24,6 @@ Lists.lua
 Prices.lua
 Bags.lua
 Upgrades.lua
+Freshness.lua
 Minimap.lua
 Options.lua

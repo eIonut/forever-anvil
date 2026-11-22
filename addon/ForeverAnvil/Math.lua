@@ -761,6 +761,28 @@ function M.Age(seconds)
   return M.AGE.d:format(floor(seconds / 86400))
 end
 
+---------------------------------------------------------------------------------------------------
+-- Price freshness (Freshness.lua): the addon can't download, so it says when its prices are old, and copies
+-- in your guild and group tell each other the time of their prices over the hidden addon channel.
+M.OLD_AFTER = 86400  -- prices older than a day get a note at login (releases go out 4 times a day)
+M.NEWER_BY = 3600    -- someone's prices count as newer when they're at least an hour newer (a later release)
+M.SYNC_PREFIX = "ForeverAnvil"
+
+function M.SyncMessage(updated) return "1:" .. floor(updated) end
+-- the time in a copy's message, or nil when it isn't one (a later version may add fields after it)
+function M.ParseSync(text)
+  local v = type(text) == "string" and text:match("^1:(%d+)")
+  return v and tonumber(v) or nil
+end
+
+-- what to do with a copy's prices time: "newer" (tell the player), "older" (answer with ours), or nil
+function M.SyncVerdict(ours, theirs)
+  if not (ours and theirs) then return nil end
+  if theirs >= ours + M.NEWER_BY then return "newer" end
+  if theirs <= ours - M.NEWER_BY then return "older" end
+  return nil
+end
+
 -- Compact money with at most two units, e.g. "12g 5s" (gold/silver/copper coloured unless plain),
 -- no coin icons, for tight spaces
 function M.ShortMoney(copper, plain)

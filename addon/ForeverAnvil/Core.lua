@@ -10,7 +10,9 @@ ns.DEFAULTS = {
   -- vendor is off: this client's tooltips already show the sell price
   show = { market = true, min = true, sold = true, region = true, de = true, vendor = false, flips = true, deAll = false, craft = true,
     -- version 2
-    upgrades = true, crates = true, skillup = true, watch = true, shopping = true, minimap = true },
+    upgrades = true, crates = true, skillup = true, watch = true, shopping = true, minimap = true,
+    -- 2.3
+    updates = true },
   minimap = { angle = 210 }, -- where the minimap button sits (degrees around the minimap)
   watch = {},    -- [itemID] = target price in copper (0: no target), from /fa import or /fa watch
   shopping = {}, -- { {itemID, units}, … }: materials for the crafting plan, from /fa import

@@ -325,6 +325,11 @@ ns.AddLocale({ "deDE" }, {
   ["Destruction"] = "Zerstörung",
   ["Balance"] = "Gleichgewicht",
   ["Feral Combat"] = "Wilder Kampf",
+  ["Minimap and chat"] = "Minikarte und Chat",
+  ["Old price notes"] = "Hinweis auf alte Preise",
+  ["A note in chat when your prices are over a day old, or when someone in your guild or group has newer ones. New prices come with addon updates: turn on auto-update in your CurseForge or Wago app to always have them."] = "Ein Hinweis im Chat, wenn deine Preise älter als einen Tag sind oder jemand in deiner Gilde oder Gruppe neuere hat. Neue Preise kommen mit Addon-Updates: Schalte automatische Updates in deiner CurseForge- oder Wago-App ein, um sie immer zu haben.",
+  ["your prices were last updated %s. Update the addon in your CurseForge or Wago app, or turn on auto-update there, for fresh ones."] = "deine Preise wurden zuletzt %s aktualisiert. Aktualisiere das Addon in deiner CurseForge- oder Wago-App oder schalte dort automatische Updates ein, um neue zu bekommen.",
+  ["%s has newer prices than you (updated %s). Update the addon in your CurseForge or Wago app to get them."] = "%s hat neuere Preise als du (aktualisiert %s). Aktualisiere das Addon in deiner CurseForge- oder Wago-App, um sie zu bekommen.",
 })
 
 ns.AddLocale({ "frFR" }, {
@@ -648,6 +653,11 @@ ns.AddLocale({ "frFR" }, {
   ["Destruction"] = "Destruction",
   ["Balance"] = "Équilibre",
   ["Feral Combat"] = "Combat farouche",
+  ["Minimap and chat"] = "Minicarte et discussion",
+  ["Old price notes"] = "Avis de prix anciens",
+  ["A note in chat when your prices are over a day old, or when someone in your guild or group has newer ones. New prices come with addon updates: turn on auto-update in your CurseForge or Wago app to always have them."] = "Un message dans la discussion quand vos prix ont plus d'un jour, ou quand quelqu'un de votre guilde ou de votre groupe en a de plus récents. Les nouveaux prix arrivent avec les mises à jour de l'addon : activez la mise à jour automatique dans votre application CurseForge ou Wago pour toujours les avoir.",
+  ["your prices were last updated %s. Update the addon in your CurseForge or Wago app, or turn on auto-update there, for fresh ones."] = "dernière mise à jour de vos prix : %s. Mettez à jour l'addon dans votre application CurseForge ou Wago, ou activez-y la mise à jour automatique, pour en avoir de nouveaux.",
+  ["%s has newer prices than you (updated %s). Update the addon in your CurseForge or Wago app to get them."] = "%s a des prix plus récents que vous (mis à jour %s). Mettez à jour l'addon dans votre application CurseForge ou Wago pour les avoir.",
 })
 
 ns.AddLocale({ "esES", "esMX" }, {
@@ -971,6 +981,11 @@ ns.AddLocale({ "esES", "esMX" }, {
   ["Destruction"] = "Destrucción",
   ["Balance"] = "Equilibrio",
   ["Feral Combat"] = "Combate feral",
+  ["Minimap and chat"] = "Minimapa y chat",
+  ["Old price notes"] = "Aviso de precios antiguos",
+  ["A note in chat when your prices are over a day old, or when someone in your guild or group has newer ones. New prices come with addon updates: turn on auto-update in your CurseForge or Wago app to always have them."] = "Un aviso en el chat cuando tus precios tienen más de un día, o cuando alguien de tu hermandad o grupo los tiene más recientes. Los precios nuevos llegan con las actualizaciones del addon: activa la actualización automática en tu aplicación de CurseForge o Wago para tenerlos siempre.",
+  ["your prices were last updated %s. Update the addon in your CurseForge or Wago app, or turn on auto-update there, for fresh ones."] = "tus precios se actualizaron por última vez %s. Actualiza el addon en tu aplicación de CurseForge o Wago, o activa allí la actualización automática, para tener precios nuevos.",
+  ["%s has newer prices than you (updated %s). Update the addon in your CurseForge or Wago app to get them."] = "%s tiene precios más recientes que tú (actualizados %s). Actualiza el addon en tu aplicación de CurseForge o Wago para tenerlos.",
 })
 
 ns.ApplyLocale()
