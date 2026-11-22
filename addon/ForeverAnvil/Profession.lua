@@ -217,8 +217,15 @@ local function initModern()
   local form = page.SchematicForm
   if form and form.Init then
     local line = form:CreateFontString(nil, "OVERLAY", "GameFontHighlightSmall")
-    line:SetPoint("TOPRIGHT", form, "TOPRIGHT", -12, -12)
-    line:SetJustifyH("RIGHT")
+    -- Under the recipe's name, beside its icon, where the form has room for two lines. (In the form's top right
+    -- corner the line ran over the form's buttons, then into the name, then into the window's border.)
+    if form.OutputText then
+      line:SetPoint("TOPLEFT", form.OutputText, "BOTTOMLEFT", 0, -6)
+      line:SetJustifyH("LEFT")
+    else
+      line:SetPoint("TOPRIGHT", form, "TOPRIGHT", -12, -12)
+      line:SetJustifyH("RIGHT")
+    end
     local selected -- the recipe on the form, for "Add to shopping list"
     shoppingButton(page, page.CreateAllButton, function()
       if not selected then return nil end
@@ -232,16 +239,18 @@ local function initModern()
         if not (recipeInfo and recipeInfo.recipeID and ns.House()) then return end
         local cost, complete, profit = ns.SchematicProfit(recipeInfo.recipeID)
         if not cost then return end
-        local s = ""
+        local s, up = "", ""
         if ns.db.show.craft and profit ~= false then
           s = "  profit " .. profitText(profit) .. "  |cff999999reagents " .. (complete and "" or "~") .. M.ShortMoney(cost, true) .. "|r"
         end
         if ns.db.show.skillup then
           local skill, max = modernSkill()
           if skill and skill < max then
-            s = s .. chanceText(ns.RecipeChance(recipeInfo.recipeID, skill, recipeInfo.relativeDifficulty), complete and cost or nil)
+            up = chanceText(ns.RecipeChance(recipeInfo.recipeID, skill, recipeInfo.relativeDifficulty), complete and cost or nil)
           end
         end
+        -- profit and skill-up on two lines: on one, the line ran left over the form's own buttons
+        if s ~= "" and up ~= "" then s = s .. "\n" .. up:gsub("^%s+", "") else s = s .. up end
         if s ~= "" then line:SetText("|cffe6a23cForever Anvil|r" .. s) end
       end)
     end)
