@@ -3,6 +3,7 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import PageHero from "../components/PageHero.astro";
 import AdSlot from "../components/AdSlot.astro";
 import Prices from "../tools/Prices.svelte";
+import AddonBox from "../components/AddonBox.astro";
 ---
 <BaseLayout
   title="WoW: Forever Auction House Prices | Forever Anvil"
@@ -22,6 +23,7 @@ import Prices from "../tools/Prices.svelte";
         <li>Prices refresh about once an hour, and history covers up to 30 days.</li>
       </ul>
       <p><a href="/guides/auction-house-prices">Read the full guide: How to read auction house prices</a></p>
+      <AddonBox variant="note" />
       <p class="faint">Data provided by Blizzard Entertainment. Forever Anvil is not affiliated with or endorsed by Blizzard. Item names and icons for items missing from Blizzard's data come from Wowhead.</p>
     </div>
   </Prices>

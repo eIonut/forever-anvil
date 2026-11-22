@@ -1,0 +1,88 @@
+---
+// The in-game addon's page: what it does, where to download it (config.addonUrls), how to install and start.
+// Linked from the header's "Get the addon" button and the home page hero.
+import BaseLayout from "../layouts/BaseLayout.astro";
+import PageHero from "../components/PageHero.astro";
+import config from "../config.js";
+
+const links = [
+  config.addonUrls?.curseforge && { href: config.addonUrls.curseforge, label: "CurseForge", note: "the most used addon app and site" },
+  config.addonUrls?.wago && { href: config.addonUrls.wago, label: "Wago", note: "Wago Addons and the Wago app" },
+].filter(Boolean) as { href: string; label: string; note: string }[];
+---
+<BaseLayout
+  title="Forever Anvil addon for WoW: Forever | Auction prices in game"
+  description="Free WoW: Forever addon: auction house market price, sales per day and disenchant value on every tooltip, flips tagged in the auction house and craft profits in your profession window."
+  page="addon"
+>
+  <PageHero icon="prices" eyebrow="In-game addon" title="Forever Anvil in your game" facts={[{ icon: "clock", text: "Fresh prices several times a day" }, { icon: "check", text: "Free, no account" }, { icon: "globe", text: "Europe" }]}>
+    The same auction prices as this site, right where you need them: on every item tooltip, in the auction house and in your profession window.
+    <div class="hero-actions" slot="actions">
+      {links.map((l, i) => <a class:list={["btn", { "btn-ghost": i > 0 }]} href={l.href} target="_blank" rel="noopener">Download on {l.label}</a>)}
+    </div>
+  </PageHero>
+
+  <div class="wrap section grid grid-2">
+    <div class="panel">
+      <h2>What it shows</h2>
+      <h3>Item tooltips</h3>
+      <p>For the auction house you're on (your ruleset and faction, or the neutral Blackwater house when you're at one):</p>
+      <ul class="gems">
+        <li><b>Market price</b> and <b>lowest listed price</b>, with how many are listed</li>
+        <li><b>Sold per day</b>, estimated from how listings change hour to hour</li>
+        <li><b>Region median</b>: the typical price across the region's auction houses</li>
+        <li><b>Disenchant value</b> after the auction cut, and the Enchanting skill it needs</li>
+      </ul>
+      <h3>Auction house</h3>
+      <ul class="gems">
+        <li><b>Disenchant flips</b>: gear listed for less than its enchanting materials sell for, tagged <code>DE +X</code> in the Browse list</li>
+        <li><b>Vendor flips</b>: items listed for less than a vendor pays, tagged <code>Vendor +X</code></li>
+        <li>Optional: every disenchantable item's value in grey, to see how close it is to a flip</li>
+      </ul>
+      <h3>Profession window</h3>
+      <ul class="gems">
+        <li><b>Profit per craft</b> on every recipe, after the 5% auction cut and the reagents</li>
+        <li>The selected recipe's reagent cost; reagents that aren't on the auction house use the vendor's price</li>
+      </ul>
+    </div>
+
+    <div class="panel">
+      <h2>Download</h2>
+      {links.length ? (
+        <ul class="addon-dl">
+          {links.map((l) => (
+            <li>
+              <a class="btn" href={l.href} target="_blank" rel="noopener">Download on {l.label}</a>
+              <span class="faint">{l.note}</span>
+            </li>
+          ))}
+        </ul>
+      ) : <p>Download links are coming soon.</p>}
+      <p>New versions with the latest prices come out several times a day. Let your addon app keep it updated, or download it again now and then.</p>
+
+      <h2>Getting started</h2>
+      <ol>
+        <li>Install it with the {links.map((l) => l.label).join(" or ") || "CurseForge or Wago"} app, picking <b>WoW: Forever</b> as the game version. Or download the zip and unpack both folders (<code>ForeverAnvil</code> and <code>ForeverAnvil_Data_EU</code>) into your game's <code>Interface/AddOns</code> folder.</li>
+        <li>Log in and type <b>/fa</b>. It names your ruleset and auction house.</li>
+        <li>If it asks, set your realm's ruleset once: <b>/fa ruleset PvP</b> (or Normal, Roleplay, RP-PvP).</li>
+        <li>Turn features on or off with <b>/fa options</b>.</li>
+      </ol>
+
+      <h2>Good to know</h2>
+      <ul class="gems">
+        <li><b>It never buys, sells or crafts for you.</b> It only shows numbers; every action is still your own click.</li>
+        <li><b>Prices are an estimate</b> from the last update, and the auction house moves. Check before a big purchase.</li>
+        <li><b>Europe for now.</b> The Americas will follow, as on this site, once its rulesets are confirmed.</li>
+        <li>For price history, the crafting planner, leveling costs, gear upgrades and talents, use <a href="/">this site</a>: everything here stays free.</li>
+      </ul>
+      <p class="faint">Data provided by Blizzard Entertainment. Forever Anvil is a fan project, not made or endorsed by Blizzard.</p>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .addon-dl { list-style: none; padding: 0; margin: 0 0 14px; display: grid; gap: 12px; }
+  .addon-dl li { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .addon-dl .btn { min-width: 220px; justify-content: center; }
+  .panel h3 { margin-top: 1.1em; }
+</style>

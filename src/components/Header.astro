@@ -57,6 +57,9 @@ const isActive = (n: NavLink) => !!n.pages?.includes(page);
         <Icon name="close" size={20} class="nav-toggle-close" />
         <span class="nav-toggle-text">Menu</span>
       </button>
+      {(config.addonUrls?.wago || config.addonUrls?.curseforge) && (
+        <a class="btn btn-ghost btn-sm header-addon" href="/addon" title="Get the in-game addon" aria-current={page === "addon" ? "page" : undefined}><img src="/img/logo.svg" alt="" width="18" height="18" />Addon</a>
+      )}
       <DonateButton class="btn-sm" />
     </div>
   </div>
@@ -112,12 +115,17 @@ import "../lib/navprogress";
     document.addEventListener("keydown", (e) => { if (e.key === "Escape" && groups.some((g) => g.classList.contains("open"))) setDrop(null, true); }, { signal });
     document.addEventListener("click", (e) => { if (!inside(e, ".nav-group")) setDrop(null); }, { signal });
 
-    // Collapse the menu into the ☰ button whenever the links don't fit on one line (e.g. large text).
+    // When the links don't fit on one line, give up space step by step: the donate button shrinks to its icon
+    // ("tight"), then the "Get the addon" button hides ("no-addon"), then the menu collapses into ☰ ("compact").
     function fitHeader() {
       if (nav!.classList.contains("open")) return;
-      bar!.classList.remove("compact");
+      bar!.classList.remove("compact", "tight", "no-addon");
       if (getComputedStyle(nav!).display === "none") return; // already collapsed by the media query
-      if (nav!.scrollWidth > nav!.clientWidth + 1) bar!.classList.add("compact");
+      const over = () => nav!.scrollWidth > nav!.clientWidth + 1;
+      for (const step of ["tight", "no-addon", "compact"]) {
+        if (!over()) return;
+        bar!.classList.add(step);
+      }
     }
     fitHeader();
     window.addEventListener("resize", fitHeader, { signal });

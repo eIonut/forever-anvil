@@ -202,6 +202,11 @@ main { flex: 1; padding-bottom: 56px; }
 .topbar.compact .tools { margin-left: auto; }
 .topbar.compact .btn-donate .donate-label { display: none; }
 .topbar.compact .nav { display: none; }
+/* "Get the addon" (Header.astro): desktop header only; the home page hero links to /addon on small screens */
+.header-addon { white-space: nowrap; gap: 6px; padding-inline: 11px; }
+@media (max-width: 1140px) { .topbar .header-addon { display: none; } }
+.topbar.compact .header-addon, .topbar.no-addon .header-addon { display: none; }
+.topbar.tight .btn-donate .donate-label { display: none; }
 /* the open menu: a panel under the header with one large row per page (icon, name, one-line description) */
 @media (max-width: 1140px) {
   .nav.open {

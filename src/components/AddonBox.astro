@@ -1,0 +1,60 @@
+---
+// The in-game addon: what it does and where to download it (links from config.addonUrls).
+// variant: "panel" (About page, the full description), "note" (one paragraph on tool pages) or
+// "hero" (one line with download buttons, in the home page hero). Shows nothing when no link is set.
+import config from "../config.js";
+
+interface Props {
+  variant?: "panel" | "note" | "hero";
+}
+
+const { variant = "panel" } = Astro.props;
+const links = [
+  config.addonUrls?.curseforge && { href: config.addonUrls.curseforge, label: "CurseForge" },
+  config.addonUrls?.wago && { href: config.addonUrls.wago, label: "Wago" },
+].filter(Boolean) as { href: string; label: string }[];
+---
+{links.length > 0 && variant === "note" && (
+  <p class="note addon-note">
+    <b>These prices in game:</b> the free Forever Anvil addon puts the market price, sales per day and disenchant value
+    on every item tooltip, and tags flips in the auction house. Get it on{" "}
+    {links.map((l, i) => <>{i > 0 && " or "}<a href={l.href} target="_blank" rel="noopener">{l.label}</a></>)}.
+  </p>
+)}
+{links.length > 0 && variant === "hero" && (
+  <div class="addon-hero">
+    <img src="/img/logo.svg" alt="" width="36" height="36" />
+    <p><b>Now in your game too.</b> The free Forever Anvil addon puts these prices on every item tooltip, tags flips in the auction house and shows craft profits.</p>
+    <a class="btn btn-ghost btn-sm" href="/addon">Get the addon</a>
+  </div>
+)}
+{links.length > 0 && variant === "panel" && (
+  <div class="panel addon-box" id="addon">
+    <h2><img src="/img/logo.svg" alt="" width="28" height="28" /> In-game addon</h2>
+    <p>The same prices, inside WoW: Forever. Forever Anvil is a free addon that shows this site's data where you need it:</p>
+    <ul class="gems">
+      <li><b>Item tooltips:</b> market and lowest price on your auction house, sold per day, the region's median price and the disenchant value.</li>
+      <li><b>Auction house:</b> disenchant and vendor flips tagged right in the Browse list.</li>
+      <li><b>Profession window:</b> profit per craft on every recipe, after the auction house cut.</li>
+    </ul>
+    <p class="faint">New versions with fresh prices come out several times a day, so keep it updated. It only shows numbers: every buy, sale and craft is still your own click. <a href="/addon">More about the addon</a></p>
+    <p class="addon-links">
+      {links.map((l) => <a class="btn btn-sm" href={l.href} target="_blank" rel="noopener">Download on {l.label}</a>)}
+    </p>
+  </div>
+)}
+
+<style>
+  .addon-box h2 { display: flex; align-items: center; gap: 10px; }
+  .addon-links { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 0; }
+  .addon-hero {
+    display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+    margin: 18px 0 0; padding: 12px 16px; max-width: 760px;
+    border: 1px solid var(--line-strong); border-radius: var(--radius-sm);
+    background: linear-gradient(90deg, var(--gold-tint), transparent);
+  }
+  .addon-hero img { flex: none; }
+  .addon-hero p { flex: 1 1 260px; margin: 0; color: var(--ink-dim); }
+  .addon-hero p b { color: var(--ink); }
+  .addon-hero .btn { flex: none; }
+</style>

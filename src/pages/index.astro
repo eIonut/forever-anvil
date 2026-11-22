@@ -2,6 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import AdSlot from "../components/AdSlot.astro";
 import DonateBox from "../components/DonateBox.astro";
+import AddonBox from "../components/AddonBox.astro";
 import Icon from "../components/Icon.astro";
 import LiveFreshness from "../components/LiveFreshness.astro";
 import HomeMarket from "../tools/HomeMarket.svelte";
@@ -109,8 +110,9 @@ const STEPS: { icon: IconName; title: string; text: string }[] = [
               <a class="btn" href="/upgrades"><Icon name="upgrades" size={20} />Find gear upgrades</a>
               <a class="btn btn-ghost" href="/prices"><Icon name="prices" size={20} />Check auction prices</a>
             </div>
-            <p class="hero-promise"><Icon name="check" size={18} /><span><b>Complete hourly data, no addon.</b> Every auction house is read straight from Blizzard every hour, so prices never wait for someone to scan.</span></p>
+            <p class="hero-promise"><Icon name="check" size={18} /><span><b>Complete hourly data, no scanning.</b> Every auction house is read straight from Blizzard every hour, so prices never wait for someone to scan.</span></p>
             <LiveFreshness brief />
+            <AddonBox variant="hero" />
           </div>
         </div>
       </div>
