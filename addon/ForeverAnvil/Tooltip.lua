@@ -3,6 +3,7 @@
 -- target, what your shopping list still needs, and upgrades over your gear. Works with both tooltip systems.
 local _, ns = ...
 local M = ns.Math
+local L = ns.L
 
 local GOLD, GREY, PURPLE = { 0.9, 0.64, 0.24 }, { 0.6, 0.6, 0.6 }, { 0.74, 0.55, 1 }
 local STALE = 6 * 3600 -- older data is shown grey
@@ -21,37 +22,37 @@ local function addLines(tt, itemID)
   local function add(l, rt, color) lines[#lines + 1] = { l, rt, color } end
 
   if id then
-    if p and show.market and p[2] then add("Market", money(p[2])) end
-    if p and show.min and p[1] then add("Lowest listed", money(p[1]) .. "  |cff999999x" .. p[3] .. "|r") end
-    if p and show.sold then add("Sold per day", p[5] and tostring(p[5]) or "|cff999999none seen|r") end
-    if not p and (show.market or show.min) then add("Market", "|cff999999not listed|r") end
+    if p and show.market and p[2] then add(L["Market"], money(p[2])) end
+    if p and show.min and p[1] then add(L["Lowest listed"], money(p[1]) .. "  |cff999999x" .. p[3] .. "|r") end
+    if p and show.sold then add(L["Sold per day"], p[5] and tostring(p[5]) or ("|cff999999" .. L["none seen"] .. "|r")) end
+    if not p and (show.market or show.min) then add(L["Market"], "|cff999999" .. L["not listed"] .. "|r") end
   end
   if show.region then
     local m, n = ns.RegionMedian(itemID)
-    if m then add("Region median", money(m) .. "  |cff999999" .. n .. " houses|r") end
+    if m then add(L["Region median"], money(m) .. "  |cff999999" .. L["%d houses"]:format(n) .. "|r") end
   end
   if show.de and id then
     local worth, _, complete, tbl = ns.Disenchant(itemID)
     if worth and worth > 0 then
-      local skill = tbl.skill and ("  |cff999999skill " .. tbl.skill .. "|r") or ""
-      add("Disenchant", (complete and "" or "~") .. money(worth) .. skill, PURPLE)
+      local skill = tbl.skill and ("  |cff999999" .. L["skill %d"]:format(tbl.skill) .. "|r") or ""
+      add(L["Disenchant"], (complete and "" or "~") .. money(worth) .. skill, PURPLE)
     end
   end
   if show.vendor then
     local sell = ns.VendorSell(itemID)
-    if sell then add("Vendor", money(sell)) end
+    if sell then add(L["Vendor"], money(sell)) end
   end
   if show.crates then
     local crate, fill = ns.Crate(itemID)
     if crate then
       local favor = (crate.confirmed and "" or "~") .. (crate.favor % 1 == 0 and string.format("%d", crate.favor) or tostring(crate.favor))
-      add("Merchant's Favor", favor, GOLD)
+      add(L["Merchant's Favor"], favor, GOLD)
       if fill then
-        local name = ns.ItemInfo(fill.item) or ("item " .. fill.item)
-        add("Cheapest fill", fill.qty .. " " .. name .. ", " .. money(fill.cost))
-        add("Per Favor", money(math.floor(fill.cost / crate.favor + 0.5)))
+        local name = ns.ItemMeta(fill.item) or ("item " .. fill.item)
+        add(L["Cheapest fill"], fill.qty .. " " .. name .. ", " .. money(fill.cost))
+        add(L["Per Favor"], money(math.floor(fill.cost / crate.favor + 0.5)))
       elseif id then
-        add("Cheapest fill", "|cff999999not enough on sale|r")
+        add(L["Cheapest fill"], "|cff999999" .. L["not enough on sale"] .. "|r")
       end
     end
   end
@@ -59,24 +60,24 @@ local function addLines(tt, itemID)
     local target = ns.WatchTarget(itemID)
     if target then
       local at = target > 0 and p and p[1] and p[1] <= target
-      add("Watchlist", target > 0 and ("target " .. money(target) .. (at and "  |cff33dd55at target|r" or "")) or "watched", GOLD)
+      add(L["Watchlist"], target > 0 and (L["target %s"]:format(money(target)) .. (at and ("  |cff33dd55" .. L["at target"] .. "|r") or "")) or L["watched"], GOLD)
     end
   end
   if show.shopping then
     local need, total = ns.ShoppingNeed(itemID)
-    if need then add("Shopping list", need > 0 and ("need " .. need .. " of " .. total) or ("|cff33dd55you have all " .. total .. "|r"), GOLD) end
+    if need then add(L["Shopping list"], need > 0 and L["need %d of %d"]:format(need, total) or ("|cff33dd55" .. L["you have all %d"]:format(total) .. "|r"), GOLD) end
   end
   if show.upgrades then
     local slot, gain, wearing = ns.Upgrade(itemID)
     if slot then
-      local what = wearing and ("over your " .. ns.SLOT_NAMES[slot]) or ("empty " .. ns.SLOT_NAMES[slot] .. " slot")
-      add("Upgrade", "|cff33dd55+" .. gain .. " item level|r  |cff999999" .. what .. "|r", { 0.4, 0.8, 1 })
+      local what = (wearing and L["over your %s"] or L["empty %s slot"]):format(L[ns.SLOT_NAMES[slot]])
+      add(L["Upgrade"], "|cff33dd55" .. L["+%d item level"]:format(gain) .. "|r  |cff999999" .. what .. "|r", { 0.4, 0.8, 1 })
     end
   end
   if #lines == 0 then return end
 
   local age = ns.DataAge()
-  local head = id and (r.name .. " " .. side .. (r.likely and "?" or "")) or "set ruleset: /fa ruleset"
+  local head = id and (r.name .. " " .. L[side] .. (r.likely and "?" or "")) or L["set ruleset: /fa ruleset"]
   tt:AddDoubleLine("Forever Anvil", head .. "  " .. M.Age(age), GOLD[1], GOLD[2], GOLD[3], GREY[1], GREY[2], GREY[3])
   local stale = age and age > STALE
   for _, l in ipairs(lines) do
@@ -94,7 +95,7 @@ local function run(route, tt, itemID)
   local ok, err = pcall(addLines, tt, itemID)
   if not ok and ns.tip.lastError ~= err then
     ns.tip.lastError = err
-    ns.Print("tooltip error (please report it): " .. tostring(err))
+    ns.Print(L["tooltip error (please report it): "] .. tostring(err))
   end
 end
 

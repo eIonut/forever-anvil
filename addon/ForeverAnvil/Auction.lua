@@ -5,6 +5,7 @@
 -- item in the browse results by its lowest price per unit; the classic one (Blizzard_AuctionUI) tags each listing.
 local _, ns = ...
 local M = ns.Math
+local L = ns.L
 
 local tags = {}
 
@@ -86,23 +87,23 @@ end
 local function paint(t, kind, amount, complete)
   local money = M.ShortMoney(amount)
   if kind == "vendor" then
-    t.text:SetText("|cff33dd55Vendor +|r" .. money)
+    t.text:SetText("|cff33dd55" .. L["Vendor +"] .. "|r" .. money)
     t.bg:SetColorTexture(0.2, 0.8, 0.3, 0.12)
   elseif kind == "de" then
-    t.text:SetText("|cffbb8cffDE +|r" .. money)
+    t.text:SetText("|cffbb8cff" .. L["DE +"] .. "|r" .. money)
     t.bg:SetColorTexture(0.7, 0.5, 1, 0.12)
   elseif kind == "target" then
-    t.text:SetText("|cffffd100Target|r " .. money)
+    t.text:SetText("|cffffd100" .. L["Target"] .. "|r " .. money)
     t.bg:SetColorTexture(1, 0.82, 0, 0.12)
   elseif kind == "need" then
-    t.text:SetText("|cffffd100Need " .. amount .. "|r")
+    t.text:SetText("|cffffd100" .. L["Need %d"]:format(amount) .. "|r")
     t.bg:SetColorTexture(1, 0.82, 0, 0.08)
   elseif kind == "upgrade" then
-    t.text:SetText("|cff66ccffUpgrade +" .. amount .. "|r")
+    t.text:SetText("|cff66ccff" .. L["Upgrade +%d"]:format(amount) .. "|r")
     t.bg:SetColorTexture(0.4, 0.8, 1, 0.1)
   elseif kind == "worth" then
     -- not a flip: what disenchanting it gives, grey and without the tint ("~": some materials unpriced)
-    t.text:SetText("|cff999999DE " .. (complete and "" or "~") .. M.ShortMoney(amount, true) .. "|r")
+    t.text:SetText("|cff999999" .. L["DE"] .. " " .. (complete and "" or "~") .. M.ShortMoney(amount, true) .. "|r")
     t.bg:SetColorTexture(0, 0, 0, 0)
   else
     t.text:SetText("")
@@ -302,7 +303,7 @@ function ns.InitAuction()
   else
     return -- not loaded yet: try again when the window opens
   end
-  ns.Print("this auction house window isn't supported yet, so flips aren't tagged. Tooltips still work.")
+  ns.Print(L["this auction house window isn't supported yet, so flips aren't tagged. Tooltips still work."])
 end
 ns.onAddon["Blizzard_AuctionUI"] = ns.InitAuction
 ns.onAddon["Blizzard_AuctionHouseUI"] = ns.InitAuction

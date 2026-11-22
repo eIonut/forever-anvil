@@ -6,6 +6,7 @@
 -- Since version 2: the recipe that levels you cheapest right now is tagged "skill-up" (see below).
 local _, ns = ...
 local M = ns.Math
+local L = ns.L
 
 local texts = {}
 
@@ -30,7 +31,7 @@ end
 -- Leveling helper (src/lib/levelmath.js): of the recipes you know, the one whose reagents cost least per
 -- expected skill point at your skill right now is marked "skill-up". The chance uses the recipe's yellow
 -- and grey skill from the game files (shipped in the data); without them, an orange recipe counts as sure.
-local SKILL_TAG = "|cff40c0ffskill-up|r "
+local SKILL_TAG = "|cff40c0ff" .. L["skill-up"] .. "|r "
 local DIFFICULTY = { optimal = 0, medium = 1, easy = 2, trivial = 3 } -- classic names → modern numbers
 
 -- chance (0–1) that one craft of a recipe you know gives a point, or nil when it can't be told.
@@ -56,8 +57,8 @@ end
 
 local function chanceText(chance, cost)
   if not chance or chance <= 0 then return "" end
-  return ("  |cff40c0ffskill-up %d%%%s|r"):format(math.floor(chance * 100 + 0.5),
-    cost and (", " .. M.ShortMoney(cost / chance, true) .. " per point") or "")
+  return "  |cff40c0ff" .. L["skill-up %d%%"]:format(math.floor(chance * 100 + 0.5))
+    .. (cost and (", " .. L["%s per point"]:format(M.ShortMoney(cost / chance, true))) or "") .. "|r"
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -126,15 +127,16 @@ local function shoppingButton(parent, anchor, current, countBox, right)
   add:SetScript("OnClick", function()
     ns.Safe("shopping", function()
       local mats, name = current()
-      if not (mats and #mats > 0) then ns.Print("pick a recipe with reagents first."); return end
+      if not (mats and #mats > 0) then ns.Print(L["pick a recipe with reagents first."]); return end
       ns.AddToShopping(mats, crafts(countBox), name)
     end)
   end)
   add:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_TOP")
-    GameTooltip:AddLine("Add to shopping list")
+    GameTooltip:AddLine(L["Add to shopping list"])
     local n = crafts(countBox)
-    GameTooltip:AddLine(("Adds this recipe's reagents for %d craft%s (the number in the box beside Create) to your Forever Anvil shopping list. It ticks them off as they reach your bags."):format(n, n == 1 and "" or "s"), 1, 1, 1, true)
+    GameTooltip:AddLine((n == 1 and L["Adds this recipe's reagents for 1 craft (the number in the box beside Create) to your Forever Anvil shopping list. It ticks them off as they reach your bags."]
+      or L["Adds this recipe's reagents for %d crafts (the number in the box beside Create) to your Forever Anvil shopping list. It ticks them off as they reach your bags."]:format(n)), 1, 1, 1, true)
     GameTooltip:Show()
   end)
   add:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -209,7 +211,7 @@ local function initModern()
   local list = page and page.RecipeList and page.RecipeList.ScrollBox
   if not (C_TradeSkillUI and C_TradeSkillUI.GetRecipeSchematic and ns.HookScrollRows(list, recipeRow, "profession")) then
     ns.professionUI = "modern, unsupported"
-    ns.Print("this profession window isn't supported yet, so craft profits aren't shown. Tooltips still work.")
+    ns.Print(L["this profession window isn't supported yet, so craft profits aren't shown. Tooltips still work."])
     return
   end
   ns.professionUI = "modern"
@@ -250,7 +252,7 @@ local function initModern()
         if not cost then return end
         local s, up = "", ""
         if ns.db.show.craft and profit ~= false then
-          s = "  profit " .. profitText(profit) .. "  |cff999999reagents " .. (complete and "" or "~") .. M.ShortMoney(cost, true) .. "|r"
+          s = "  " .. L["profit"] .. " " .. profitText(profit) .. "  |cff999999" .. L["reagents"] .. " " .. (complete and "" or "~") .. M.ShortMoney(cost, true) .. "|r"
         end
         if ns.db.show.skillup then
           local skill, max = modernSkill()
@@ -368,7 +370,7 @@ function ns.InitProfession()
     end
   elseif TradeSkillFrame then
     ns.professionUI = "classic, unsupported"
-    ns.Print("this profession window isn't supported yet, so craft profits aren't shown. Tooltips still work.")
+    ns.Print(L["this profession window isn't supported yet, so craft profits aren't shown. Tooltips still work."])
   end
 end
 ns.onAddon["Blizzard_Professions"] = ns.InitProfession

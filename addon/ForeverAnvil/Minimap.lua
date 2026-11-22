@@ -5,6 +5,7 @@
 --   (the addons button by the minimap) on clients that have one.
 local addonName, ns = ...
 local M = ns.Math
+local L = ns.L
 
 ns.ICON = "Interface\\AddOns\\" .. addonName .. "\\Media\\Icon"
 local GOLD = "|cffe6a23c"
@@ -13,10 +14,10 @@ local atan2 = math.atan2 or math.atan -- the game has Lua 5.1's math.atan2
 ---------------------------------------------------------------------------------------------------
 -- Status in one line: "PvP horde · prices 2h ago", or what's missing
 function ns.StatusLine()
-  if not ns.data then return "|cffff5555No price data loaded|r" end
+  if not ns.data then return "|cffff5555" .. L["No price data loaded"] .. "|r" end
   local id, r, side = ns.House()
-  if not id then return "|cffffd100Set this realm's ruleset|r  |cff999999(/fa ruleset)|r" end
-  return ("%s %s%s  |cff999999·  prices %s|r"):format(r.name, side, r.likely and "?" or "", M.Age(ns.DataAge()))
+  if not id then return "|cffffd100" .. L["Set this realm's ruleset"] .. "|r  |cff999999(/fa ruleset)|r" end
+  return ("%s %s%s  |cff999999·  %s|r"):format(r.name, L[side], r.likely and "?" or "", L["prices %s"]:format(M.Age(ns.DataAge())))
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -35,7 +36,7 @@ end
 local function sectionLabel(parent, text, y)
   local fs = parent:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
   fs:SetPoint("TOPLEFT", 14, y)
-  fs:SetText(GOLD .. text:upper() .. "|r")
+  fs:SetText(GOLD .. L[text]:upper() .. "|r")
 end
 
 -- a clickable line: icon, label and a value on the right
@@ -51,7 +52,7 @@ local function actionRow(parent, y, icon, label, onClick)
   b.icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
   b.label = b:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
   b.label:SetPoint("LEFT", b.icon, "RIGHT", 8, 0)
-  b.label:SetText(label)
+  b.label:SetText(L[label])
   b.value = b:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
   b.value:SetPoint("RIGHT", -6, 0)
   b.value:SetJustifyH("RIGHT")
@@ -75,7 +76,7 @@ local function toggleRow(parent, y, label, keys)
   b.check:SetTexture("Interface\\Buttons\\UI-CheckBox-Check")
   b.label = b:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
   b.label:SetPoint("LEFT", b.box, "RIGHT", 6, 0)
-  b.label:SetText(label)
+  b.label:SetText(L[label])
   b.keys = keys
   function b.refresh()
     local on = false
@@ -138,7 +139,12 @@ local function buildMenu()
     fr:Hide()
     ns.ShowPrices()
   end)
-  fr.prices.value:SetText("|cff999999search every item|r")
+  fr.prices.value:SetText("|cff999999" .. L["search every item"] .. "|r")
+  y = y - 22
+  fr.bags = actionRow(fr, y, "Interface\\Icons\\INV_Misc_Bag_07", "Bag value", function()
+    fr:Hide()
+    ns.ShowBags(true)
+  end)
   y = y - 22
   fr.shopping = actionRow(fr, y, "Interface\\Icons\\INV_Misc_Bag_10", "Shopping list", function()
     ns.ShowShopping(not ns.ShoppingShown())
@@ -154,7 +160,7 @@ local function buildMenu()
     fr:Hide()
     ns.ShowImport()
   end)
-  fr.import.value:SetText("|cff999999watchlist, plan|r")
+  fr.import.value:SetText("|cff999999" .. L["watchlist, plan"] .. "|r")
   y = y - 28
   divider(fr, y)
   y = y - 10
@@ -177,14 +183,14 @@ local function buildMenu()
     fr:Hide()
     ns.db.show.minimap = false
     ns.UpdateMinimapButton()
-    ns.Print("minimap button hidden. |cffffffff/fa minimap|r brings it back; |cffffffff/fa menu|r opens this menu.")
+    ns.Print(L["minimap button hidden. |cffffffff/fa minimap|r brings it back; |cffffffff/fa menu|r opens this menu."])
   end)
   hide.label:SetFontObject("GameFontHighlightSmall")
   fr.hide = hide
   y = y - 26
   local foot = fr:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
   foot:SetPoint("TOPLEFT", 14, y)
-  foot:SetText("More tools at " .. ns.SITE)
+  foot:SetText(L["More tools at %s"]:format(ns.SITE))
   y = y - 18
 
   fr:SetSize(WIDTH, -y + 6)
@@ -193,17 +199,23 @@ local function buildMenu()
     fr.status:SetText(ns.StatusLine())
     local n, open, total, complete = ns.ShoppingSummary()
     if n == 0 then
-      fr.shopping.value:SetText("|cff999999empty|r")
+      fr.shopping.value:SetText("|cff999999" .. L["empty"] .. "|r")
     elseif open == 0 then
-      fr.shopping.value:SetText("|cff33dd55all in bags|r")
+      fr.shopping.value:SetText("|cff33dd55" .. L["all in bags"] .. "|r")
     else
-      fr.shopping.value:SetText(open .. " to buy  |cff999999" .. (complete and "" or "~") .. M.ShortMoney(total, true) .. "|r")
+      fr.shopping.value:SetText(L["%d to buy"]:format(open) .. "  |cff999999" .. (complete and "" or "~") .. M.ShortMoney(total, true) .. "|r")
     end
     local w, hits = ns.WatchSummary()
     if w == 0 then
-      fr.watch.value:SetText("|cff999999empty|r")
+      fr.watch.value:SetText("|cff999999" .. L["empty"] .. "|r")
     else
-      fr.watch.value:SetText(w .. (w == 1 and " item" or " items") .. (hits > 0 and ("  |cff33dd55" .. hits .. " at target|r") or ""))
+      fr.watch.value:SetText((w == 1 and L["1 item"] or L["%d items"]:format(w)) .. (hits > 0 and ("  |cff33dd55" .. L["%d at target"]:format(hits) .. "|r") or ""))
+    end
+    local worth = ns.BagWorth and ns.BagWorth()
+    if worth and worth > 0 then
+      fr.bags.value:SetText(M.ShortMoney(worth, true))
+    else
+      fr.bags.value:SetText("|cff999999" .. L["nothing priced"] .. "|r")
     end
     for _, t in ipairs(fr.toggles) do t.refresh() end
     fr.hide:SetShown(ns.minimapButton ~= nil and ns.db.show.minimap)
@@ -321,11 +333,11 @@ local function buildButton()
     GameTooltip:AddLine(GOLD .. "Forever Anvil|r")
     GameTooltip:AddLine(ns.StatusLine(), 1, 1, 1)
     local w, hits = ns.WatchSummary()
-    if hits > 0 then GameTooltip:AddLine(hits .. " of your " .. w .. " watched items at target", 0.2, 0.87, 0.33) end
+    if hits > 0 then GameTooltip:AddLine(L["%d of your %d watched items at target"]:format(hits, w), 0.2, 0.87, 0.33) end
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine("|cffffffffClick|r  menu", 0.6, 0.6, 0.6)
-    GameTooltip:AddLine("|cffffffffRight-click|r  settings", 0.6, 0.6, 0.6)
-    GameTooltip:AddLine("|cffffffffDrag|r  move this button", 0.6, 0.6, 0.6)
+    GameTooltip:AddLine("|cffffffff" .. L["Click"] .. "|r  " .. L["menu"], 0.6, 0.6, 0.6)
+    GameTooltip:AddLine("|cffffffff" .. L["Right-click"] .. "|r  " .. L["settings"], 0.6, 0.6, 0.6)
+    GameTooltip:AddLine("|cffffffff" .. L["Drag"] .. "|r  " .. L["move this button"], 0.6, 0.6, 0.6)
     GameTooltip:Show()
   end)
   b:SetScript("OnLeave", function() GameTooltip:Hide() end)

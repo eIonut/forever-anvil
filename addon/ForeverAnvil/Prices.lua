@@ -4,6 +4,9 @@
 -- auction house for it. /fa prices [search], or the minimap menu.
 local _, ns = ...
 local M = ns.Math
+local L = ns.L
+-- a client in another language: show and search the game's item names (it loads them when the window opens)
+local LOCALIZED = not (ns.LOCALE == "enUS" or ns.LOCALE == "enGB")
 
 local ROWS, ROW_H = 18, 18
 local LIST_X, LIST_W = 140, 470
@@ -13,11 +16,11 @@ local all, rows, counts = {}, {}, {} -- every match of the search, the ones in t
 
 -- column: sort key, heading, x, width
 local COLS = {
-  { "name", "Item", 0, 200 },
-  { "market", "Market", 204, 72 },
-  { "min", "Lowest", 280, 72 },
-  { "qty", "Listed", 356, 50 },
-  { "sold", "Sold/day", 410, 58 },
+  { "name", L["Item"], 0, 200 },
+  { "market", L["Market"], 204, 72 },
+  { "min", L["Lowest"], 280, 72 },
+  { "qty", L["Listed"], 356, 50 },
+  { "sold", L["Sold/day"], 410, 58 },
 }
 
 local function thousands(n)
@@ -57,21 +60,21 @@ local function refreshDetail()
   d.icon:SetTexture(icon)
   d.name:SetText("|cff" .. ns.QualityHex(quality) .. (name or ("item " .. id)) .. "|r")
   if p then
-    d.line1:SetText(("Market %s · Lowest %s · %s listed in %s listings%s"):format(priceText(p[2]), priceText(p[1]),
-      thousands(p[3] or 0), thousands(p[4] or 0), p[5] and (" · Sold " .. p[5] .. "/day") or ""))
+    d.line1:SetText(L["Market %s · Lowest %s · %s listed in %s listings"]:format(priceText(p[2]), priceText(p[1]),
+      thousands(p[3] or 0), thousands(p[4] or 0)) .. (p[5] and (" · " .. L["Sold %d/day"]:format(p[5])) or ""))
   else
-    d.line1:SetText("|cff999999Not on this auction house right now.|r")
+    d.line1:SetText("|cff999999" .. L["Not on this auction house right now."] .. "|r")
   end
   local bits = {}
   -- kept short: with all three it must fit on one line beside the buttons ("Region median" and "Vendor pays" wrapped)
   local med, n = ns.RegionMedian(id)
-  if med then bits[#bits + 1] = "Region " .. priceText(med) .. " (" .. n .. " houses)" end
+  if med then bits[#bits + 1] = L["Region"] .. " " .. priceText(med) .. " (" .. L["%d houses"]:format(n) .. ")" end
   local sell = ns.VendorSell(id)
-  if sell then bits[#bits + 1] = "Vendor " .. priceText(sell) end
+  if sell then bits[#bits + 1] = L["Vendor"] .. " " .. priceText(sell) end
   local de = ns.Disenchant(id)
-  if de then bits[#bits + 1] = "Disenchant ~" .. priceText(de) end
+  if de then bits[#bits + 1] = L["Disenchant"] .. " ~" .. priceText(de) end
   d.line2:SetText("|cffbbbbbb" .. table.concat(bits, " · ") .. "|r")
-  d.watch:SetText(ns.db.watch[id] and "Unwatch" or "Watch")
+  d.watch:SetText(ns.db.watch[id] and L["Unwatch"] or L["Watch"])
 end
 
 local function draw()
@@ -103,12 +106,12 @@ local function draw()
   win.scroll:SetShown(max > 0)
   local houseId, r, side = shownHouse()
   if not houseId then
-    win.status:SetText("|cffff5555Set your realm's ruleset first: |cffffffff/fa ruleset PvP|r (or Normal, Roleplay, RP-PvP).|r")
+    win.status:SetText("|cffff5555" .. L["Set your realm's ruleset first: |cffffffff/fa ruleset PvP|r (or Normal, Roleplay, RP-PvP)."] .. "|r")
   elseif #rows == 0 then
-    win.status:SetText(state.term ~= "" and ("|cff999999Nothing matches \"" .. state.term .. "\".|r") or "|cff999999No items.|r")
+    win.status:SetText("|cff999999" .. (state.term ~= "" and L["Nothing matches \"%s\"."]:format(state.term) or L["No items."]) .. "|r")
   else
-    win.status:SetText(("Showing %d–%d of %s items  |cff999999%s %s · prices %s|r"):format(state.offset + 1,
-      math.min(#rows, state.offset + ROWS), thousands(#rows), r.name, side, M.Age(ns.DataAge())))
+    win.status:SetText(L["Showing %d–%d of %s items"]:format(state.offset + 1, math.min(#rows, state.offset + ROWS), thousands(#rows))
+      .. ("  |cff999999%s %s · %s|r"):format(r.name, L[side], L["prices %s"]:format(M.Age(ns.DataAge()))))
   end
   for _, c in ipairs(win.cats) do
     c.count:SetText(counts[c.key] and thousands(counts[c.key]) or "")
@@ -127,10 +130,34 @@ local function draw()
   refreshDetail()
 end
 
+-- A client in another language: asks the game for the names of the items on this house, a few at a time,
+-- and redraws as they arrive (GET_ITEM_INFO_RECEIVED), so search and sorting use them.
+local loading = {}
+local function loadNames()
+  local houseId = shownHouse()
+  local request = C_Item and C_Item.RequestLoadItemDataByID
+  if not (houseId and request) or loading[houseId] then return end
+  loading[houseId] = true
+  local ids = {}
+  for id in pairs(ns.HouseItems(houseId)) do
+    if not ns.ItemInfo(id) then ids[#ids + 1] = id end
+  end
+  local i = 0
+  local function batch()
+    for _ = 1, 50 do
+      i = i + 1
+      if not ids[i] then return end
+      pcall(request, ids[i])
+    end
+    if C_Timer and C_Timer.After then C_Timer.After(0.1, batch) end
+  end
+  batch()
+end
+
 -- recomputes the list (search, house or sort changed); the category only narrows it
 local function refresh(keepOffset)
   local houseId = shownHouse()
-  all = houseId and M.PriceRows(ns.HouseItems(houseId), ns.ItemNames(), { term = state.term, sort = state.sort, dir = state.dir }, cachedName) or {}
+  all = houseId and M.PriceRows(ns.HouseItems(houseId), ns.ItemNames(), { term = state.term, sort = state.sort, dir = state.dir, gameFirst = LOCALIZED }, cachedName) or {}
   counts = { [""] = #all }
   rows = {}
   for _, e in ipairs(all) do
@@ -143,6 +170,18 @@ local function refresh(keepOffset)
 end
 -- redraws an open window (a watch changed, items loaded)
 ns.RefreshPrices = function() if win and win:IsShown() then draw() end end
+
+-- names arriving from the game (another language): recompute once per burst
+if LOCALIZED then
+  local events, pending = CreateFrame("Frame"), false
+  pcall(events.RegisterEvent, events, "GET_ITEM_INFO_RECEIVED")
+  events:SetScript("OnEvent", function()
+    if pending or not (win and win:IsShown()) then return end
+    pending = true
+    local function run() pending = false; ns.Safe("prices", refresh, true) end
+    if C_Timer and C_Timer.After then C_Timer.After(0.5, run) else run() end
+  end)
+end
 
 local function build()
   local fr = CreateFrame("Frame", "ForeverAnvilPrices", UIParent, "BasicFrameTemplateWithInset")
@@ -161,14 +200,14 @@ local function build()
   end)
   local pos = ns.db.pricesPos
   if pos then fr:SetPoint(pos[1], UIParent, pos[2], pos[3], pos[4]) else fr:SetPoint("CENTER") end
-  if fr.TitleText then fr.TitleText:SetText("Forever Anvil: auction prices") end
+  if fr.TitleText then fr.TitleText:SetText("Forever Anvil: " .. L["auction prices"]) end
   tinsert(UISpecialFrames, "ForeverAnvilPrices") -- Esc closes it
   win = fr
 
   -- search
   local label = fr:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
   label:SetPoint("TOPLEFT", 18, -36)
-  label:SetText("Search")
+  label:SetText(L["Search"])
   fr.search = ns.InputBox(fr, 220)
   fr.search:SetPoint("LEFT", label, "RIGHT", 10, 0)
   fr.search:SetScript("OnTextChanged", function(self)
@@ -186,7 +225,7 @@ local function build()
     local b = CreateFrame("Button", nil, fr, "UIPanelButtonTemplate")
     b:SetSize(76, 22)
     if prev then b:SetPoint("RIGHT", prev, "LEFT", -4, 0) else b:SetPoint("TOPRIGHT", -16, -31) end
-    b:SetText(s[2])
+    b:SetText(L[s[2]])
     b.side = s[1]
     b:SetScript("OnClick", function(self)
       state.side = self.side
@@ -211,7 +250,7 @@ local function build()
     hl:SetColorTexture(1, 1, 1, 0.08)
     b.label = b:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     b.label:SetPoint("LEFT", 6, 0)
-    b.label:SetText(c[2])
+    b.label:SetText(L[c[2]])
     b.count = b:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
     b.count:SetPoint("RIGHT", -4, 0)
     b:SetScript("OnClick", function(self)
@@ -364,7 +403,7 @@ local function build()
   local function button(text, w)
     local b = CreateFrame("Button", nil, d, "UIPanelButtonTemplate")
     b:SetSize(w, 22)
-    b:SetText(text)
+    b:SetText(L[text])
     return b
   end
   d.watch = button("Watch", 76)
@@ -372,8 +411,8 @@ local function build()
   d.watch:SetScript("OnClick", function()
     local id = state.selected
     if not id then return end
-    if ns.db.watch[id] then ns.db.watch[id] = nil; ns.Print((ns.ItemMeta(id) or "That item") .. " is off your watchlist.")
-    else ns.db.watch[id] = 0; ns.Print((ns.ItemMeta(id) or "That item") .. " added to your watchlist. Set a target price in |cffffffff/fa watch|r.") end
+    if ns.db.watch[id] then ns.db.watch[id] = nil; ns.Print(L["%s is off your watchlist."]:format(ns.ItemMeta(id) or ("item " .. id)))
+    else ns.db.watch[id] = 0; ns.Print(L["%s added to your watchlist. Set a target price in |cffffffff/fa watch|r."]:format(ns.ItemMeta(id) or ("item " .. id))) end
     if ns.RefreshWatch then ns.RefreshWatch() end
     refreshDetail()
   end)
@@ -381,7 +420,7 @@ local function build()
   d.search:SetPoint("RIGHT", d.watch, "LEFT", -4, 0)
   d.search:SetScript("OnClick", function()
     if not (state.selected and ns.SearchAuction and ns.SearchAuction(state.selected)) then
-      ns.Print("open the auction house first, then press Search AH.")
+      ns.Print(L["open the auction house first, then press Search AH."])
     end
   end)
   d.add = button("Add to list", 96)
@@ -395,7 +434,7 @@ local function build()
     local id = state.selected
     if not id then return end
     local n = M.ParseCount(d.count:GetText())
-    if not n then ns.Print("how many? Type a number from 1 to 9999."); return end
+    if not n then ns.Print(L["how many? Type a number from 1 to 9999."]); return end
     ns.AddItemToShopping(id, n)
     d.count:SetText("1")
     d.count:ClearFocus()
@@ -409,7 +448,10 @@ local function build()
   fr.status:SetPoint("BOTTOMRIGHT", -18, 12)
   fr.status:SetJustifyH("LEFT")
 
-  fr:SetScript("OnShow", function() ns.Safe("prices", refresh) end)
+  fr:SetScript("OnShow", function()
+    ns.Safe("prices", refresh)
+    if LOCALIZED then ns.Safe("prices", loadNames) end
+  end)
   return fr
 end
 

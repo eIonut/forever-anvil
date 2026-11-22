@@ -16,6 +16,11 @@ Version 2 adds personal tools (plan milestone A3):
 - **Prices window** (`Prices.lua`, `/fa prices [search]`): the site's `/prices` page in game. Search, categories and sorting are `M.PriceRows` (tested against the page's rules); item names, quality, category and icons ship in the data (`items`, `encodeItems` in `pipeline/addon-data.js`, about 280 KB for Europe), because the game only knows the names of items it has loaded.
 - **Minimap button and menu** (`Minimap.lua`): status, lists, quick switches and settings. The crest texture `ForeverAnvil/Media/Icon.tga` is made from `public/img/logo.svg` by `node tools/addon-icon.js` (the game loads TGA, not PNG or SVG).
 
+Version 2.1:
+
+- **Bag value** (`Bags.lua`, `/fa bags`): every item in your bags at its best use, `M.BestUse` (auction house after the cut, disenchanting, or a vendor; soulbound items skip the auction house).
+- **Translations** (`Locale.lua`, `Locales.lua`): `ns.L["English text"]` gives the client's language (German, French, Spanish) or the English. Add a text: wrap it in `L[...]` and add it to every table; `npm test` fails when a language is missing one or a translation's placeholders differ. On those clients the prices window asks the game for its item names (`C_Item.RequestLoadItemDataByID`) and searches both.
+
 ## Folders
 
 | Folder | What it is |

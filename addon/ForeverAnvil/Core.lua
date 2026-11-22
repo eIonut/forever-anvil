@@ -2,6 +2,7 @@
 -- Core: saved settings, loading the region's data, working out which auction house you're on, price lookups.
 local addonName, ns = ...
 local M = ns.Math
+local L = ns.L
 
 ns.SITE = "foreveranvil.com"
 ns.DEFAULTS = {
@@ -15,6 +16,7 @@ ns.DEFAULTS = {
   shopping = {}, -- { {itemID, units}, … }: materials for the crafting plan, from /fa import
   shoppingPos = nil,
   pricesPos = nil, -- where the prices window was left
+  bagsPos = nil,
   v = 2,
 }
 
@@ -35,7 +37,7 @@ function ns.Safe(where, fn, ...)
     if not ns.errors[msg] then
       ns.errors[msg] = true
       ns.lastError = msg
-      ns.Print("error (please report it): " .. msg)
+      ns.Print(L["error (please report it): "] .. msg)
     end
   end
 end
@@ -94,11 +96,11 @@ end
 
 function ns.LoadData()
   ns.regionCode = regionCode()
-  if not ns.regionCode then ns.Print("this region isn't covered yet (Europe and the Americas are)."); return end
+  if not ns.regionCode then ns.Print(L["this region isn't covered yet (Europe and the Americas are)."]); return end
   if not (ForeverAnvilData and ForeverAnvilData[ns.regionCode]) then loadAddon("ForeverAnvil_Data_" .. ns.regionCode) end
   ns.data = ForeverAnvilData and ForeverAnvilData[ns.regionCode]
   if not ns.data then
-    ns.Print("price data for " .. ns.regionCode .. " is missing. Reinstall or update the addon.")
+    ns.Print(L["price data for %s is missing. Reinstall or update the addon."]:format(ns.regionCode))
     return
   end
   ns.houseCache = {}
@@ -361,19 +363,19 @@ end
 -- Pasted from the site: replaces the watchlist or the shopping list. Returns a message for the player.
 function ns.Import(text)
   local kind, entries = M.DecodeImport(text)
-  if not kind then return false, entries end
+  if not kind then return false, L[entries] end
   if kind == "watch" then
     local watch, n = {}, 0
     for _, e in ipairs(entries) do watch[e[1]] = e[2] or 0; n = n + 1 end
     ns.db.watch = watch
     if ns.OnListsChanged then ns.OnListsChanged("watch") end
-    return true, ("watchlist imported: %d items. Items at your target are tagged in the auction house."):format(n)
+    return true, L["watchlist imported: %d items. Items at your target are tagged in the auction house."]:format(n)
   end
   local list = {}
   for _, e in ipairs(entries) do list[#list + 1] = { e[1], e[2] } end
   ns.db.shopping = list
   if ns.OnListsChanged then ns.OnListsChanged("shopping") end
-  return true, ("shopping list imported: %d materials. |cffffffff/fa list|r shows it."):format(#list)
+  return true, L["shopping list imported: %d materials. |cffffffff/fa list|r shows it."]:format(#list)
 end
 
 function ns.DataAge()
@@ -392,7 +394,7 @@ local function askForRuleset()
   asked = true
   local names = {}
   for _, r in ipairs(ns.data.rulesets) do names[#names + 1] = r.name end
-  ns.Print("which ruleset is this realm? Type |cffffffff/fa ruleset <name>|r, one of: " .. table.concat(names, ", ") .. ". Prices show once it's set.")
+  ns.Print(L["which ruleset is this realm? Type |cffffffff/fa ruleset <name>|r, one of: %s. Prices show once it's set."]:format(table.concat(names, ", ")))
 end
 ns.AskForRuleset = askForRuleset
 
@@ -446,7 +448,7 @@ SlashCmdList.FOREVERANVIL = function(msg)
   if cmd == "ruleset" then
     if rest == "" then askForRuleset(); asked = false; return end
     local r = ns.SetRuleset(rest)
-    if r then ns.Print("this realm now uses " .. r.name .. " prices.") else ns.Print("unknown ruleset: " .. rest) end
+    if r then ns.Print(L["this realm now uses %s prices."]:format(r.name)) else ns.Print(L["unknown ruleset: %s"]:format(rest)) end
   elseif cmd == "debug" then
     -- what the tooltip hooks are doing, and a price lookup (default: Linen Cloth), for bug reports
     local id = ns.House()
@@ -492,22 +494,24 @@ SlashCmdList.FOREVERANVIL = function(msg)
   elseif cmd == "minimap" and ns.UpdateMinimapButton then
     ns.db.show.minimap = not ns.db.show.minimap
     ns.OnSetting("minimap")
-    ns.Print(ns.db.show.minimap and "minimap button shown." or "minimap button hidden (|cffffffff/fa minimap|r brings it back).")
+    ns.Print(ns.db.show.minimap and L["minimap button shown."] or L["minimap button hidden (|cffffffff/fa minimap|r brings it back)."])
   elseif cmd == "list" and ns.ListCommand then
     ns.ListCommand(rest)
+  elseif (cmd == "bags" or cmd == "bag") and ns.ShowBags then
+    ns.ShowBags()
   elseif (cmd == "prices" or cmd == "price" or cmd == "p") and ns.ShowPrices then
     ns.ShowPrices(rest)
   else
     local id, r, side = ns.House()
     if not ns.data then
-      ns.Print("no price data loaded.")
+      ns.Print(L["no price data loaded."])
     elseif not id then
-      ns.Print("prices from " .. M.Age(ns.DataAge()) .. ", but the ruleset for " .. GetRealmName() .. " isn't set.")
+      ns.Print(L["prices from %s, but the ruleset for %s isn't set."]:format(M.Age(ns.DataAge()), GetRealmName()))
       askForRuleset(); asked = false
     else
-      ns.Print(("%s %s auction house (%s), prices from %s."):format(r.name, side, ns.regionCode, M.Age(ns.DataAge())))
+      ns.Print(L["%s %s auction house (%s), prices from %s."]:format(r.name, L[side], ns.regionCode, M.Age(ns.DataAge())))
     end
-    ns.Print("|cffffffff/fa ruleset <name>|r sets this realm's ruleset, |cffffffff/fa options|r opens the settings. More tools at " .. ns.SITE .. ".")
-    ns.Print("|cffffffff/fa import|r pastes a watchlist or shopping list from the site, |cffffffff/fa watch|r and |cffffffff/fa list|r show them, |cffffffff/fa prices|r browses every price, |cffffffff/fa menu|r opens the menu.")
+    ns.Print(L["|cffffffff/fa ruleset <name>|r sets this realm's ruleset, |cffffffff/fa options|r opens the settings. More tools at %s."]:format(ns.SITE))
+    ns.Print(L["|cffffffff/fa prices|r browses every price, |cffffffff/fa bags|r values your bags, |cffffffff/fa watch|r and |cffffffff/fa list|r show your lists, |cffffffff/fa import|r pastes one from the site, |cffffffff/fa menu|r opens the menu."])
   end
 end

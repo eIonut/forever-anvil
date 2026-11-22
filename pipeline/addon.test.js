@@ -17,16 +17,17 @@ import { watchString, shoppingString } from "../src/lib/addonstring.js";
 const { lua, lauxlib, lualib, to_luastring } = fengari;
 const ADDON = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../addon/ForeverAnvil");
 const MATH = fs.readFileSync(path.join(ADDON, "Math.lua"), "utf8");
+const LOCALE = fs.readFileSync(path.join(ADDON, "Locale.lua"), "utf8");
 
 /** Runs Lua code with Math.lua loaded as M; the code returns a string. Globals: name → string. */
 function runLua(body, globals = {}) {
   const L = lauxlib.luaL_newstate();
   lualib.luaL_openlibs(L);
-  for (const [k, v] of Object.entries({ MATH_SRC: MATH, ...globals })) {
+  for (const [k, v] of Object.entries({ MATH_SRC: MATH, LOCALE_SRC: LOCALE, ...globals })) {
     lua.lua_pushstring(L, to_luastring(v));
     lua.lua_setglobal(L, to_luastring(k));
   }
-  const code = `local ns = {}; assert(load(MATH_SRC, "=Math.lua"))("ForeverAnvil", ns); local M = ns.Math\n${body}`;
+  const code = `local ns = {}; assert(load(MATH_SRC, "=Math.lua"))("ForeverAnvil", ns); assert(load(LOCALE_SRC, "=Locale.lua"))("ForeverAnvil", ns); local M = ns.Math\n${body}`;
   if (lauxlib.luaL_loadstring(L, to_luastring(code)) !== lua.LUA_OK || lua.lua_pcall(L, 0, 1, 0) !== lua.LUA_OK) {
     throw new Error(lua.lua_tojsstring(L, -1));
   }
@@ -1361,5 +1362,282 @@ test("smoke: prices window searches, filters, sorts, switches house and acts on 
     "search AH while closed: open the auction house first, then press Search AH.",
     "click again closes details: false",
     "/fa prices wool: true, Wool Cloth, Esc closes: true",
+  ]);
+});
+
+// The settings page (Options.lua): switches grouped in sections, one for every setting, each with an
+// explanation on hover, and buttons that open the windows.
+test("smoke: settings page groups every switch and opens the windows", () => {
+  const src = (f) => fs.readFileSync(path.join(ADDON, f), "utf8");
+  const out = runLua(`
+    local chat, tip = {}, {}
+    local noop = function() end
+    local texts = {}
+    local function region()
+      local r = setmetatable({}, { __index = function(_, k) if k:match("^%u") then return noop end end })
+      function r:SetText(s) self.text = s; texts[#texts + 1] = s end
+      return r
+    end
+    local function frame(kind, name, parent)
+      local fr = setmetatable({ kind = kind, parent = parent }, { __index = function(_, k)
+        if k:match("^%u") and k ~= "TitleText" and not k:match("^On") then return noop end
+      end })
+      function fr:SetScript(k, fn) rawset(self, k, fn) end
+      function fr:GetFrameLevel() return 1 end
+      function fr:CreateFontString() return region() end
+      function fr:CreateTexture() return region() end
+      function fr:Show() self.shown = true; if self.OnShow then self.OnShow(self) end end
+      function fr:Hide() self.shown = false end
+      function fr:IsShown() return rawget(self, "shown") == true end
+      function fr:SetText(s) self.value = s end
+      function fr:GetText() return self.value or "" end
+      function fr:SetChecked(on) self.checked = on and true or false end
+      function fr:GetChecked() return self.checked end
+      function fr:Click() if kind == "CheckButton" then self.checked = not self.checked end; self.OnClick(self, "LeftButton") end
+      if name then _G[name] = fr end
+      return fr
+    end
+    CreateFrame = frame
+    UIParent, UISpecialFrames, ChatFontNormal = frame(), {}, {}
+    tinsert = table.insert
+    GameTooltip = frame()
+    function GameTooltip:AddLine(s) tip[#tip + 1] = s end
+    function GameTooltip:Show() end
+    DEFAULT_CHAT_FRAME = { AddMessage = function(_, m) chat[#chat + 1] = m end }
+    SlashCmdList = {}
+    hooksecurefunc = function() end
+    GetCurrentRegion = function() return 3 end
+    GetRealmName = function() return "Forever PvP" end
+    UnitFactionGroup = function() return "Horde" end
+    C_AddOns = { IsAddOnLoaded = function() return false end, LoadAddOn = function() end }
+    time = os.time
+    C_Item = { GetItemInfo = function() return nil end, GetItemCount = function() return 0 end }
+    local settingsShown = true
+    SettingsPanel = { IsShown = function() return settingsShown end }
+    HideUIPanel = function(f) if f == SettingsPanel then settingsShown = false end end
+    Settings = { RegisterCanvasLayoutCategory = function(p, n) return { GetID = function() return 7 end } end,
+      RegisterAddOnCategory = noop, OpenToCategory = noop }
+    ForeverAnvilData = { EU = { region = "eu", updated = os.time() - 600,
+      rulesets = { { name = "PvP", group = "A", likely = false, alliance = 110, horde = 113, neutral = 116 },
+        { name = "Normal", group = "B", likely = false, alliance = 120, horde = 123, neutral = 126 } },
+      houses = { [113] = { group = "A", faction = "horde", data = "" } },
+      regionMedian = "", vendorBuy = "", noDisenchant = "", skill = "", crates = "", items = "" } }
+    for _, f in ipairs({ "Core.lua", "Lists.lua", "Prices.lua", "Options.lua" }) do assert(load(_G[f], "=" .. f))("ForeverAnvil", ns) end
+    ns.frame.OnEvent(ns.frame, "ADDON_LOADED", "ForeverAnvil")
+    ns.frame.OnEvent(ns.frame, "PLAYER_LOGIN")
+    local P = ns.OptionsPanel()
+    P:Show()
+    local out = {}
+    -- every setting has a switch, and every switch a setting
+    local missing, extra = {}, {}
+    for key in pairs(ns.DEFAULTS.show) do if not P.boxes[key] then missing[#missing + 1] = key end end
+    for key in pairs(P.boxes) do if ns.DEFAULTS.show[key] == nil then extra[#extra + 1] = key end end
+    out[#out + 1] = "missing: " .. table.concat(missing, ",") .. "; extra: " .. table.concat(extra, ",")
+    local heads = {}
+    for _, s in ipairs(texts) do
+      for _, h in ipairs({ "Tooltips", "Profession window", "Auction house", "Your gear and lists", "Minimap", "Open", "Ruleset for this realm" }) do
+        if s == h then heads[#heads + 1] = s end
+      end
+    end
+    out[#out + 1] = "sections: " .. table.concat(heads, ", ")
+    out[#out + 1] = "checked: vendor " .. tostring(P.boxes.vendor.checked) .. ", flips " .. tostring(P.boxes.flips.checked) .. "; status " .. P.status.text:gsub(" Prices.*", "")
+    P.boxes.flips:Click()
+    out[#out + 1] = "flips after a click: " .. tostring(ns.db.show.flips)
+    P.boxes.vendor.OnEnter(P.boxes.vendor)
+    out[#out + 1] = "hover: " .. table.concat(tip, " / ")
+    -- the Open buttons close the settings and open the window
+    local opened
+    ns.ShowPrices = function() opened = "prices" end
+    ns.PricesShown = function() return false end
+    P.open[1]:Click()
+    out[#out + 1] = "open: " .. P.open[1].value .. " -> " .. tostring(opened) .. ", settings closed " .. tostring(not settingsShown)
+    P.open[2]:Click()
+    out[#out + 1] = "open: " .. P.open[2].value .. " -> " .. tostring(ForeverAnvilWatchlist and ForeverAnvilWatchlist.shown)
+    return table.concat(out, "\\n")`, { "Core.lua": src("Core.lua"), "Lists.lua": src("Lists.lua"), "Prices.lua": src("Prices.lua"), "Options.lua": src("Options.lua") });
+  assert.deepEqual(out.split("\n"), [
+    "missing: ; extra: ",
+    "sections: Tooltips, Profession window, Auction house, Your gear and lists, Minimap, Open, Ruleset for this realm",
+    "checked: vendor false, flips true; status PvP, horde auction house.",
+    "flips after a click: false",
+    "hover: Vendor price per item / Off by default: the game's own tooltip already shows the stack's sell price.",
+    "open: Prices -> prices, settings closed true",
+    "open: Watchlist -> true",
+  ]);
+});
+
+// Translations (Locale.lua, Locales.lua): every text the addon looks up is translated in each language, with the
+// same placeholders in the same order; a German client gets German text, ages and tags.
+test("every addon file is in the toc, in an order that loads the translations first", () => {
+  const toc = fs.readFileSync(path.join(ADDON, "ForeverAnvil.toc"), "utf8").split(/\r?\n/).filter((l) => l.endsWith(".lua"));
+  const files = fs.readdirSync(ADDON).filter((f) => f.endsWith(".lua")).sort();
+  assert.deepEqual([...toc].sort(), files);
+  assert.deepEqual(toc.slice(0, 4), ["Math.lua", "Locale.lua", "Locales.lua", "Core.lua"]);
+});
+
+test("translations cover every text, with matching placeholders", () => {
+  const src = fs.readFileSync(path.join(ADDON, "Locales.lua"), "utf8");
+  const unq = (s) => JSON.parse('"' + s + '"');
+  const tables = {};
+  for (const block of src.split("ns.AddLocale(").slice(1)) {
+    const locale = block.match(/"(\w{4})"/)[1];
+    const t = (tables[locale] = {});
+    for (const m of block.matchAll(/\["((?:[^"\\]|\\.)*)"\] = "((?:[^"\\]|\\.)*)"/g)) t[unq(m[1])] = unq(m[2]);
+  }
+  assert.deepEqual(Object.keys(tables).sort(), ["deDE", "esES", "frFR"]);
+  // the texts the code looks up: L["…"], plus labels passed through a variable (option and menu tables, …)
+  const used = new Set();
+  for (const f of fs.readdirSync(ADDON).filter((f) => f.endsWith(".lua") && !f.startsWith("Locale"))) {
+    const s = fs.readFileSync(path.join(ADDON, f), "utf8");
+    for (const m of s.matchAll(/L\["((?:[^"\\]|\\.)*)"\]/g)) used.add(unq(m[1]));
+  }
+  const opt = fs.readFileSync(path.join(ADDON, "Options.lua"), "utf8");
+  const optTables = opt.slice(opt.indexOf("local LEFT = {"), opt.indexOf("local panel, category"));
+  const keys = new Set(["market", "min", "sold", "region", "de", "vendor", "crates", "craft", "skillup", "flips", "deAll", "upgrades", "watch", "shopping", "minimap"]);
+  for (const m of optTables.matchAll(/"((?:[^"\\]|\\.)*)"/g)) if (!keys.has(unq(m[1]))) used.add(unq(m[1]));
+  const mm = fs.readFileSync(path.join(ADDON, "Minimap.lua"), "utf8");
+  for (const m of mm.matchAll(/sectionLabel\(fr, "([^"]+)"|actionRow\(fr, y, "[^"]+", "([^"]+)"|\{ "([^"]+)", \{ "/g)) used.add(m[1] || m[2] || m[3]);
+  for (const k of ["Shopping list", "Watchlist", "How many", "Have", "To buy", "Target price", "Lowest", "Edit", "Remove", "Add", "Cancel",
+    "Clear all", "Watch", "Search AH", "Add to list", "Neutral", "Horde", "Alliance", "horde", "alliance", "neutral", "Auction house",
+    ...JSON.parse(runLua(`local t = {}; for _, c in ipairs(M.CATEGORIES) do t[#t + 1] = '"' .. c[2] .. '"' end; return "[" .. table.concat(t, ",") .. "]"`)),
+    "head", "neck", "shoulders", "back", "chest", "wrists", "hands", "waist", "legs", "feet", "ring", "trinket", "main hand", "off hand", "ranged",
+    "that isn't a Forever Anvil string", "the string is damaged (copy it again from the site)", "the list is empty"]) used.add(k);
+  // game names we couldn't confirm in each language stay English
+  const english = new Set(["Merchant's Favor", "Waylaid crates", "Waylaid crate values", "The Merchant's Favor a crate pays and the cheapest bundle to fill it."]);
+  const holes = (s) => (s.match(/%[sd%]/g) || []).join("");
+  for (const [locale, t] of Object.entries(tables)) {
+    const missing = [...used].filter((k) => !english.has(k) && !(k in t));
+    assert.deepEqual(missing, [], `${locale} is missing translations`);
+    for (const [k, v] of Object.entries(t)) {
+      assert.equal(holes(v), holes(k), `${locale} "${k}": placeholders`);
+      assert.equal((v.match(/\|c[0-9a-f]{8}/g) || []).length, (k.match(/\|c[0-9a-f]{8}/g) || []).length, `${locale} "${k}": colours`);
+    }
+  }
+  // the M.CATEGORIES labels and slot names in the code are what the tables translate
+  const cats = JSON.parse(runLua(`local t = {}; for _, c in ipairs(M.CATEGORIES) do t[#t + 1] = '"' .. c[2] .. '"' end; return "[" .. table.concat(t, ",") .. "]"`));
+  for (const c of cats) assert.ok(c in tables.deDE, c);
+});
+
+test("a German client gets German text, ages, tags and slot names", () => {
+  const out = runLua(`
+    GetLocale = function() return "deDE" end
+    local de = {}
+    assert(load(LOCALE_SRC, "=Locale.lua"))("ForeverAnvil", de)
+    de.Math = M
+    assert(load(LOCALES_SRC, "=Locales.lua"))("ForeverAnvil", de)
+    local L = de.L
+    return table.concat({ L["Market"], M.Age(7300), M.Age(90), L["Need %d"]:format(3), L["over your %s"]:format(L["head"]),
+      L["Merchant's Favor"], L["not a key"] }, " | ")`, { LOCALES_SRC: fs.readFileSync(path.join(ADDON, "Locales.lua"), "utf8") });
+  assert.equal(out, "Markt | vor 2 Std. | vor 1 Min. | Fehlt 3 | über deinem Gegenstand (Kopf) | Merchant's Favor | not a key");
+  // an English client keeps the English age
+  assert.equal(runLua(`return M.Age(7300)`), "2h ago");
+});
+
+// The prices window on a client in another language: the game's names show and sort, and the search
+// matches either name.
+test("prices window prefers the game's names on other-language clients", () => {
+  const out = runLua(`
+    local items = M.DecodeHouse("1,10,10,5,5,;2,20,20,5,5,;")
+    local names = M.DecodeItems("1,1,t,,,Linen Cloth\\n2,1,t,,,Wool Cloth\\n")
+    local game = { [1] = "Leinenstoff", [2] = "Wollstoff" }
+    local function ids(o) local t = {}; for _, r in ipairs(M.PriceRows(items, names, o, function(id) return game[id] end)) do t[#t + 1] = r.name end; return table.concat(t, ",") end
+    return table.concat({
+      ids({ sort = "name", dir = 1, gameFirst = true }),
+      ids({ sort = "name", dir = 1, gameFirst = true, term = "woll" }),
+      ids({ sort = "name", dir = 1, gameFirst = true, term = "linen" }),
+      ids({ sort = "name", dir = 1, term = "woll" }),
+    }, " | ")`);
+  assert.equal(out, "Leinenstoff,Wollstoff | Wollstoff | Leinenstoff | ");
+});
+
+// Bag value (Bags.lua): the best of auction house (after its cut), disenchanting and a vendor, per item.
+test("bag value picks the best way to sell each item", () => {
+  const out = runLua(`
+    local function f(...) local k, v = M.BestUse(...); return tostring(k) .. ":" .. tostring(v) end
+    return table.concat({
+      f(1000, 800, 50),   -- auction house: 950 after the cut
+      f(900, 900, 50),    -- disenchanting beats 855
+      f(nil, nil, 50),    -- soulbound or not listed: the vendor
+      f(nil, 300, 500),   -- vendor beats disenchanting
+      f(0, nil, nil),     -- nothing
+    }, " ")`);
+  assert.equal(out, "ah:950 de:900 vendor:50 vendor:500 nil:nil");
+});
+
+test("smoke: bag value window totals your bags and the menu shows it", () => {
+  const src = (f) => fs.readFileSync(path.join(ADDON, f), "utf8");
+  const house = encodeHouse({ 2589: [12, 15, 400, 30, 120], 2592: [40, 45, 200, 2, 60] });
+  const out = runLua(`
+    local noop = function() end
+    local function region()
+      local r = setmetatable({}, { __index = function(_, k) if k:match("^%u") then return noop end end })
+      function r:SetText(s) self.text = s end
+      return r
+    end
+    local function frame(kind, name, parent)
+      local fr = setmetatable({ kind = kind, parent = parent }, { __index = function(_, k)
+        if k:match("^%u") and k ~= "TitleText" and not k:match("^On") then return noop end
+      end })
+      function fr:SetScript(k, fn) rawset(self, k, fn) end
+      function fr:GetFrameLevel() return 1 end
+      function fr:CreateFontString() return region() end
+      function fr:CreateTexture() return region() end
+      function fr:Show() self.shown = true; if self.OnShow then self.OnShow(self) end end
+      function fr:Hide() self.shown = false end
+      function fr:IsShown() return rawget(self, "shown") == true end
+      function fr:SetText(s) self.value = s end
+      if name then _G[name] = fr end
+      return fr
+    end
+    CreateFrame = frame
+    UIParent, UISpecialFrames, ChatFontNormal = frame(), {}, {}
+    tinsert = table.insert
+    GameTooltip = frame()
+    DEFAULT_CHAT_FRAME = { AddMessage = noop }
+    SlashCmdList = {}
+    hooksecurefunc = noop
+    GetCurrentRegion = function() return 3 end
+    GetRealmName = function() return "Forever PvP" end
+    UnitFactionGroup = function() return "Horde" end
+    C_AddOns = { IsAddOnLoaded = function() return false end, LoadAddOn = noop }
+    time = os.time
+    -- bags: 30 Linen Cloth in two stacks, 3 Wool Cloth (a thin market), a soulbound sword (vendor 1s), a grey (vendor 5c)
+    local bags = { [0] = { { 2589, 20 }, { 2589, 10 }, { 2592, 3 } }, [1] = { { 25, 1, true }, { 3300, 2 } } }
+    C_Container = {
+      GetContainerNumSlots = function(bag) return bags[bag] and #bags[bag] or 0 end,
+      GetContainerItemInfo = function(bag, slot)
+        local e = bags[bag] and bags[bag][slot]
+        if e then return { itemID = e[1], stackCount = e[2], isBound = e[3] } end
+      end,
+    }
+    local sells = { [2589] = 3, [2592] = 10, [25] = 100, [3300] = 5 }
+    C_Item = { GetItemInfo = function(id) if sells[id] then return "item " .. id, nil, 1, 5, nil, nil, nil, nil, nil, nil, sells[id], 15 end end,
+      GetItemCount = function() return 0 end }
+    ForeverAnvilData = { EU = { region = "eu", updated = os.time() - 600,
+      rulesets = { { name = "PvP", group = "A", likely = false, alliance = 110, horde = 113, neutral = 116 } },
+      houses = { [113] = { group = "A", faction = "horde", data = HOUSE } },
+      regionMedian = "", vendorBuy = "", noDisenchant = "", skill = "", crates = "", items = "" } }
+    for _, f in ipairs({ "Core.lua", "Lists.lua", "Bags.lua" }) do assert(load(_G[f], "=" .. f))("ForeverAnvil", ns) end
+    ns.frame.OnEvent(ns.frame, "ADDON_LOADED", "ForeverAnvil")
+    ns.frame.OnEvent(ns.frame, "PLAYER_LOGIN")
+    SlashCmdList.FOREVERANVIL("bags")
+    local B = ForeverAnvilBags
+    local out = { "shown " .. tostring(B.shown) }
+    for _, b in ipairs(B.rows) do
+      if b.itemID and b.shown ~= false then out[#out + 1] = b.itemID .. " " .. b.kind.text .. " " .. b.value.text end
+    end
+    out[#out + 1] = B.total.text
+    out[#out + 1] = B.split.text
+    out[#out + 1] = "worth " .. ns.BagWorth()
+    return table.concat(out, "\\n")`, { HOUSE: house, "Core.lua": src("Core.lua"), "Lists.lua": src("Lists.lua"), "Bags.lua": src("Bags.lua") });
+  // Linen: 15c × 0.95 = 14c each, 30 → 4s 20c; Wool: 43c × 3 = 1s 29c (thin: under 3 listings); sword 1s (bound: vendor); grey 5c × 2
+  assert.deepEqual(out.split("\n"), [
+    "shown true",
+    "2589 |cffffd100Auction house|r 4s 20c",
+    "2592 |cffffd100Auction house|r |cff999999~|r1s 29c",
+    "25 |cffbbbbbbVendor|r|cff777777 · bound|r 1s",
+    "3300 |cffbbbbbbVendor|r 10c",
+    "Worth |cffc7c7cf6s|r |cffeda55f59c|r",
+    "|cffffd100Auction house|r 5s 49c   |cffc080ffDisenchant|r 0c   |cffbbbbbbVendor|r 1s 10c",
+    "worth 659",
   ]);
 });

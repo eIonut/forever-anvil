@@ -1,3 +1,11 @@
+## 2.1
+
+- **Bag value** (`/fa bags`, or "Bag value" in the minimap menu): what everything in your bags is worth, and the best way to turn each item into gold: the auction house (after its 5% cut), disenchanting, or a vendor. Soulbound items count only for a vendor or disenchanting, and thin markets (under 3 listings) are marked with ~. The menu shows the total.
+- **German, French and Spanish**: the addon's text follows your game client's language. On those clients the prices window shows and searches the game's own item names (it loads them when you open it), and English names still match.
+- **Settings page** in sections (tooltips, profession window, auction house, your gear and lists, minimap), with an explanation when you hover a switch, and buttons to open the prices, lists, bag value and import windows.
+- Profession window: the shopping list button is a small bag icon beside Create All, and the recipe's profit and skill-up sit under its name (below "Requires: …" when the recipe needs a tool or place).
+- Prices window: the details line fits on one line.
+
 ## 2.0
 
 Personal tools, all usable in game without the site.

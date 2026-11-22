@@ -8,6 +8,7 @@
 --   house tags materials you still need.
 local _, ns = ...
 local M = ns.Math
+local L = ns.L
 
 local function itemName(id)
   local name = ns.ItemMeta(id)
@@ -30,14 +31,14 @@ local function buildImport()
   fr:RegisterForDrag("LeftButton")
   fr:SetScript("OnDragStart", fr.StartMoving)
   fr:SetScript("OnDragStop", fr.StopMovingOrSizing)
-  if fr.TitleText then fr.TitleText:SetText("Forever Anvil: import") end
+  if fr.TitleText then fr.TitleText:SetText("Forever Anvil: " .. L["import"]) end
   tinsert(UISpecialFrames, "ForeverAnvilImport") -- Esc closes it
 
   local help = fr:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
   help:SetPoint("TOPLEFT", 14, -32)
   help:SetWidth(390)
   help:SetJustifyH("LEFT")
-  help:SetText("On " .. ns.SITE .. ", press \"Copy for the addon\" on your watchlist or crafting planner, then paste here (Ctrl+V). It replaces that list.")
+  help:SetText(L["On %s, press \"Copy for the addon\" on your watchlist or crafting planner, then paste here (Ctrl+V). It replaces that list."]:format(ns.SITE))
 
   local scroll = CreateFrame("ScrollFrame", nil, fr, "UIPanelScrollFrameTemplate")
   scroll:SetPoint("TOPLEFT", 14, -64)
@@ -61,7 +62,7 @@ local function buildImport()
   local ok = CreateFrame("Button", nil, fr, "UIPanelButtonTemplate")
   ok:SetSize(100, 22)
   ok:SetPoint("BOTTOMRIGHT", -12, 12)
-  ok:SetText("Import")
+  ok:SetText(L["Import"])
   ok:SetScript("OnClick", function()
     local done, msg = ns.Import(box:GetText())
     if done then
@@ -98,8 +99,8 @@ local function watchLine(id, target)
   local p = ns.Price(id)
   local low = p and p[1]
   local at = target > 0 and low and low <= target
-  return ("%s: %s, lowest %s%s"):format(itemName(id), target > 0 and ("target " .. money(target)) or "no target",
-    low and money(low) or "not listed", at and " |cff33dd55(at target)|r" or "")
+  return L["%s: %s, lowest %s%s"]:format(itemName(id), target > 0 and L["target %s"]:format(money(target)) or L["no target"],
+    low and money(low) or L["not listed"], at and (" |cff33dd55(" .. L["at target"] .. ")|r") or "")
 end
 
 function ns.WatchCommand(cmd, rest)
@@ -107,14 +108,14 @@ function ns.WatchCommand(cmd, rest)
   if cmd == "unwatch" then
     if rest:lower() == "all" then
       ns.db.watch = {}
-      ns.Print("watchlist cleared.")
+      ns.Print(L["watchlist cleared."])
       ns.RefreshWatch()
       return
     end
     local id = itemArg(rest)
-    if not id or not watch[id] then ns.Print("that item isn't on your watchlist."); return end
+    if not id or not watch[id] then ns.Print(L["that item isn't on your watchlist."]); return end
     watch[id] = nil
-    ns.Print(itemName(id) .. " is off your watchlist.")
+    ns.Print(L["%s is off your watchlist."]:format(itemName(id)))
     ns.RefreshWatch()
     return
   end
@@ -123,14 +124,14 @@ function ns.WatchCommand(cmd, rest)
     return
   end
   local id, price = itemArg(rest)
-  if not id then ns.Print("which item? Shift-click it into the chat line: |cffffffff/fa watch <item> [price]|r"); return end
+  if not id then ns.Print(L["which item? Shift-click it into the chat line: |cffffffff/fa watch <item> [price]|r"]); return end
   local target = 0
   if price and price ~= "" then
     target = M.ParseMoney(price)
-    if not target then ns.Print("that price isn't clear: write it like 2g50s, 75s or 30c."); return end
+    if not target then ns.Print(L["that price isn't clear: write it like 2g50s, 75s or 30c."]); return end
   end
   watch[id] = target
-  ns.Print("watching " .. watchLine(id, target))
+  ns.Print(L["watching %s"]:format(watchLine(id, target)))
   ns.RefreshWatch()
 end
 
@@ -222,7 +223,7 @@ local function iconButton(parent, texture, tip)
   b:SetHighlightTexture("Interface\\Buttons\\UI-Common-MouseHilight", "ADD")
   b:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
-    GameTooltip:SetText(tip)
+    GameTooltip:SetText(L[tip])
     GameTooltip:Show()
   end)
   b:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -251,20 +252,20 @@ local function buildList(o)
   end)
   local pos = ns.db[o.posKey]
   if pos then fr:SetPoint(pos[1], UIParent, pos[2], pos[3], pos[4]) else fr:SetPoint("RIGHT", o.x, o.y) end
-  if fr.TitleText then fr.TitleText:SetText(o.title) end
+  if fr.TitleText then fr.TitleText:SetText(L[o.title]) end
   fr.offset = 0
   fr.list = {}
 
   -- column headings
   local head = fr:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
   head:SetPoint("TOPLEFT", 36, -30)
-  head:SetText("Item")
+  head:SetText(L["Item"])
   local h2 = fr:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
   h2:SetPoint("TOPRIGHT", fr, "TOPLEFT", 14 + 202, -30)
-  h2:SetText(o.countHead)
+  h2:SetText(L[o.countHead])
   local h3 = fr:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
   h3:SetPoint("TOPRIGHT", fr, "TOPLEFT", 14 + 282, -30)
-  h3:SetText(o.costHead)
+  h3:SetText(L[o.costHead])
 
   local area = CreateFrame("Frame", nil, fr)
   area:SetPoint("TOPLEFT", 14, -44)
@@ -346,11 +347,11 @@ local function buildList(o)
   sep:SetColorTexture(1, 0.82, 0, 0.25)
   sep:SetPoint("TOPLEFT", 14, y + 3)
   sep:SetSize(WIDTH - 28, 1)
-  fr.editLabel = smallLabel(fr, "Add an item |cff999999(shift-click one, or type its name)|r", 16, y)
+  fr.editLabel = smallLabel(fr, L["Add an item"] .. " |cff999999" .. L["(shift-click one, or type its name)"] .. "|r", 16, y)
   fr.item = inputBox(fr, 196)
   fr.item:SetPoint("TOPLEFT", 20, y - 26)
   itemBoxes[#itemBoxes + 1] = fr.item
-  smallLabel(fr, o.amountLabel, 228, y - 14)
+  smallLabel(fr, L[o.amountLabel], 228, y - 14)
   fr.amount = inputBox(fr, 90)
   fr.amount:SetPoint("TOPLEFT", 232, y - 26)
   fr.item.nextBox = fr.amount
@@ -361,14 +362,14 @@ local function buildList(o)
     fr.amount:SetText("")
     fr.item:ClearFocus()
     fr.amount:ClearFocus()
-    fr.editLabel:SetText("Add an item |cff999999(shift-click one, or type its name)|r")
-    fr.saveButton:SetText("Add")
+    fr.editLabel:SetText(L["Add an item"] .. " |cff999999" .. L["(shift-click one, or type its name)"] .. "|r")
+    fr.saveButton:SetText(L["Add"])
     o.refresh()
   end
   fr.reset = reset
   local function save()
     local id = ns.ItemFromText(fr.item:GetText())
-    if not id then ns.Print("which item? Shift-click it into the Item box, or type its name or number."); return end
+    if not id then ns.Print(L["which item? Shift-click it into the Item box, or type its name or number."]); return end
     if o.save(id, fr.amount:GetText()) then reset() end
   end
   fr.item:SetScript("OnEnterPressed", function() fr.amount:SetFocus() end)
@@ -380,7 +381,7 @@ local function buildList(o)
     local b = CreateFrame("Button", nil, fr, "UIPanelButtonTemplate")
     b:SetSize(w, 22)
     b:SetPoint(point, px, y - 52)
-    b:SetText(text)
+    b:SetText(L[text])
     return b
   end
   fr.saveButton = button("Add", 80, "TOPLEFT", 14)
@@ -392,14 +393,14 @@ local function buildList(o)
   fr.clearButton:SetScript("OnClick", function(self)
     if self.armed then
       self.armed = nil
-      self:SetText("Clear all")
+      self:SetText(L["Clear all"])
       o.clear()
       reset()
     else
       self.armed = true
-      self:SetText("|cffff5555Sure?|r")
+      self:SetText("|cffff5555" .. L["Sure?"] .. "|r")
       if C_Timer and C_Timer.After then
-        C_Timer.After(3, function() if self.armed then self.armed = nil; self:SetText("Clear all") end end)
+        C_Timer.After(3, function() if self.armed then self.armed = nil; self:SetText(L["Clear all"]) end end)
       end
     end
   end)
@@ -410,8 +411,8 @@ local function buildList(o)
     fr.editing = id
     fr.item:SetText(link or tostring(id))
     fr.amount:SetText(o.amountOf(id) or "")
-    fr.editLabel:SetText("Editing |cffffffff" .. (ns.ItemMeta(id) or ("item " .. id)) .. "|r")
-    fr.saveButton:SetText("Save")
+    fr.editLabel:SetText(L["Editing"] .. " |cffffffff" .. (ns.ItemMeta(id) or ("item " .. id)) .. "|r")
+    fr.saveButton:SetText(L["Save"])
     fr.amount:SetFocus()
     o.refresh()
   end
@@ -445,7 +446,7 @@ local function buildList(o)
   -- "12–25 of 40" when the list scrolls
   function fr.range()
     if #fr.list <= ROWS then return "" end
-    return ("  |cff999999%d–%d of %d, scroll for more|r"):format(fr.offset + 1, math.min(#fr.list, fr.offset + ROWS), #fr.list)
+    return ("  |cff999999" .. L["%d–%d of %d, scroll for more"] .. "|r"):format(fr.offset + 1, math.min(#fr.list, fr.offset + ROWS), #fr.list)
   end
 
   fr.total = fr:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
@@ -481,21 +482,21 @@ local function buildShop()
     amountOf = function(id) local n = shoppingUnits(id); return n and tostring(n) end,
     save = function(id, text)
       local n = M.ParseCount(text)
-      if not n then ns.Print("how many? Type a number from 1 to 9999."); return false end
+      if not n then ns.Print(L["how many? Type a number from 1 to 9999."]); return false end
       ns.SetShoppingUnits(id, n)
-      ns.Print(("shopping list: %d %s."):format(n, itemName(id)))
+      ns.Print(L["shopping list: %d %s."]:format(n, itemName(id)))
       return true
     end,
     remove = function(id)
-      if not shoppingUnits(id) then ns.Print(itemName(id) .. " isn't on your shopping list."); return end
+      if not shoppingUnits(id) then ns.Print(L["%s isn't on your shopping list."]:format(itemName(id))); return end
       ns.SetShoppingUnits(id, nil)
-      ns.Print(itemName(id) .. " is off your shopping list.")
+      ns.Print(L["%s is off your shopping list."]:format(itemName(id)))
       if shop.editing == id then shop.reset() end
     end,
     clear = function()
       ns.db.shopping = {}
       ns.RefreshShopping()
-      ns.Print("shopping list cleared.")
+      ns.Print(L["shopping list cleared."])
     end,
   })
 end
@@ -503,7 +504,7 @@ end
 -- Adds a recipe's materials × times. mats: { {id, units}, … } for one craft. Opens the window.
 function ns.AddToShopping(mats, times, what)
   M.AddMaterials(ns.db.shopping, mats, times)
-  ns.Print(("added the materials for %d× %s to your shopping list."):format(times, what or "that recipe"))
+  ns.Print(L["added the materials for %d× %s to your shopping list."]:format(times, what or L["that recipe"]))
   ns.ShowShopping(true)
   ns.RefreshShopping()
 end
@@ -511,7 +512,7 @@ end
 -- Adds units of one item (the prices window's "Add to list"). Opens the window.
 function ns.AddItemToShopping(id, units)
   M.AddMaterials(ns.db.shopping, { { id, units } }, 1)
-  ns.Print(("shopping list: %d× %s (%d in all)."):format(units, itemName(id), shoppingUnits(id) or units))
+  ns.Print(L["shopping list: %d× %s (%d in all)."]:format(units, itemName(id), shoppingUnits(id) or units))
   ns.ShowShopping(true)
   ns.RefreshShopping()
 end
@@ -543,16 +544,16 @@ function ns.RefreshShopping()
     local done = e.missing == 0
     e.dim = done
     e.count = (done and "|cff33dd55" or "") .. math.min(e.have, e.need) .. "/" .. e.need .. (done and "|r" or "")
-    e.cost = done and "|cff33dd55done|r" or (e.cost and M.ShortMoney(e.cost, true) or "|cff777777?|r")
+    e.cost = done and ("|cff33dd55" .. L["done"] .. "|r") or (e.cost and M.ShortMoney(e.cost, true) or "|cff777777?|r")
   end
   shop.fill(list)
   local more = shop.range()
   if #list == 0 then
-    shop.total:SetText("|cff999999Empty. Add items below, or press \"Add to shopping list\" in a profession window.|r")
+    shop.total:SetText("|cff999999" .. L["Empty. Add items below, or use the bag button beside Create All in a profession window."] .. "|r")
   elseif open == 0 then
-    shop.total:SetText("|cff33dd55You have everything.|r" .. more)
+    shop.total:SetText("|cff33dd55" .. L["You have everything."] .. "|r" .. more)
   else
-    shop.total:SetText(("To buy: %s%s%s"):format(unpriced and "~" or "", M.ShortMoney(total, true), more))
+    shop.total:SetText(L["To buy: %s"]:format((unpriced and "~" or "") .. M.ShortMoney(total, true)) .. more)
   end
 end
 
@@ -570,7 +571,7 @@ function ns.ListCommand(rest)
   if rest:lower() == "clear" then
     ns.db.shopping = {}
     ns.RefreshShopping()
-    ns.Print("shopping list cleared.")
+    ns.Print(L["shopping list cleared."])
     return
   end
   ns.ShowShopping(not (shop and shop:IsShown()))
@@ -629,10 +630,10 @@ function ns.RefreshWatch()
   local n, hits = ns.WatchSummary()
   local more = watchWin.range()
   if n == 0 then
-    watchWin.total:SetText("|cff999999Empty. Add items below, Alt-click an item in your bags, or use the prices window.|r")
+    watchWin.total:SetText("|cff999999" .. L["Empty. Add items below, Alt-click an item in your bags, or use the prices window."] .. "|r")
   else
-    watchWin.total:SetText(("%s  |cff999999prices %s|r%s"):format(
-      hits > 0 and ("|cff33dd55" .. hits .. " at target|r") or "none at target", M.Age(ns.DataAge()), more))
+    watchWin.total:SetText(("%s  |cff999999%s|r%s"):format(
+      hits > 0 and ("|cff33dd55" .. L["%d at target"]:format(hits) .. "|r") or L["none at target"], L["prices %s"]:format(M.Age(ns.DataAge())), more))
   end
 end
 
@@ -653,23 +654,23 @@ function ns.ShowWatch(on)
       local target = 0
       if text:match("%S") then
         target = M.ParseMoney(text)
-        if not target then ns.Print("that price isn't clear: write it like 2g50s, 75s or 30c (or leave it empty)."); return false end
+        if not target then ns.Print(L["that price isn't clear: write it like 2g50s, 75s or 30c (or leave it empty)."]); return false end
       end
       ns.db.watch[id] = target
-      ns.Print("watching " .. watchLine(id, target))
+      ns.Print(L["watching %s"]:format(watchLine(id, target)))
       ns.RefreshWatch()
       return true
     end,
     remove = function(id)
-      if not ns.db.watch[id] then ns.Print(itemName(id) .. " isn't on your watchlist."); return end
+      if not ns.db.watch[id] then ns.Print(L["%s isn't on your watchlist."]:format(itemName(id))); return end
       ns.db.watch[id] = nil
-      ns.Print(itemName(id) .. " is off your watchlist.")
+      ns.Print(L["%s is off your watchlist."]:format(itemName(id)))
       if watchWin.editing == id then watchWin.reset() end
       ns.RefreshWatch()
     end,
     clear = function()
       ns.db.watch = {}
-      ns.Print("watchlist cleared.")
+      ns.Print(L["watchlist cleared."])
       ns.RefreshWatch()
     end,
   })
@@ -706,13 +707,13 @@ function ns.OnAuctionOpen()
   end
   table.sort(hits, function(a, b) return a.name < b.name end)
   if #hits == 0 then return end
-  local age = " (prices from " .. M.Age(ns.DataAge()) .. ")"
+  local age = " (" .. L["prices from %s"]:format(M.Age(ns.DataAge())) .. ")"
   if #hits <= 2 then
-    for _, h in ipairs(hits) do ns.Print(h.name .. " is at your target (" .. money(h.min) .. ")" .. age) end
+    for _, h in ipairs(hits) do ns.Print(L["%s is at your target (%s)"]:format(h.name, money(h.min)) .. age) end
   else
     local names = {}
     for i = 1, #hits - 1 do names[i] = hits[i].name end
-    ns.Print(#hits .. " items reached your target: " .. table.concat(names, ", ") .. " and " .. hits[#hits].name .. age)
+    ns.Print(L["%d items reached your target: %s and %s"]:format(#hits, table.concat(names, ", "), hits[#hits].name) .. age)
   end
 end
 
@@ -736,11 +737,11 @@ local function altClick(link)
   local id = ns.ItemID(link)
   if not id then return end
   if ns.db.watch[id] then
-    ns.Print(itemName(id) .. " is already on your watchlist (|cffffffff/fa watch|r to set its target).")
+    ns.Print(L["%s is already on your watchlist (|cffffffff/fa watch|r to set its target)."]:format(itemName(id)))
     return
   end
   ns.db.watch[id] = 0
-  ns.Print(itemName(id) .. " added to your watchlist. Set a target price in |cffffffff/fa watch|r.")
+  ns.Print(L["%s added to your watchlist. Set a target price in |cffffffff/fa watch|r."]:format(itemName(id)))
   ns.RefreshWatch()
 end
 if type(HandleModifiedItemClick) == "function" then hooksecurefunc("HandleModifiedItemClick", function(link) ns.Safe("alt-click", altClick, link) end) end

@@ -1,6 +1,10 @@
 ## Interface: 16001
 ## Title: Forever Anvil
-## Notes: Auction prices from foreveranvil.com in your tooltips, auction house and profession window, plus upgrades, a leveling helper, crate values and your watchlist and shopping list. Data provided by Blizzard Entertainment.
+## Notes: Auction prices from foreveranvil.com in your tooltips, auction house and profession window, plus upgrades, a leveling helper, bag value, crate values and your watchlist and shopping list. Data provided by Blizzard Entertainment.
+## Notes-deDE: Auktionspreise von foreveranvil.com in Tooltips, im Auktionshaus und im Berufsfenster, dazu Upgrades, Leveling-Hilfe, Taschenwert, Merkliste und Einkaufsliste. Daten von Blizzard Entertainment.
+## Notes-frFR: Prix aux enchères de foreveranvil.com dans les infobulles, l'hôtel des ventes et la fenêtre de métier, avec améliorations, aide à la montée, valeur des sacs, liste de suivi et liste de courses. Données fournies par Blizzard Entertainment.
+## Notes-esES: Precios de subasta de foreveranvil.com en las descripciones, la casa de subastas y la ventana de profesión, con mejoras, ayuda para subir, valor de las bolsas, lista de seguimiento y lista de la compra. Datos de Blizzard Entertainment.
+## Notes-esMX: Precios de subasta de foreveranvil.com en las descripciones, la casa de subastas y la ventana de profesión, con mejoras, ayuda para subir, valor de las bolsas, lista de seguimiento y lista de la compra. Datos de Blizzard Entertainment.
 ## Author: Forever Anvil
 ## Version: @project-version@
 ## SavedVariables: ForeverAnvilDB
@@ -10,11 +14,14 @@
 ## X-Wago-ID: 96EX0jNg
 
 Math.lua
+Locale.lua
+Locales.lua
 Core.lua
 Tooltip.lua
 Auction.lua
 Profession.lua
 Lists.lua
 Prices.lua
+Bags.lua
 Minimap.lua
 Options.lua

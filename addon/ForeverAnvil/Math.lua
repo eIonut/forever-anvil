@@ -409,7 +409,9 @@ end
 
 -- items: one house's decoded prices; names: M.DecodeItems' table; nameOf(id): a name for items the data lacks
 -- (the game's, when it has loaded the item). o: { term = lower-case search text, cat = category letter or "",
--- sort = a M.SORT_FIRST_DIR key, dir = 1 | -1 }. Returns rows { id, p (the prices), name, lower, info }, sorted.
+-- sort = a M.SORT_FIRST_DIR key, dir = 1 | -1, gameFirst = true to show the game's name when it has one (a
+-- client in another language: the shipped names are English, and the search matches either) }.
+-- Returns rows { id, p (the prices), name, lower, info }, sorted.
 function M.PriceRows(items, names, o, nameOf)
   o = o or {}
   local term, cat = o.term or "", o.cat or ""
@@ -417,10 +419,14 @@ function M.PriceRows(items, names, o, nameOf)
   local out = {}
   for id, p in pairs(items or {}) do
     local info = names and names[id]
-    local name = (info and info[1]) or (nameOf and nameOf(id)) or nil
+    local english = info and info[1]
+    local name = (o.gameFirst and nameOf and nameOf(id)) or english or (nameOf and nameOf(id)) or nil
     local lower = name and name:lower()
     local ok = cat == "" or (info and info[3] or "o") == cat
-    if ok and term ~= "" then ok = (lower and lower:find(term, 1, true) ~= nil) or tostring(id) == term end
+    if ok and term ~= "" then
+      ok = (lower and lower:find(term, 1, true) ~= nil) or tostring(id) == term
+        or (english ~= nil and english ~= name and english:lower():find(term, 1, true) ~= nil)
+    end
     if ok then out[#out + 1] = { id = id, p = p, name = name, lower = lower, info = info } end
   end
   local function byName(a, b)
@@ -451,12 +457,27 @@ function M.PriceRows(items, names, o, nameOf)
 end
 
 ---------------------------------------------------------------------------------------------------
+-- Bag value: the best way to turn an item into gold.
+-- market: its auction house market price (nil when not listed, or when it's soulbound and can't be sold
+-- there); de: disenchanting one, after the auction cut (nil when it can't be); vendor: what a vendor pays for one.
+-- Returns "ah" | "de" | "vendor" and the gold per item (the auction house after its 5% cut), or nil.
+function M.BestUse(market, de, vendor)
+  local kind, best
+  local ah = market and market > 0 and floor(market * (1 - M.AH_CUT) + 0.5) or nil
+  for _, o in ipairs({ { "ah", ah }, { "de", de }, { "vendor", vendor } }) do
+    if o[2] and o[2] > 0 and (not best or o[2] > best) then kind, best = o[1], o[2] end
+  end
+  return kind, best
+end
+
+---------------------------------------------------------------------------------------------------
 -- "3h ago" style age
+M.AGE = { m = "%dm ago", h = "%dh ago", d = "%dd ago" } -- Locale.lua translates these
 function M.Age(seconds)
   if not seconds or seconds < 0 then return "?" end
-  if seconds < 3600 then return floor(seconds / 60) .. "m ago" end
-  if seconds < 86400 * 2 then return floor(seconds / 3600) .. "h ago" end
-  return floor(seconds / 86400) .. "d ago"
+  if seconds < 3600 then return M.AGE.m:format(floor(seconds / 60)) end
+  if seconds < 86400 * 2 then return M.AGE.h:format(floor(seconds / 3600)) end
+  return M.AGE.d:format(floor(seconds / 86400))
 end
 
 -- Compact money with at most two units, e.g. "12g 5s" (gold/silver/copper coloured unless plain),
