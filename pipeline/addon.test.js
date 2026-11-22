@@ -220,7 +220,7 @@ test("smoke: modern profession and auction windows show profits and flips", () =
   const out = runLua(`
     local texts = {}
     local function region()
-      local r = {}
+      local r = setmetatable({}, { __index = function(_, k) if k:match("^%u") then return function() end end end })
       function r:SetPoint(_, rel) self.anchor = rel end
       function r:ClearAllPoints() self.anchor = nil end
       function r:SetJustifyH() end
@@ -698,12 +698,13 @@ test("smoke: profession window marks the cheapest skill-up", () => {
   const src = (f) => fs.readFileSync(path.join(ADDON, f), "utf8");
   const out = runLua(`
     local texts = {}
-    local function region() local r = {}; function r:SetPoint() end; function r:SetJustifyH() end; function r:SetText(s) self.text = s end; return r end
+    local function region() local r = setmetatable({}, { __index = function(_, k) if k:match("^%u") then return function() end end end }); function r:SetPoint() end; function r:SetJustifyH() end; function r:SetText(s) self.text = s end; return r end
     local function frame()
       local fr = setmetatable({}, { __index = function(_, k) if k:match("^%u") then return function() end end end })
       function fr:RegisterEvent() end
       function fr:SetScript(k, fn) self[k] = fn end
       function fr:CreateFontString() local fs = region(); self.fs = fs; return fs end
+      function fr:CreateTexture() return region() end
       return fr
     end
     CreateFrame = function() return frame() end
@@ -943,6 +944,8 @@ test("smoke: watchlist and shopping list managed in game", () => {
         if k:match("^%u") and k ~= "TitleText" and not k:match("^On") then return noop end
       end })
       function fr:SetScript(k, fn) rawset(self, k, fn) end
+      function fr:SetPoint(...) self.point = { ... } end
+      function fr:SetNormalTexture(t) self.normal = t end
       function fr:GetFrameLevel() return 1 end
       function fr:CreateFontString() return region() end
       function fr:CreateTexture() return region() end
@@ -993,7 +996,9 @@ test("smoke: watchlist and shopping list managed in game", () => {
     }
     ScrollUtil = { AddInitializedFrameCallback = function() end }
     local craftAll = frame()
-    ProfessionsFrame = { CraftingPage = { RecipeList = { ScrollBox = {} }, SchematicForm = frame(), CreateAllButton = craftAll } }
+    local qty = 0 -- the window's own quantity box, beside Create
+    ProfessionsFrame = { CraftingPage = { RecipeList = { ScrollBox = {} }, SchematicForm = frame(), CreateAllButton = craftAll,
+      CreateMultipleInputBox = { GetValue = function() return qty end } } }
     ProfessionsFrame.CraftingPage.SchematicForm.Init = function() end
     ForeverAnvilData = { EU = { region = "eu", updated = os.time() - 60,
       rulesets = { { name = "PvP", group = "A", likely = false, alliance = 110, horde = 113, neutral = 116 } },
@@ -1069,18 +1074,20 @@ test("smoke: watchlist and shopping list managed in game", () => {
     W.clearButton:Click()
     out[#out + 1] = "clear twice: " .. watchState()
 
-    -- profession window: pick a recipe, 3 crafts, Add to shopping list
+    -- profession window: pick a recipe, 3 in the quantity box, the bag button adds the reagents
     ns.frame.OnEvent(ns.frame, "TRADE_SKILL_SHOW")
-    local add, count
-    for i, f in ipairs(frames) do if f.value == "Add to shopping list" then add, count = f, frames[i + 1] end end
-    out[#out + 1] = "button beside craft all: " .. tostring(add ~= nil and add.parent == ProfessionsFrame.CraftingPage)
+    local add
+    for _, f in ipairs(frames) do if f.normal == "Interface\\\\Icons\\\\INV_Misc_Bag_10" then add = f end end
+    out[#out + 1] = "button right of craft all: " .. tostring(add ~= nil and add.parent == ProfessionsFrame.CraftingPage and add.point[1] == "LEFT" and add.point[2] == craftAll and add.point[3] == "RIGHT")
     add:Click()
     out[#out + 1] = "no recipe: " .. last()
     ProfessionsFrame.CraftingPage.SchematicForm:Init({ recipeID = 2963 })
-    count:SetText("3")
+    qty = 3
     add:Click()
-    out[#out + 1] = "added: " .. last() .. " " .. shopState() .. ", box back to " .. count:GetText()
+    out[#out + 1] = "added: " .. last() .. " " .. shopState()
+    qty = 0 -- an empty box still adds one craft
     add:Click()
+    out[#out + 1] = "box at 0: " .. last()
     local S = ForeverAnvilShopping
     out[#out + 1] = "again: " .. shopState() .. ", window " .. tostring(S.shown) .. ": " .. S.rows[1].name.text .. " " .. S.rows[1].count.text
     -- the shopping list's own editor
@@ -1110,9 +1117,10 @@ test("smoke: watchlist and shopping list managed in game", () => {
     "alt-click: Fine Thread added to your watchlist. Set a target price in |cffffffff/fa watch|r. / Fine Thread is already on your watchlist (|cffffffff/fa watch|r to set its target). {2321=0,2589=9000}",
     "clear once: |cffff5555Sure?|r {2321=0,2589=9000}",
     "clear twice: {}",
-    "button beside craft all: true",
+    "button right of craft all: true",
     "no recipe: pick a recipe with reagents first.",
-    "added: added the materials for 3× Bolt of Linen Cloth to your shopping list. {2589=6}, box back to 1",
+    "added: added the materials for 3× Bolt of Linen Cloth to your shopping list. {2589=6}",
+    "box at 0: added the materials for 1× Bolt of Linen Cloth to your shopping list.",
     "again: {2589=8}, window true: |cffffffffLinen Cloth|r 4/8",
     "zero: how many? Type a number from 1 to 9999.",
     "thread: {2589=8,2321=5}",

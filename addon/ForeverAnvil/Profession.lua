@@ -82,39 +82,63 @@ function ns.SchematicReagents(recipeID)
   return reagents, s
 end
 
--- "Add to shopping list" with a box for how many crafts, beside the window's craft buttons.
--- current() → materials of one craft ({ {itemID, count}, … }) and the recipe's name, or nil
-local function shoppingButton(parent, anchor, current)
-  local add = CreateFrame("Button", nil, parent, "UIPanelButtonTemplate")
-  add:SetSize(140, 22)
-  if anchor then add:SetPoint("RIGHT", anchor, "LEFT", -10, 0) else add:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 60, 8) end
-  add:SetText("Add to shopping list")
-  local count = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
-  count:SetSize(34, 20)
-  count:SetPoint("RIGHT", add, "LEFT", -6, 0)
-  count:SetAutoFocus(false)
-  count:SetNumeric(true)
-  count:SetMaxLetters(4)
-  count:SetText("1")
-  count:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
-  count:SetScript("OnEnterPressed", function(self) self:ClearFocus(); add:Click() end)
+-- "Add to shopping list": a small bag button beside the window's Create All button. It adds the reagents for
+-- the number of crafts in the window's own quantity box (at least one). A wide text button with a box of its
+-- own didn't fit: in game it ran over the recipe list, which hid its frame. In the modern window it sits in the
+-- gap right of Create All (left of it is the recipe list's scroll bar); in the classic one, left of it.
+-- current() → materials of one craft ({ {itemID, count}, … }) and the recipe's name, or nil;
+-- countBox: the window's quantity box (modern GetValue, classic GetNumber), or nil
+local function crafts(countBox)
+  if not countBox then return 1 end
+  local n
+  for _, method in ipairs({ "GetValue", "GetNumber" }) do
+    if not n and type(countBox[method]) == "function" then
+      local ok, v = pcall(countBox[method], countBox)
+      if ok then n = tonumber(v) end
+    end
+  end
+  if not n and type(countBox.GetText) == "function" then n = tonumber(countBox:GetText()) end
+  n = n and math.floor(n) or 1
+  if n < 1 then return 1 end
+  return math.min(n, 9999)
+end
+
+local function shoppingButton(parent, anchor, current, countBox, right)
+  local add = CreateFrame("Button", nil, parent)
+  add:SetSize(24, 24)
+  if anchor then
+    if right then add:SetPoint("LEFT", anchor, "RIGHT", 10, 0) else add:SetPoint("RIGHT", anchor, "LEFT", -6, 0) end
+    add:SetFrameLevel(anchor:GetFrameLevel() + 2)
+  else
+    add:SetPoint("BOTTOMLEFT", parent, "BOTTOMLEFT", 60, 8)
+  end
+  add:SetNormalTexture("Interface\\Icons\\INV_Misc_Bag_10")
+  local icon = add:GetNormalTexture()
+  if icon then icon:SetTexCoord(0.07, 0.93, 0.07, 0.93) end
+  add:SetPushedTexture("Interface\\Icons\\INV_Misc_Bag_10")
+  local pushed = add:GetPushedTexture()
+  if pushed then pushed:SetTexCoord(0.1, 0.9, 0.1, 0.9) end
+  add:SetHighlightTexture("Interface\\Buttons\\ButtonHilight-Square", "ADD")
+  local border = add:CreateTexture(nil, "OVERLAY")
+  border:SetTexture("Interface\\Buttons\\UI-Quickslot2")
+  border:SetPoint("TOPLEFT", -9, 9)
+  border:SetPoint("BOTTOMRIGHT", 9, -9)
   add:SetScript("OnClick", function()
     ns.Safe("shopping", function()
       local mats, name = current()
       if not (mats and #mats > 0) then ns.Print("pick a recipe with reagents first."); return end
-      ns.AddToShopping(mats, M.ParseCount(count:GetText()) or 1, name)
-      count:SetText("1")
-      count:ClearFocus()
+      ns.AddToShopping(mats, crafts(countBox), name)
     end)
   end)
   add:SetScript("OnEnter", function(self)
     GameTooltip:SetOwner(self, "ANCHOR_TOP")
-    GameTooltip:AddLine("Forever Anvil")
-    GameTooltip:AddLine("Adds this recipe's reagents, times the number in the box, to your shopping list. It ticks them off as they reach your bags.", 1, 1, 1, true)
+    GameTooltip:AddLine("Add to shopping list")
+    local n = crafts(countBox)
+    GameTooltip:AddLine(("Adds this recipe's reagents for %d craft%s (the number in the box beside Create) to your Forever Anvil shopping list. It ticks them off as they reach your bags."):format(n, n == 1 and "" or "s"), 1, 1, 1, true)
     GameTooltip:Show()
   end)
   add:SetScript("OnLeave", function() GameTooltip:Hide() end)
-  return add, count
+  return add
 end
 
 -- cost, complete, profit for a recipe ID; profit false when it makes no item, nil when unpriced
@@ -200,7 +224,7 @@ local function initModern()
       if not selected then return nil end
       local info = C_TradeSkillUI.GetRecipeInfo and C_TradeSkillUI.GetRecipeInfo(selected)
       return ns.SchematicReagents(selected), info and info.name
-    end)
+    end, page.CreateMultipleInputBox, true)
     hooksecurefunc(form, "Init", function(_, recipeInfo)
       selected = recipeInfo and recipeInfo.recipeID
       ns.Safe("profession", function()
@@ -322,7 +346,7 @@ function ns.InitProfession()
         local index = GetTradeSkillSelectionIndex()
         if not index or index == 0 then return nil end
         return classicReagents(index), (GetTradeSkillInfo(index))
-      end)
+      end, TradeSkillInputBox)
     end
   elseif TradeSkillFrame then
     ns.professionUI = "classic, unsupported"
