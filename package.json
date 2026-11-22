@@ -7,8 +7,9 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check && svelte-check --threshold warning",
-    "test": "node --test pipeline/aggregate.test.js pipeline/talentmath.test.js pipeline/econmath.test.js pipeline/sales.test.js pipeline/cratemath.test.js pipeline/levelmath.test.js pipeline/upgrades.test.js pipeline/watchmath.test.js pipeline/homesummary.test.js pipeline/demath.test.js worker/hourly.test.js",
-    "prices": "node pipeline/run.js"
+    "test": "node --test pipeline/aggregate.test.js pipeline/talentmath.test.js pipeline/econmath.test.js pipeline/sales.test.js pipeline/cratemath.test.js pipeline/levelmath.test.js pipeline/upgrades.test.js pipeline/watchmath.test.js pipeline/homesummary.test.js pipeline/demath.test.js pipeline/addon.test.js worker/hourly.test.js",
+    "prices": "node pipeline/run.js",
+    "addon": "node pipeline/addon-data.js"
   },
   "dependencies": {
     "@astrojs/sitemap": "3.7.6",
@@ -21,6 +22,7 @@
   },
   "devDependencies": {
     "@astrojs/check": "0.9.12",
+    "fengari": "0.1.5",
     "svelte-check": "4.7.8",
     "typescript": "6.0.3",
     "wrangler": "4.165.0"

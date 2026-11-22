@@ -1,0 +1,14 @@
+## Interface: 16001
+## Title: Forever Anvil
+## Notes: Auction prices from foreveranvil.com in your tooltips, auction house and profession window. Data provided by Blizzard Entertainment.
+## Author: Forever Anvil
+## Version: @project-version@
+## SavedVariables: ForeverAnvilDB
+## X-Website: https://foreveranvil.com
+
+Math.lua
+Core.lua
+Tooltip.lua
+Auction.lua
+Profession.lua
+Options.lua
