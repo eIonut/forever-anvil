@@ -4,6 +4,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import PageHero from "../components/PageHero.astro";
 import config from "../config.js";
+import Icon from "../components/Icon.astro";
 
 const links = [
   config.addonUrls?.curseforge && { href: config.addonUrls.curseforge, label: "CurseForge", note: "the most used addon app and site" },
@@ -18,7 +19,7 @@ const links = [
   <PageHero icon="prices" eyebrow="In-game addon" title="Forever Anvil in your game" facts={[{ icon: "clock", text: "Fresh prices several times a day" }, { icon: "check", text: "Free, no account" }, { icon: "globe", text: "Europe" }]}>
     The same auction prices as this site, right where you need them: on every item tooltip, in the auction house and in your profession window.
     <div class="hero-actions" slot="actions">
-      {links.map((l, i) => <a class:list={["btn", { "btn-ghost": i > 0 }]} href={l.href} target="_blank" rel="noopener">Download on {l.label}</a>)}
+      {links.map((l, i) => <a class:list={["btn", { "btn-ghost": i > 0 }]} href={l.href} target="_blank" rel="noopener"><Icon name="download" size={20} />Download on {l.label}</a>)}
     </div>
   </PageHero>
 
@@ -52,7 +53,7 @@ const links = [
         <ul class="addon-dl">
           {links.map((l) => (
             <li>
-              <a class="btn" href={l.href} target="_blank" rel="noopener">Download on {l.label}</a>
+              <a class="btn" href={l.href} target="_blank" rel="noopener"><Icon name="download" size={20} />Download on {l.label}</a>
               <span class="faint">{l.note}</span>
             </li>
           ))}

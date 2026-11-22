@@ -58,7 +58,7 @@ const isActive = (n: NavLink) => !!n.pages?.includes(page);
         <span class="nav-toggle-text">Menu</span>
       </button>
       {(config.addonUrls?.wago || config.addonUrls?.curseforge) && (
-        <a class="btn btn-ghost btn-sm header-addon" href="/addon" title="Get the in-game addon" aria-current={page === "addon" ? "page" : undefined}><img src="/img/logo.svg" alt="" width="18" height="18" />Addon</a>
+        <a class="btn btn-ghost btn-sm header-addon" href="/addon" title="Get the in-game addon" aria-current={page === "addon" ? "page" : undefined}><Icon name="download" size={16} />Addon</a>
       )}
       <DonateButton class="btn-sm" />
     </div>

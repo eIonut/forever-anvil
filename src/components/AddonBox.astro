@@ -3,6 +3,7 @@
 // variant: "panel" (About page, the full description), "note" (one paragraph on tool pages) or
 // "hero" (one line with download buttons, in the home page hero). Shows nothing when no link is set.
 import config from "../config.js";
+import Icon from "./Icon.astro";
 
 interface Props {
   variant?: "panel" | "note" | "hero";
@@ -25,7 +26,7 @@ const links = [
   <div class="addon-hero">
     <img src="/img/logo.svg" alt="" width="36" height="36" />
     <p><b>Now in your game too.</b> The free Forever Anvil addon puts these prices on every item tooltip, tags flips in the auction house and shows craft profits.</p>
-    <a class="btn btn-ghost btn-sm" href="/addon">Get the addon</a>
+    <a class="btn btn-ghost btn-sm" href="/addon"><Icon name="download" size={16} />Get the addon</a>
   </div>
 )}
 {links.length > 0 && variant === "panel" && (
@@ -39,7 +40,7 @@ const links = [
     </ul>
     <p class="faint">New versions with fresh prices come out several times a day, so keep it updated. It only shows numbers: every buy, sale and craft is still your own click. <a href="/addon">More about the addon</a></p>
     <p class="addon-links">
-      {links.map((l) => <a class="btn btn-sm" href={l.href} target="_blank" rel="noopener">Download on {l.label}</a>)}
+      {links.map((l) => <a class="btn btn-sm" href={l.href} target="_blank" rel="noopener"><Icon name="download" size={16} />Download on {l.label}</a>)}
     </p>
   </div>
 )}

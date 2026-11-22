@@ -11,7 +11,13 @@ import Icon from "./Icon.astro";
       <div>
         <p class="footer-brand"><img src="/img/logo.svg" alt="" width="30" height="30" />{config.siteName}</p>
         <p>Free, unofficial tools for WoW: Forever: live auction prices, crafting profits, talent builds and character lookups. Prices refresh about every hour from Blizzard's official API.</p>
-        <DonateButton class="btn-sm" />
+        <p>Prices in game too: the free <a href="/addon">Forever Anvil addon</a> puts them on your tooltips, in the auction house and in your profession window.</p>
+        <div class="footer-actions">
+          <DonateButton class="btn-sm" />
+          {(config.addonUrls?.wago || config.addonUrls?.curseforge) && (
+            <a class="btn btn-ghost btn-sm footer-addon" href="/addon"><Icon name="download" size={16} />Get the addon</a>
+          )}
+        </div>
       </div>
       <nav aria-labelledby="footer-tools">
         <h2 class="footer-head" id="footer-tools">Tools</h2>

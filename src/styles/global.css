@@ -499,6 +499,9 @@ footer.site .footer-brand { display: flex; align-items: center; gap: 10px; margi
 footer.site p { color: var(--ink-dim); }
 footer.site a { color: var(--ink-dim); }
 footer.site a:hover { color: #fff; }
+footer.site .footer-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+footer.site .footer-addon { gap: 6px; color: var(--gold-2); }
+footer.site .footer-addon:hover { color: #fff; }
 footer.site ul { list-style: none; margin: 0; padding: 0; }
 footer.site li { margin: 0; }
 footer.site li a { display: inline-block; padding: 4px 0; }
