@@ -1,0 +1,60 @@
+# Publishes the in-game addon (addon/) to CurseForge and Wago with fresh prices:
+#   4 times a day   a new release with the latest prices from foreveranvil.com (after that hour's price job)
+#   by hand         Actions → "Addon release" → Run workflow (e.g. after changing the addon's code)
+#
+# Each run: tests, price data from the live site (pipeline/addon-data.js --live), a staged copy tagged with the
+# version (tools/addon-release.sh), then the BigWigs packager zips it and uploads it as a release.
+# Secrets (Settings → Secrets and variables → Actions): CF_API_KEY (CurseForge), WAGO_API_TOKEN (Wago).
+# Without one of them that site is skipped; the zip is still kept as a download on the run's page.
+# Project ids are in addon/ForeverAnvil/ForeverAnvil.toc (X-Curse-Project-ID, X-Wago-ID).
+name: Addon release
+
+on:
+  schedule:
+    - cron: "40 5,11,17,23 * * *" # 4 times a day, 23 minutes after the hourly price job's start
+  workflow_dispatch:
+
+concurrency:
+  group: addon
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Addon tests
+        run: node --test pipeline/addon.test.js pipeline/demath.test.js
+
+      - name: Price data from foreveranvil.com
+        run: node pipeline/addon-data.js --live
+
+      - name: Stage the release
+        run: bash tools/addon-release.sh
+
+      - name: Package and upload
+        uses: BigWigsMods/packager@01e8631a69c69d7654c788d152630d5fed9e3812 # v2
+        with:
+          args: -t build/addon-src
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+
+      - name: Keep the zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: forever-anvil
+          path: build/addon-src/.release/*.zip
+          retention-days: 7

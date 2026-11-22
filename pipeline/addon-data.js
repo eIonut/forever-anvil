@@ -125,6 +125,7 @@ function toc(R) {
     `## Title: Forever Anvil Data (${R})`,
     `## Notes: Auction prices for the ${R} region, used by Forever Anvil. Data provided by Blizzard Entertainment.`,
     "## Author: Forever Anvil",
+    "## Version: @project-version@",
     "## Dependencies: ForeverAnvil",
     "## LoadOnDemand: 1",
     "## X-Website: https://foreveranvil.com",

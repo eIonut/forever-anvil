@@ -5,6 +5,8 @@
 ## Version: @project-version@
 ## SavedVariables: ForeverAnvilDB
 ## X-Website: https://foreveranvil.com
+## X-Curse-Project-ID: 1823345
+## X-Wago-ID: 96EX0jNg
 
 Math.lua
 Core.lua
