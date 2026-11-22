@@ -146,6 +146,11 @@ local function buildMenu()
     ns.ShowBags(true)
   end)
   y = y - 22
+  fr.upgrades = actionRow(fr, y, "Interface\\Icons\\INV_Helmet_03", "Upgrades for you", function()
+    fr:Hide()
+    ns.ShowUpgrades(true)
+  end)
+  y = y - 22
   fr.shopping = actionRow(fr, y, "Interface\\Icons\\INV_Misc_Bag_10", "Shopping list", function()
     ns.ShowShopping(not ns.ShoppingShown())
     fr.refresh()
@@ -210,6 +215,12 @@ local function buildMenu()
       fr.watch.value:SetText("|cff999999" .. L["empty"] .. "|r")
     else
       fr.watch.value:SetText((w == 1 and L["1 item"] or L["%d items"]:format(w)) .. (hits > 0 and ("  |cff33dd55" .. L["%d at target"]:format(hits) .. "|r") or ""))
+    end
+    local up = ns.UpgradeCount and ns.UpgradeCount()
+    if up and up > 0 then
+      fr.upgrades.value:SetText("|cff33dd55" .. (up == 1 and L["1 slot"] or L["%d slots"]:format(up)) .. "|r")
+    elseif up then
+      fr.upgrades.value:SetText("|cff999999" .. L["none in budget"] .. "|r")
     end
     local worth = ns.BagWorth and ns.BagWorth()
     if worth and worth > 0 then

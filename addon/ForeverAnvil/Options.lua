@@ -119,15 +119,16 @@ local function build()
     { "Watchlist", function() ns.ShowWatch(true) end },
     { "Shopping list", function() ns.ShowShopping(true) end },
     { "Bag value", function() ns.ShowBags(true) end },
+    { "Upgrades", function() ns.ShowUpgrades(true) end },
     { "Import", function() ns.ShowImport() end },
   }) do
     local b = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
-    b:SetSize(112, 22)
+    b:SetSize(96, 22)
     b:SetPoint("TOPLEFT", x, y - 24)
     b:SetText(L[s[1]])
     b:SetScript("OnClick", function() closeSettings(); ns.Safe("options", s[2]) end)
     panel.open[#panel.open + 1] = b
-    x = x + 118
+    x = x + 100
   end
 
   y = y - 60

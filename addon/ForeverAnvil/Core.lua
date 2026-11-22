@@ -17,6 +17,10 @@ ns.DEFAULTS = {
   shoppingPos = nil,
   pricesPos = nil, -- where the prices window was left
   bagsPos = nil,
+  upgradesPos = nil,
+  upgradeBudget = 200000, -- the upgrade finder's price limit in copper (0: any price)
+  upgradeSpec = {},       -- [class] = the talent tree to gear for (1-3), when not the one your talents point to
+  upgradeShowAll = false, -- the upgrade finder also lists gear made for other specs
   v = 2,
 }
 
@@ -110,6 +114,7 @@ function ns.LoadData()
   ns.skill = nil
   ns.crates = nil
   ns.itemNames = nil
+  ns.gearData = nil
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -246,6 +251,16 @@ function ns.ItemMeta(id)
     elseif GetItemIcon then icon = GetItemIcon(id) end
   end
   return name or (e and e[1]), quality or (e and e[2]), icon or 134400 -- INV_Misc_QuestionMark
+end
+
+-- An item on sale as gear for the upgrade finder: { id, cls, sub, inv, ilvl, req, quality }, or nil
+function ns.GearOnSale(id)
+  ns.gearData = ns.gearData or M.DecodeGear(ns.data and ns.data.gear)
+  local g = ns.gearData[id]
+  local e = g and ns.ItemNames()[id]
+  local cls = e and ((e[3] == "w" and "Weapon") or (e[3] == "a" and "Armor"))
+  if not cls then return nil end
+  return { id = id, cls = cls, sub = g[1], inv = g[2], ilvl = g[3], req = e[4], quality = e[2] }
 end
 
 local QUALITY_HEX = { [0] = "9d9d9d", "ffffff", "1eff00", "0070dd", "a335ee", "ff8000", "e6cc80" }
@@ -499,6 +514,8 @@ SlashCmdList.FOREVERANVIL = function(msg)
     ns.ListCommand(rest)
   elseif (cmd == "bags" or cmd == "bag") and ns.ShowBags then
     ns.ShowBags()
+  elseif (cmd == "upgrades" or cmd == "upgrade" or cmd == "gear") and ns.ShowUpgrades then
+    ns.ShowUpgrades()
   elseif (cmd == "prices" or cmd == "price" or cmd == "p") and ns.ShowPrices then
     ns.ShowPrices(rest)
   else
@@ -512,6 +529,6 @@ SlashCmdList.FOREVERANVIL = function(msg)
       ns.Print(L["%s %s auction house (%s), prices from %s."]:format(r.name, L[side], ns.regionCode, M.Age(ns.DataAge())))
     end
     ns.Print(L["|cffffffff/fa ruleset <name>|r sets this realm's ruleset, |cffffffff/fa options|r opens the settings. More tools at %s."]:format(ns.SITE))
-    ns.Print(L["|cffffffff/fa prices|r browses every price, |cffffffff/fa bags|r values your bags, |cffffffff/fa watch|r and |cffffffff/fa list|r show your lists, |cffffffff/fa import|r pastes one from the site, |cffffffff/fa menu|r opens the menu."])
+    ns.Print(L["|cffffffff/fa prices|r browses every price, |cffffffff/fa bags|r values your bags, |cffffffff/fa upgrades|r finds gear for you, |cffffffff/fa watch|r and |cffffffff/fa list|r show your lists, |cffffffff/fa import|r pastes one from the site, |cffffffff/fa menu|r opens the menu."])
   end
 end

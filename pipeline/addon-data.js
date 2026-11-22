@@ -109,6 +109,20 @@ export function encodeItems(cache, ids) {
   return s;
 }
 
+/**
+ * Gear details of the weapons and armor on sale, for the in-game upgrade finder (src/lib/upgrades.js):
+ * "id,subclass,inventoryType,itemLevel;" sorted by id. Quality, category and required level are in items.
+ */
+export function encodeGear(cache, ids) {
+  let s = "";
+  for (const id of [...ids].sort((a, b) => a - b)) {
+    const e = cache[id];
+    if (!e || !e[0] || (e[5] !== "Weapon" && e[5] !== "Armor") || !e[9] || e[11] == null) continue;
+    s += `${id},${e[8] || ""},${e[9]},${e[11]};`;
+  }
+  return s;
+}
+
 // JSON quoting is valid Lua for these strings: digits, punctuation and names (quotes and backslashes escaped,
 // newlines written as \n). JSON writes \u escapes, which Lua 5.1 lacks, only for control characters: names have none.
 const luaStr = (s) => JSON.stringify(s);
@@ -180,6 +194,8 @@ export function buildRegion(region, inDir) {
     `  crates = ${luaStr(encodeCrates(crates))},`,
     // names, quality, category, level and icon of every item on sale, for the prices window (version 2)
     `  items = ${luaStr(encodeItems(cache, onSale))},`,
+    // subclass, slot and item level of the gear on sale, for the upgrade finder (version 2.2)
+    `  gear = ${luaStr(encodeGear(cache, onSale))},`,
     "}",
     ""
   ];

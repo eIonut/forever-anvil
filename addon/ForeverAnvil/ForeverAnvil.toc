@@ -23,5 +23,6 @@ Profession.lua
 Lists.lua
 Prices.lua
 Bags.lua
+Upgrades.lua
 Minimap.lua
 Options.lua

@@ -1,3 +1,7 @@
+## 2.2
+
+- **Upgrades for you** (`/fa upgrades`, or the minimap menu): gear on your auction house and the neutral one that's better for your spec than what you wear, slot by slot. The spec comes from your talents (the tree with the most points), or pick another. Items are ranked by their stats with that spec's weights, and gear made for other specs (intellect for a rogue, strength for a mage) is hidden unless you ask for it. Each line shows the stats that count for you (+7 Agi +4 Sta), the level it needs and the cheapest price; "of the …" items roll their stats when they drop and are marked random. Pick a budget (1g, 5g, 20g, 100g or any price). Click to search the auction house, Ctrl-click to try it on. The menu shows how many slots have an upgrade.
+
 ## 2.1
 
 - **Bag value** (`/fa bags`, or "Bag value" in the minimap menu): what everything in your bags is worth, and the best way to turn each item into gold: the auction house (after its 5% cut), disenchanting, or a vendor. Soulbound items count only for a vendor or disenchanting, and thin markets (under 3 listings) are marked with ~. The menu shows the total.

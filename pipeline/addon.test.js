@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import fengari from "fengari";
 import { disenchantTable, disenchantValue } from "../src/lib/demath.js";
 import { craftProfit } from "../src/lib/pricemath.js";
-import { encodeHouse, regionMedians, encodeSkill, encodeCrates, encodeItems } from "./addon-data.js";
+import { encodeHouse, regionMedians, encodeSkill, encodeCrates, encodeItems, encodeGear } from "./addon-data.js";
 import { findUpgrades } from "../src/lib/upgrades.js";
 import { skillUpChance, planLeveling } from "../src/lib/levelmath.js";
 import { rankCrates } from "../src/lib/cratemath.js";
@@ -1500,7 +1500,11 @@ test("translations cover every text, with matching placeholders", () => {
     "Clear all", "Watch", "Search AH", "Add to list", "Neutral", "Horde", "Alliance", "horde", "alliance", "neutral", "Auction house",
     ...JSON.parse(runLua(`local t = {}; for _, c in ipairs(M.CATEGORIES) do t[#t + 1] = '"' .. c[2] .. '"' end; return "[" .. table.concat(t, ",") .. "]"`)),
     "head", "neck", "shoulders", "back", "chest", "wrists", "hands", "waist", "legs", "feet", "ring", "trinket", "main hand", "off hand", "ranged",
-    "that isn't a Forever Anvil string", "the string is damaged (copy it again from the site)", "the list is empty"]) used.add(k);
+    "that isn't a Forever Anvil string", "the string is damaged (copy it again from the site)", "the list is empty",
+    "Head", "Neck", "Shoulders", "Back", "Chest", "Wrists", "Hands", "Waist", "Legs", "Feet", "Ring", "Trinket", "Main hand", "Off hand", "Ranged"]) used.add(k);
+  // Upgrades.lua: stat short names and talent trees (M.SPECS)
+  for (const k of ["Str", "Agi", "Sta", "Int", "Spi", "AP", "RAP", "SP", "Heal", "Crit", "Hit", "Def", "Dodge", "Parry", "Block", "MP5"]) used.add(k);
+  for (const k of JSON.parse(runLua(`local t = {}; for _, s in pairs(M.SPECS) do for i = 2, 4 do t[#t + 1] = '"' .. s[i][1] .. '"' end end; return "[" .. table.concat(t, ",") .. "]"`))) used.add(k);
   // game names we couldn't confirm in each language stay English
   const english = new Set(["Merchant's Favor", "Waylaid crates", "Waylaid crate values", "The Merchant's Favor a crate pays and the cheapest bundle to fill it."]);
   const holes = (s) => (s.match(/%[sd%]/g) || []).join("");
@@ -1639,5 +1643,296 @@ test("smoke: bag value window totals your bags and the menu shows it", () => {
     "Worth |cffc7c7cf6s|r |cffeda55f59c|r",
     "|cffffd100Auction house|r 5s 49c   |cffc080ffDisenchant|r 0c   |cffbbbbbbVendor|r 1s 10c",
     "worth 659",
+  ]);
+});
+
+// The upgrades window (Upgrades.lua): M.FindUpgrades gives the same slots and options as the site's
+// findUpgrades (src/lib/upgrades.js), over two houses, with a budget, for random characters.
+test("upgrade finder matches upgrades.js findUpgrades for random characters, houses and budgets", () => {
+  const rand = rng(11);
+  const pick = (a) => a[Math.floor(rand() * a.length)];
+  const ARMOR = [["Cloth", ["HEAD", "CHEST", "ROBE", "LEGS", "CLOAK", "HAND"]], ["Leather", ["HEAD", "SHOULDER", "WAIST", "FEET", "WRIST"]],
+    ["Mail", ["HEAD", "CHEST", "LEGS", "HAND"]], ["Plate", ["HEAD", "CHEST", "FEET"]], ["Miscellaneous", ["FINGER", "NECK", "TRINKET", "HOLDABLE"]],
+    ["Shield", ["SHIELD"]], ["Libram", ["RELIC"]], ["Idol", ["RELIC"]], ["Totem", ["RELIC"]]];
+  const WEAPON = [["Sword", ["WEAPON", "TWOHWEAPON", "WEAPONMAINHAND", "WEAPONOFFHAND"]], ["Axe", ["WEAPON", "TWOHWEAPON"]], ["Mace", ["WEAPON", "TWOHWEAPON", "WEAPONMAINHAND"]],
+    ["Dagger", ["WEAPON", "WEAPONOFFHAND"]], ["Fist Weapon", ["WEAPON"]], ["Polearm", ["TWOHWEAPON"]], ["Staff", ["TWOHWEAPON"]],
+    ["Bow", ["RANGED"]], ["Gun", ["RANGEDRIGHT"]], ["Crossbow", ["RANGED"]], ["Thrown", ["THROWN"]], ["Wand", ["RANGEDRIGHT"]]];
+  const QUALITIES = ["poor", "common", "uncommon", "rare", "epic"];
+  const QN = { poor: 0, common: 1, uncommon: 2, rare: 3, epic: 4 };
+  const items = {};
+  for (let id = 1; id <= 400; id++) {
+    const weapon = rand() < 0.4;
+    const [sub, invs] = pick(weapon ? WEAPON : ARMOR);
+    const ilvl = 5 + Math.floor(rand() * 60), req = rand() < 0.1 ? 1 : Math.max(1, ilvl - 5 - Math.floor(rand() * 5));
+    items[id] = [`Item ${id}`, 0, 0, 0, pick(QUALITIES), weapon ? "Weapon" : "Armor", 0, null, sub, pick(invs), req, ilvl];
+  }
+  // as the data ships them: names (quality, category, level) and gear (subclass, slot, item level)
+  const namesStr = encodeItems(items, new Set(Object.keys(items).map(Number)));
+  const gearStr = encodeGear(items, new Set(Object.keys(items).map(Number)));
+  const SHEET = { HEAD: ["HEAD"], NECK: ["NECK"], SHOULDER: ["SHOULDER"], BACK: ["CLOAK"], CHEST: ["CHEST", "ROBE"], WRIST: ["WRIST"], HANDS: ["HAND"],
+    WAIST: ["WAIST"], LEGS: ["LEGS"], FEET: ["FEET"], FINGER_1: ["FINGER"], FINGER_2: ["FINGER"], TRINKET_1: ["TRINKET"], TRINKET_2: ["TRINKET"],
+    MAIN_HAND: ["WEAPON", "TWOHWEAPON", "WEAPONMAINHAND"], OFF_HAND: ["SHIELD", "HOLDABLE", "WEAPON", "WEAPONOFFHAND"], RANGED: ["RANGED", "RANGEDRIGHT", "THROWN", "RELIC"] };
+  const byInv = {};
+  for (const [id, e] of Object.entries(items)) (byInv[e[9]] ||= []).push(Number(id));
+
+  const cases = [], expected = [];
+  for (let c = 0; c < 40; c++) {
+    const character = { class: pick(["Warrior", "Paladin", "Hunter", "Rogue", "Priest", "Shaman", "Mage", "Warlock", "Druid"]), level: 1 + Math.floor(rand() * 60) };
+    const gear = [];
+    for (const [slot, invs] of Object.entries(SHEET)) {
+      if (rand() < 0.25) continue;
+      const pool = invs.flatMap((inv) => byInv[inv] || []);
+      if (pool.length) { const id = pick(pool); gear.push({ slotType: slot, id, level: items[id][11] }); }
+    }
+    if (gear.some((g) => g.slotType === "MAIN_HAND" && items[g.id][9] === "TWOHWEAPON")) {
+      const i = gear.findIndex((g) => g.slotType === "OFF_HAND");
+      if (i >= 0) gear.splice(i, 1);
+    }
+    // two houses with different items and prices (no two prices alike, so the order is the same in both)
+    const houses = ["horde", "neutral"].map((faction) => ({ faction, items: {} }));
+    for (const id of Object.keys(items)) for (const h of houses) if (rand() < 0.6) h.items[id] = [1 + Math.floor(rand() * 300000) * 7 + Number(id) % 7, 0, 1, 1];
+    const maxPrice = pick([null, 10000, 200000, 1000000]);
+    const slots = findUpgrades(character, gear, items, houses, { maxPrice });
+    expected.push(slots.map((s) => `${s.slot}:${s.wearing ? s.wearing.id : "-"}:` + s.options.map((o) => `${o.id}/${o.level}/${o.gain}/${o.price}/${o.house}`).join(" ")).join("|"));
+    const luaGear = Object.fromEntries(gear.map((g) => [g.slotType, { id: g.id, ilvl: g.level, inv: items[g.id][9] }]));
+    cases.push({ cls: character.class.toLowerCase(), level: character.level, gear: luaGear, maxPrice: maxPrice ?? 0,
+      houses: houses.map((h) => ({ side: h.faction, items: Object.fromEntries(Object.entries(h.items).map(([id, p]) => [id, p])) })) });
+  }
+  const out = runLua(`
+    local names, gearData = M.DecodeItems(NAMES), M.DecodeGear(GEAR)
+    local function gearOf(id)
+      local g, e = gearData[id], names[id]
+      if not (g and e) then return nil end
+      return { id = id, cls = e[3] == "w" and "Weapon" or "Armor", sub = g[1], inv = g[2], ilvl = g[3], req = e[4], quality = e[2] }
+    end
+    local CASES = ${toLua(cases)}
+    local out = {}
+    for c, k in ipairs(CASES) do
+      local slots = {}
+      for _, s in ipairs(M.FindUpgrades(k.gear, k.cls, k.level, k.houses, gearOf, { maxPrice = k.maxPrice > 0 and k.maxPrice or nil })) do
+        local opts = {}
+        for _, o in ipairs(s.options) do opts[#opts + 1] = o.id .. "/" .. o.ilvl .. "/" .. o.gain .. "/" .. o.price .. "/" .. o.side end
+        slots[#slots + 1] = s.slot .. ":" .. (s.wearing and s.wearing.id or "-") .. ":" .. table.concat(opts, " ")
+      end
+      out[c] = table.concat(slots, "|")
+    end
+    return table.concat(out, "\\n")`, { NAMES: namesStr, GEAR: gearStr });
+  assert.deepEqual(out.split("\n"), expected);
+  assert.ok(expected.join("").split("/").length > 300, "the random cases should find plenty of upgrades");
+});
+
+test("spec scoring: stats from the game, the spec from talents, gear for other specs left out", () => {
+  const out = runLua(`
+    local parsed = M.ParseItemStats({ ITEM_MOD_AGILITY_SHORT = 6, ITEM_MOD_STAMINA_SHORT = 4, RESISTANCE0_NAME = 80,
+      ITEM_MOD_CRIT_RATING_SHORT = 1, ITEM_MOD_SPELL_HEALING_DONE_SHORT = 22, ITEM_MOD_RANGED_ATTACK_POWER_SHORT = 12,
+      ITEM_MOD_DAMAGE_PER_SECOND_SHORT = 9.5, ITEM_MOD_HIT_TAKEN_RATING_SHORT = 3, EMPTY_SOCKET_RED = 1 })
+    local keys = {}
+    for k, v in pairs(parsed) do keys[#keys + 1] = k .. "=" .. v end
+    table.sort(keys)
+    local rogue = M.SPECS.rogue[3][2]
+    local function score(s, slot) return string.format("%.1f", M.StatScore(s, rogue, slot)) end
+    local lines = {
+      table.concat(keys, " "),
+      -- talents: the tree with the most points; none spent: the class's usual leveling tree; a pick wins
+      table.concat({ M.SpecIndex("rogue", { 0, 14, 3 }), M.SpecIndex("rogue", { 0, 0, 0 }), M.SpecIndex("warrior", {}),
+        M.SpecIndex("druid", { 5, 5, 2 }), M.SpecIndex("rogue", { 0, 14, 3 }, 3), tostring(M.SpecIndex("monk", {})) }, " "),
+      -- a rogue: agility counts, intellect doesn't; weapon dps only in a weapon slot
+      score({ agi = 6, sta = 4 }) .. " " .. score({ int = 8, sta = 5 }) .. " " .. score({ dps = 10 }, "MAIN_HAND") .. " " .. score({ dps = 10 }, "HEAD"),
+      tostring(M.OffSpec({ int = 8, sta = 5 }, rogue)) .. " " .. tostring(M.OffSpec({ agi = 3, int = 2 }, rogue)) .. " "
+        .. tostring(M.OffSpec({ sta = 5 }, rogue)) .. " " .. tostring(M.OffSpec({ int = 8 }, M.SPECS.mage[2][2])),
+      tostring(M.HasStats({ armor = 50, dps = 4 })) .. " " .. tostring(M.HasStats({ armor = 50, sta = 1 })),
+    }
+    local ks = {}
+    for _, s in ipairs(M.KeyStats({ agi = 6, sta = 4, int = 3, crit = 1, armor = 90 }, rogue, 3)) do ks[#ks + 1] = s[1] .. s[2] end
+    lines[#lines + 1] = table.concat(ks, " ")
+
+    -- the finder: a level 30 rogue in an agility helm (score 3), nothing on the fingers
+    local gear = { HEAD = { id = 1, ilvl = 25, inv = "HEAD" } }
+    local items = {
+      [2] = { cls = "Armor", sub = "Leather", inv = "HEAD", ilvl = 30, req = 25, quality = 2 }, -- intellect: another spec's
+      [3] = { cls = "Armor", sub = "Leather", inv = "HEAD", ilvl = 28, req = 23, quality = 2 }, -- agility: the upgrade
+      [4] = { cls = "Armor", sub = "Leather", inv = "HEAD", ilvl = 32, req = 27, quality = 2 }, -- "of the …": random stats
+      [5] = { cls = "Armor", sub = "Leather", inv = "HEAD", ilvl = 20, req = 15, quality = 2 }, -- worse than the helm worn
+      [6] = { cls = "Armor", sub = "Miscellaneous", inv = "FINGER", ilvl = 26, req = 21, quality = 2 }, -- a ring for an empty finger
+      [7] = { cls = "Armor", sub = "Leather", inv = "HEAD", ilvl = 33, req = 28, quality = 3 }, -- not loaded yet
+      [8] = { cls = "Armor", sub = "Cloth", inv = "HEAD", ilvl = 40, req = 30, quality = 3 }, -- cloth: a rogue can't use it well
+    }
+    local stats = { [1] = { agi = 3, armor = 60 }, [2] = { int = 8, sta = 5, armor = 70 }, [3] = { agi = 6, sta = 4, armor = 70 },
+      [4] = { armor = 75 }, [5] = { agi = 2, armor = 50 }, [6] = { agi = 4 }, [8] = { agi = 20 } }
+    local function gearOf(id) local t = items[id]; if t then t.id = id end; return t end
+    local houses = { { side = "horde", items = { [2] = { 500 }, [3] = { 900 }, [4] = { 700 }, [5] = { 100 }, [7] = { 300 }, [8] = { 50 } } },
+      { side = "neutral", items = { [3] = { 800 }, [6] = { 400 } } } }
+    local function run(opts)
+      local slots, pending, off = M.SpecUpgrades(gear, "rogue", 30, houses, gearOf, function(id) return stats[id] end, rogue, opts)
+      local t = {}
+      for _, s in ipairs(slots) do
+        local o = {}
+        for _, x in ipairs(s.options) do o[#o + 1] = x.id .. (x.random and "r" or "") .. "@" .. x.price .. x.side:sub(1, 1) end
+        t[#t + 1] = s.slot .. ":" .. table.concat(o, ",")
+      end
+      return table.concat(t, " ") .. " pending " .. pending .. " off " .. off
+    end
+    lines[#lines + 1] = run({})
+    lines[#lines + 1] = run({ showAll = true })
+    lines[#lines + 1] = run({ maxPrice = 600 })
+    return table.concat(lines, "\\n")`);
+  assert.deepEqual(out.split("\n"), [
+    "agi=6 armor=80 crit=1 dps=9.5 heal=22 rap=12 sta=4",
+    "2 2 1 1 3 nil",
+    "7.2 1.5 70.0 0.0",
+    "true false false false",
+    "false true",
+    "crit1 agi6 sta4",
+    "HEAD:3@800n,4r@700h FINGER:6@400n pending 1 off 1",
+    "HEAD:3@800n,4r@700h FINGER:6@400n pending 1 off 0",
+    "FINGER:6@400n pending 1 off 1",
+  ]);
+});
+
+test("smoke: upgrades window ranks gear for your spec, hides other specs' gear, and lets you pick a spec", () => {
+  const src = (f) => fs.readFileSync(path.join(ADDON, f), "utf8");
+  const horde = encodeHouse({ 102: [5000, 5500, 1, 1], 103: [9000, 9500, 1, 1], 104: [7000, 7500, 2, 2], 105: [150000, 160000, 1, 1] });
+  const neutral = encodeHouse({ 103: [8000, 8500, 1, 1], 106: [4000, 4500, 1, 1] });
+  const cache = {
+    102: ["Sage's Helm", 0, 0, 0, "uncommon", "Armor", 133071, null, "Leather", "HEAD", 25, 30],
+    103: ["Bandit Helm", 0, 0, 0, "uncommon", "Armor", 133072, null, "Leather", "HEAD", 23, 28],
+    104: ["Leather Helm", 0, 0, 0, "uncommon", "Armor", 133073, null, "Leather", "HEAD", 27, 32],
+    105: ["Fine Helm", 0, 0, 0, "rare", "Armor", 133074, null, "Leather", "HEAD", 28, 34],
+    106: ["Agile Band", 0, 0, 0, "uncommon", "Armor", 133344, null, "Miscellaneous", "FINGER", 21, 26],
+  };
+  const ids = new Set(Object.keys(cache).map(Number));
+  const out = runLua(`
+    local noop = function() end
+    local function region()
+      local r = setmetatable({}, { __index = function(_, k) if k:match("^%u") then return noop end end })
+      function r:SetText(s) self.text = s end
+      function r:Show() self.shown = true end
+      function r:Hide() self.shown = false end
+      return r
+    end
+    local function frame(kind, name, parent)
+      local fr = setmetatable({ kind = kind, parent = parent }, { __index = function(_, k)
+        if k:match("^%u") and k ~= "TitleText" and not k:match("^On") then return noop end
+      end })
+      function fr:SetScript(k, fn) rawset(self, k, fn) end
+      function fr:GetFrameLevel() return 1 end
+      function fr:CreateFontString() return region() end
+      function fr:CreateTexture() return region() end
+      function fr:Show() self.shown = true; if self.OnShow then self.OnShow(self) end end
+      function fr:Hide() self.shown = false end
+      function fr:IsShown() return rawget(self, "shown") == true end
+      function fr:SetText(s) self.value = s end
+      function fr:SetChecked(on) self.checked = on end
+      function fr:GetChecked() return self.checked end
+      function fr:LockHighlight() self.lit = true end
+      function fr:UnlockHighlight() self.lit = false end
+      function fr:Click() if kind == "CheckButton" then self.checked = not self.checked end; self.OnClick(self, "LeftButton") end
+      if name then _G[name] = fr end
+      return fr
+    end
+    CreateFrame = frame
+    UIParent, UISpecialFrames, ChatFontNormal = frame(), {}, {}
+    tinsert = table.insert
+    GameTooltip = frame()
+    DEFAULT_CHAT_FRAME = { AddMessage = noop }
+    SlashCmdList = {}
+    hooksecurefunc = noop
+    GetCurrentRegion = function() return 3 end
+    GetRealmName = function() return "Forever PvP" end
+    UnitFactionGroup = function() return "Horde" end
+    UnitClass = function() return "Rogue", "ROGUE" end
+    UnitLevel = function() return 30 end
+    -- talents (classic: name, icon, points): Combat
+    GetNumTalentTabs = function() return 3 end
+    local points = { 0, 14, 3 }
+    GetTalentTabInfo = function(i) return ({ "Assassination", "Combat", "Subtlety" })[i], "icon", points[i] end
+    C_AddOns = { IsAddOnLoaded = function() return false end, LoadAddOn = noop }
+    time = os.time
+    -- wearing an agility helm (+3 Agi, item level 25)
+    GetInventoryItemLink = function(_, slot) if slot == 1 then return "|cff1eff00|Hitem:900::|h[Old Helm]|h|r" end end
+    -- the game has loaded everything but the Fine Helm, which arrives later
+    local loaded = { [900] = true, [102] = true, [103] = true, [104] = true, [106] = true }
+    local info = { [900] = { "Old Helm", 2, 25, 20, 4, 2 }, [102] = { "Sage's Helm", 2, 30, 25, 4, 2 }, [103] = { "Bandit Helm", 2, 28, 23, 4, 2 },
+      [104] = { "Leather Helm", 2, 32, 27, 4, 2 }, [105] = { "Fine Helm", 3, 34, 28, 4, 2 }, [106] = { "Agile Band", 2, 26, 21, 4, 0 } }
+    local slots = { [106] = "INVTYPE_FINGER" }
+    local requested = {}
+    C_Item = {
+      GetItemInfo = function(item)
+        local id = type(item) == "number" and item or tonumber(tostring(item):match("item:(%d+)") or "")
+        local e = info[id]
+        if e and loaded[id] then return e[1], "|Hitem:" .. id .. "::|h[" .. e[1] .. "]|h", e[2], e[3], e[4], nil, nil, nil, slots[id] or "INVTYPE_HEAD", nil, 0, e[5], e[6] end
+      end,
+      GetItemCount = function() return 0 end,
+      RequestLoadItemDataByID = function(id) requested[#requested + 1] = id end,
+      GetItemStats = function(link)
+        local id = tonumber(link:match("item:(%d+)"))
+        return ({ [900] = { ITEM_MOD_AGILITY_SHORT = 3, RESISTANCE0_NAME = 60 },
+          [102] = { ITEM_MOD_INTELLECT_SHORT = 8, ITEM_MOD_STAMINA_SHORT = 10, RESISTANCE0_NAME = 70 },
+          [103] = { ITEM_MOD_AGILITY_SHORT = 7, ITEM_MOD_STAMINA_SHORT = 4, RESISTANCE0_NAME = 70 },
+          [104] = { RESISTANCE0_NAME = 75 },
+          [105] = { ITEM_MOD_AGILITY_SHORT = 12, ITEM_MOD_CRIT_RATING_SHORT = 1, RESISTANCE0_NAME = 80 },
+          [106] = { ITEM_MOD_AGILITY_SHORT = 4, ITEM_MOD_STAMINA_SHORT = 2 } })[id]
+      end,
+    }
+    ForeverAnvilData = { EU = { region = "eu", updated = os.time() - 600,
+      rulesets = { { name = "PvP", group = "A", likely = false, alliance = 110, horde = 113, neutral = 116 } },
+      houses = { [113] = { group = "A", faction = "horde", data = HORDE }, [116] = { group = "A", faction = "neutral", data = NEUTRAL } },
+      regionMedian = "", vendorBuy = "", noDisenchant = "", skill = "", crates = "", items = ITEMS, gear = GEAR } }
+    for _, f in ipairs({ "Core.lua", "Lists.lua", "Upgrades.lua" }) do assert(load(_G[f], "=" .. f))("ForeverAnvil", ns) end
+    ns.frame.OnEvent(ns.frame, "ADDON_LOADED", "ForeverAnvil")
+    ns.frame.OnEvent(ns.frame, "PLAYER_LOGIN")
+    local strip = function(s) return ((s or ""):gsub("|c%x%x%x%x%x%x%x%x", ""):gsub("|r", "")) end
+    local function rows(U)
+      local t = {}
+      for _, b in ipairs(U.rows) do
+        if b.shown then
+          t[#t + 1] = (b.slot.text ~= "" and ("[" .. b.slot.text .. "] ") or "") .. strip(b.name.text) .. " | " .. strip(b.stats.text) .. " | " .. (b.price.text or "")
+        end
+      end
+      return table.concat(t, " / ")
+    end
+    local function specs(U)
+      local t = {}
+      for _, b in ipairs(U.specs) do t[#t + 1] = b.value .. (b.lit and "!" or "") end
+      return table.concat(t, ", ")
+    end
+    SlashCmdList.FOREVERANVIL("upgrades")
+    local U = ForeverAnvilUpgrades
+    local out = { strip(U.who.text), specs(U), rows(U), (strip(U.total.text):gsub(" · prices.*", "")) }
+    -- the Fine Helm arrives
+    loaded[105] = true
+    ns.ShowUpgrades(false); ns.ShowUpgrades(true)
+    out[#out + 1] = "loaded: " .. rows(U)
+    out[#out + 1] = "asked the game for: " .. table.concat(requested, ",")
+    -- other specs' gear too
+    U.showAll:Click()
+    out[#out + 1] = "show all: " .. rows(U)
+    U.showAll:Click()
+    -- gear for Assassination (the same weights for a rogue), then back to the talents' pick
+    U.specs[1]:Click()
+    out[#out + 1] = "picked: " .. specs(U) .. "; saved " .. tostring(ns.db.upgradeSpec.rogue) .. "; " .. strip(U.who.text)
+    U.specs[2]:Click()
+    out[#out + 1] = "back: saved " .. tostring(ns.db.upgradeSpec.rogue)
+    -- no item stats in this client: by item level, like the site
+    C_Item.GetItemStats = nil
+    ns.ShowUpgrades(false); ns.ShowUpgrades(true)
+    out[#out + 1] = "no stats: " .. rows(U) .. " || " .. strip(U.total.text):gsub(" · prices.*", "")
+    return table.concat(out, "\\n")`, { HORDE: horde, NEUTRAL: neutral, ITEMS: encodeItems(cache, ids), GEAR: encodeGear(cache, ids),
+    "Core.lua": src("Core.lua"), "Lists.lua": src("Lists.lua"), "Upgrades.lua": src("Upgrades.lua") });
+  assert.deepEqual(out.split("\n"), [
+    "Level 30 Rogue  Combat (from your talents)",
+    "Assassination, Combat *!, Subtlety",
+    "[Head] Old Helm | +3 Agi | " +
+      " / Bandit Helm  Blackwater | +7 Agi +4 Sta | 80s" +
+      " / Leather Helm | random stats · ilvl 32 | 70s" +
+      " / [Ring] nothing worn |  | " +
+      " / Agile Band  Blackwater | +4 Agi +2 Sta | 40s",
+    "3 upgrades for 2 slots  1 for other specs hidden · loading 1 items",
+    "loaded: [Head] Old Helm | +3 Agi |  / Fine Helm | +12 Agi +1% Crit | 15g / Bandit Helm  Blackwater | +7 Agi +4 Sta | 80s / Leather Helm | random stats · ilvl 32 | 70s / [Ring] nothing worn |  |  / Agile Band  Blackwater | +4 Agi +2 Sta | 40s",
+    "asked the game for: 105",
+    "show all: [Head] Old Helm | +3 Agi |  / Fine Helm | +12 Agi +1% Crit | 15g / Bandit Helm  Blackwater | +7 Agi +4 Sta | 80s / Sage's Helm | +10 Sta | 50s / [Ring] nothing worn |  |  / Agile Band  Blackwater | +4 Agi +2 Sta | 40s",
+    "picked: Assassination!, Combat *, Subtlety; saved 1; Level 30 Rogue  Assassination (your pick)",
+    "back: saved nil",
+    "no stats: [Head] Old Helm | ilvl 25 |  / Fine Helm | +9 ilvl 34 | 15g / Leather Helm | +7 ilvl 32 | 70s / Sage's Helm | +5 ilvl 30 | 50s / [Ring] nothing worn |  |  / Agile Band  Blackwater | +26 ilvl 26 | 40s || 4 upgrades for 2 slots  ranked by item level",
   ]);
 });

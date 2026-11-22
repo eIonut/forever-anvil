@@ -21,6 +21,10 @@ Version 2.1:
 - **Bag value** (`Bags.lua`, `/fa bags`): every item in your bags at its best use, `M.BestUse` (auction house after the cut, disenchanting, or a vendor; soulbound items skip the auction house).
 - **Translations** (`Locale.lua`, `Locales.lua`): `ns.L["English text"]` gives the client's language (German, French, Spanish) or the English. Add a text: wrap it in `L[...]` and add it to every table; `npm test` fails when a language is missing one or a translation's placeholders differ. On those clients the prices window asks the game for its item names (`C_Item.RequestLoadItemDataByID`) and searches both.
 
+Version 2.2:
+
+- **Upgrades window** (`Upgrades.lua`, `/fa upgrades`): `M.SpecUpgrades` ranks gear by stats for your talent spec (`M.SPECS`: rough weights per class and tree; `M.SpecIndex` picks the tree with the most points). Item stats come from the game (`C_Item.GetItemStats`, after `RequestLoadItemDataByID` for items it hasn't loaded), parsed by `M.ParseItemStats`. Without that API it falls back to item level with `M.FindUpgrades`, a port of `findUpgrades` in `src/lib/upgrades.js` (tested against it). The gear details (subclass, slot, item level) ship in the data as `gear` (`encodeGear` in `pipeline/addon-data.js`, about 100 KB for Europe).
+
 ## Folders
 
 | Folder | What it is |

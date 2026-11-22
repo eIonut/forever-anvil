@@ -457,6 +457,287 @@ function M.PriceRows(items, names, o, nameOf)
 end
 
 ---------------------------------------------------------------------------------------------------
+-- Upgrade finder (src/lib/upgrades.js findUpgrades): gear on sale that beats what you wear, slot by slot.
+
+-- "id,subclass,inventoryType,itemLevel;…" → { [id] = { sub, inv, ilvl } } (pipeline/addon-data.js encodeGear)
+function M.DecodeGear(s)
+  local t = {}
+  for id, sub, inv, ilvl in (s or ""):gmatch("(%d+),([^,;]*),([^,;]*),(%d+);") do
+    t[tonumber(id)] = { sub ~= "" and sub or nil, inv, tonumber(ilvl) }
+  end
+  return t
+end
+
+-- gear: what you wear, by character-sheet slot ({ id, ilvl, inv }); cls, level: yours.
+-- houses: { { items = one house's decoded prices, side = "horde" | … }, … } (yours and the neutral one).
+-- gearOf(id): { id, cls = "Weapon" | "Armor", sub, inv, ilvl, req, quality } of an item on sale, or nil.
+-- opts: { maxPrice = copper or nil, perSlot = how many per slot (3) }.
+-- Returns { { slot, wearing = gear entry or nil, options = { { id, ilvl, gain, req, price, side, quality }, … } }, … }
+-- for each slot with an upgrade, in character-sheet order; options highest item level first, then cheapest.
+function M.FindUpgrades(gear, cls, level, houses, gearOf, opts)
+  opts = opts or {}
+  if not CLASSES[cls] then return {} end
+  level = level or 1
+  local perSlot, maxPrice = opts.perSlot or 3, opts.maxPrice
+  local mainInv = gear.MAIN_HAND and gear.MAIN_HAND.inv or nil
+  -- the cheapest listing of each item across the houses
+  local cheapest = {}
+  for _, h in ipairs(houses) do
+    for id, p in pairs(h.items or {}) do
+      local c = cheapest[id]
+      if p[1] and (not c or p[1] < c.price) then cheapest[id] = { price = p[1], side = h.side } end
+    end
+  end
+  -- gear you could use at all (level, quality, budget), looked up once rather than once per slot
+  local candidates = {}
+  for id, c in pairs(cheapest) do
+    local item = gearOf(id)
+    if item and item.ilvl and (item.req or 0) <= level and item.quality ~= 0
+      and not ((item.req or 0) <= 1 and item.ilvl > 15) -- gadgets and profession items, not upgrades
+      and not (maxPrice and c.price > maxPrice) then
+      candidates[#candidates + 1] = { id, item, c }
+    end
+  end
+  local out = {}
+  for _, s in ipairs(M.SLOTS) do
+    local slot, sheet = s[1], s[2]
+    if not (slot == "OFF_HAND" and mainInv == "TWOHWEAPON") then
+      local worn, wornIds, wearing = 0, {}, nil
+      for _, name in ipairs(sheet) do
+        local g = gear[name]
+        if g then
+          worn = worn + 1
+          wornIds[g.id] = true
+          if not wearing or (g.ilvl or 0) < (wearing.ilvl or 0) then wearing = g end
+        end
+      end
+      if worn < #sheet then wearing = nil end -- an empty ring or trinket slot counts as nothing worn
+      local baseline = wearing and wearing.ilvl or 0
+      local equippedInv = wearing and wearing.inv or nil
+      local options = {}
+      for _, cand in ipairs(candidates) do
+        local id, item, c = cand[1], cand[2], cand[3]
+        if not wornIds[id] and item.ilvl > baseline and M.Fits(slot, item, cls, level, equippedInv) then
+          options[#options + 1] = { id = id, ilvl = item.ilvl, gain = item.ilvl - baseline, req = item.req or 0,
+            price = c.price, side = c.side, quality = item.quality }
+        end
+      end
+      if #options > 0 then
+        table.sort(options, function(a, b)
+          if a.ilvl ~= b.ilvl then return a.ilvl > b.ilvl end
+          if a.price ~= b.price then return a.price < b.price end
+          return a.id < b.id
+        end)
+        for i = #options, perSlot + 1, -1 do options[i] = nil end
+        out[#out + 1] = { slot = slot, wearing = wearing, options = options }
+      end
+    end
+  end
+  return out
+end
+
+---------------------------------------------------------------------------------------------------
+-- Upgrades for your spec: item stats (read from the game), what each talent spec values, and the gain.
+
+-- The game's stat keys (GetItemStats: ITEM_MOD_AGILITY_SHORT, RESISTANCE0_NAME, …) → short keys.
+-- Matched by pattern, so the classic ("+1% crit") and rating spellings both count; anything else is skipped.
+local STAT_PATTERNS = {
+  { "RANGED_ATTACK_POWER", "rap" }, { "ATTACK_POWER", "ap" }, { "STRENGTH", "str" }, { "AGILITY", "agi" },
+  { "STAMINA", "sta" }, { "INTELLECT", "int" }, { "SPIRIT", "spi" }, { "HEALING", "heal" },
+  { "SPELL_POWER", "sp" }, { "SPELL_DAMAGE", "sp" }, { "SPELL_HIT", "hit" }, { "SPELL_CRIT", "crit" },
+  { "CRIT", "crit" }, { "HIT", "hit" }, { "DEFENSE", "def" }, { "DODGE", "dodge" }, { "PARRY", "parry" },
+  { "BLOCK", "block" }, { "MANA_REGENERATION", "mp5" }, { "POWER_REGEN0", "mp5" }, { "DAMAGE_PER_SECOND", "dps" },
+  { "RESISTANCE0_NAME", "armor" },
+}
+function M.ParseItemStats(raw)
+  local t = {}
+  for key, value in pairs(raw or {}) do
+    if type(key) == "string" and type(value) == "number" and not key:find("TAKEN") then
+      for _, p in ipairs(STAT_PATTERNS) do
+        if key:find(p[1], 1, true) then t[p[2]] = (t[p[2]] or 0) + value; break end
+      end
+    end
+  end
+  return t
+end
+
+-- What each spec values, per point (rough leveling weights: enough to drop wrong-stat gear and order the
+-- rest). crit and hit are per 1%; dps: weapon damage per second in a melee slot, rdps in the ranged slot.
+local MELEE_STR = { str = 1, agi = 0.5, ap = 0.5, crit = 10, hit = 10, sta = 0.3, armor = 0.01, dps = 7, rdps = 0.5 }
+local MELEE_AGI = { agi = 1, str = 0.55, ap = 0.5, crit = 10, hit = 10, sta = 0.3, armor = 0.01, dps = 7, rdps = 0.5 }
+local TANK = { sta = 1, str = 0.6, agi = 0.6, def = 1.5, armor = 0.05, block = 0.5, dodge = 10, parry = 10, hit = 5, ap = 0.2, dps = 2, rdps = 0.2 }
+local CASTER = { sp = 1, int = 0.6, spi = 0.3, crit = 8, hit = 10, mp5 = 1, sta = 0.4, armor = 0.005, dps = 0.2, rdps = 0.2 }
+local HEALER = { heal = 0.7, int = 1, spi = 0.6, mp5 = 1.5, sp = 0.3, crit = 5, sta = 0.3, armor = 0.005, dps = 0.2, rdps = 0.2 }
+local HUNTER = { agi = 1, rap = 0.45, ap = 0.1, int = 0.3, sta = 0.3, crit = 10, hit = 10, str = 0.05, armor = 0.01, dps = 0.5, rdps = 7 }
+local function with(base, changes)
+  local t = {}
+  for k, v in pairs(base) do t[k] = v end
+  for k, v in pairs(changes) do t[k] = v end
+  return t
+end
+-- [class] = { default tree, { name, weights } × 3 }, trees in the talent window's order
+M.SPECS = {
+  warrior = { 1, { "Arms", MELEE_STR }, { "Fury", MELEE_STR }, { "Protection", TANK } },
+  paladin = { 3, { "Holy", HEALER }, { "Protection", with(TANK, { int = 0.3, sp = 0.3 }) }, { "Retribution", with(MELEE_STR, { int = 0.2 }) } },
+  hunter = { 2, { "Beast Mastery", HUNTER }, { "Marksmanship", HUNTER }, { "Survival", HUNTER } },
+  rogue = { 2, { "Assassination", MELEE_AGI }, { "Combat", MELEE_AGI }, { "Subtlety", MELEE_AGI } },
+  priest = { 3, { "Discipline", HEALER }, { "Holy", HEALER }, { "Shadow", with(CASTER, { spi = 0.5 }) } },
+  shaman = { 2, { "Elemental", with(CASTER, { spi = 0.2 }) }, { "Enhancement", with(MELEE_STR, { int = 0.3 }) }, { "Restoration", with(HEALER, { spi = 0.3 }) } },
+  mage = { 3, { "Arcane", CASTER }, { "Fire", CASTER }, { "Frost", CASTER } },
+  warlock = { 1, { "Affliction", with(CASTER, { sta = 0.6 }) }, { "Demonology", with(CASTER, { sta = 0.6 }) }, { "Destruction", with(CASTER, { sta = 0.6 }) } },
+  druid = { 2, { "Balance", CASTER }, { "Feral Combat", with(MELEE_AGI, { str = 1, sta = 0.6, armor = 0.03, def = 0.5, dodge = 5, dps = 0, rdps = 0 }) }, { "Restoration", HEALER } },
+}
+
+-- the spec to gear for: the tree with the most talent points (points: { tree1, tree2, tree3 }), the class's
+-- usual leveling tree while none are spent; chosen (1-3) wins when set
+function M.SpecIndex(cls, points, chosen)
+  local spec = M.SPECS[cls]
+  if not spec then return nil end
+  if chosen and spec[chosen + 1] then return chosen end
+  local best, most = nil, 0
+  for i = 1, 3 do
+    local p = points and points[i] or 0
+    if p > most then best, most = i, p end
+  end
+  return best or spec[1]
+end
+
+-- how much an item's stats are worth to a spec; dps counts in the weapon slots only
+function M.StatScore(stats, weights, slot)
+  local score = 0
+  for k, v in pairs(stats or {}) do
+    local w = weights[k]
+    if k == "dps" then w = (slot == "RANGED" and weights.rdps) or ((slot == "MAIN_HAND" or slot == "OFF_HAND") and weights.dps) or 0 end
+    if w then score = score + w * v end
+  end
+  return score
+end
+
+-- stats beyond armor and weapon damage (an uncommon item without any rolls them when it drops: "of the Monkey")
+function M.HasStats(stats)
+  for k, v in pairs(stats or {}) do
+    if k ~= "armor" and k ~= "dps" and v ~= 0 then return true end
+  end
+  return false
+end
+
+-- gear made for someone else: more of its main-stat points go to stats this spec doesn't use than to ones it does
+local MAIN = { "str", "agi", "int", "spi", "sp", "heal", "ap", "rap" }
+function M.OffSpec(stats, weights)
+  local wasted, useful = 0, 0
+  for _, k in ipairs(MAIN) do
+    local v = stats and stats[k] or 0
+    if v > 0 then
+      if (weights[k] or 0) >= 0.2 then useful = useful + v else wasted = wasted + v end
+    end
+  end
+  return wasted > useful
+end
+
+-- the stats worth showing on a line, most valuable to the spec first: { {key, value}, … } (at most n)
+function M.KeyStats(stats, weights, n)
+  local list = {}
+  for k, v in pairs(stats or {}) do
+    if k ~= "armor" and k ~= "dps" and v ~= 0 and (weights[k] or 0) > 0 then list[#list + 1] = { k, v, (weights[k] or 0) * v } end
+  end
+  table.sort(list, function(a, b) if a[3] ~= b[3] then return a[3] > b[3] end return a[1] < b[1] end)
+  for i = #list, (n or 3) + 1, -1 do list[i] = nil end
+  return list
+end
+
+-- Like M.FindUpgrades, but ranked for a spec by stats instead of item level.
+-- statsOf(id): parsed stats of an item (M.ParseItemStats), or nil while the game hasn't loaded it.
+-- weights: the spec's (M.SPECS). opts: { maxPrice, perSlot, showAll = keep gear made for other specs }.
+-- An option is an upgrade when its stats are worth more to the spec than what you wear there. Uncommon or
+-- better gear without stats rolls them when it drops: kept when its item level is higher, marked random.
+-- Returns slots like M.FindUpgrades (options: { id, ilvl, req, price, side, quality, stats, score, gain, random }),
+-- then how many items are still loading and how many were left out as gear for other specs.
+function M.SpecUpgrades(gear, cls, level, houses, gearOf, statsOf, weights, opts)
+  opts = opts or {}
+  if not CLASSES[cls] then return {}, 0, 0 end
+  level = level or 1
+  local perSlot, maxPrice = opts.perSlot or 3, opts.maxPrice
+  local mainInv = gear.MAIN_HAND and gear.MAIN_HAND.inv or nil
+  local cheapest = {}
+  for _, h in ipairs(houses) do
+    for id, p in pairs(h.items or {}) do
+      local c = cheapest[id]
+      if p[1] and (not c or p[1] < c.price) then cheapest[id] = { price = p[1], side = h.side } end
+    end
+  end
+  local candidates = {}
+  for id, c in pairs(cheapest) do
+    local item = gearOf(id)
+    if item and item.ilvl and (item.req or 0) <= level and item.quality ~= 0
+      and not ((item.req or 0) <= 1 and item.ilvl > 15)
+      and not (maxPrice and c.price > maxPrice) then
+      candidates[#candidates + 1] = { id, item, c }
+    end
+  end
+  local out, pendingIds, offIds = {}, {}, {}
+  for _, s in ipairs(M.SLOTS) do
+    local slot, sheet = s[1], s[2]
+    if not (slot == "OFF_HAND" and mainInv == "TWOHWEAPON") then
+      local worn, wornIds, wearing, wornScore = 0, {}, nil, nil
+      for _, name in ipairs(sheet) do
+        local g = gear[name]
+        if g then
+          worn = worn + 1
+          wornIds[g.id] = true
+          local sc = M.StatScore(statsOf(g.id), weights, slot)
+          if not wearing or sc < wornScore then wearing, wornScore = g, sc end
+        end
+      end
+      if worn < #sheet then wearing, wornScore = nil, 0 end
+      wornScore = wornScore or 0
+      local baseline = wearing and wearing.ilvl or 0
+      local equippedInv = wearing and wearing.inv or nil
+      local options = {}
+      for _, cand in ipairs(candidates) do
+        local id, item, c = cand[1], cand[2], cand[3]
+        if not wornIds[id] and M.Fits(slot, item, cls, level, equippedInv) then
+          local stats = statsOf(id)
+          if stats == nil then
+            if item.ilvl > baseline then pendingIds[id] = true end
+          elseif item.quality >= 2 and not M.HasStats(stats) then
+            if item.ilvl > baseline then
+              options[#options + 1] = { id = id, ilvl = item.ilvl, req = item.req or 0, price = c.price, side = c.side,
+                quality = item.quality, stats = stats, random = true, gain = 0 }
+            end
+          elseif not opts.showAll and M.OffSpec(stats, weights) then
+            if item.ilvl > baseline then offIds[id] = true end
+          else
+            local score = M.StatScore(stats, weights, slot)
+            if score > wornScore then
+              options[#options + 1] = { id = id, ilvl = item.ilvl, req = item.req or 0, price = c.price, side = c.side,
+                quality = item.quality, stats = stats, score = score, gain = score - wornScore }
+            end
+          end
+        end
+      end
+      if #options > 0 then
+        table.sort(options, function(a, b)
+          if (a.random or false) ~= (b.random or false) then return not a.random end
+          if a.random then
+            if a.ilvl ~= b.ilvl then return a.ilvl > b.ilvl end
+          elseif a.gain ~= b.gain then
+            return a.gain > b.gain
+          end
+          if a.price ~= b.price then return a.price < b.price end
+          return a.id < b.id
+        end)
+        for i = #options, perSlot + 1, -1 do options[i] = nil end
+        out[#out + 1] = { slot = slot, wearing = wearing, wornScore = wornScore, options = options }
+      end
+    end
+  end
+  local pending, off = 0, 0
+  for _ in pairs(pendingIds) do pending = pending + 1 end
+  for _ in pairs(offIds) do off = off + 1 end
+  return out, pending, off
+end
+
+---------------------------------------------------------------------------------------------------
 -- Bag value: the best way to turn an item into gold.
 -- market: its auction house market price (nil when not listed, or when it's soulbound and can't be sold
 -- there); de: disenchanting one, after the auction cut (nil when it can't be); vendor: what a vendor pays for one.
