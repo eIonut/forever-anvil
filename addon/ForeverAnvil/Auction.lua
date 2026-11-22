@@ -1,5 +1,6 @@
 -- Auction house Browse list: tags listings you can buy for less than a vendor pays ("Vendor +X")
--- or less than disenchanting them is worth ("DE +X"), by the site's flip rules (at least 10c and 5%).
+-- or less than disenchanting them is worth ("DE +X"), by the site's flip rules (at least 10c and 5%);
+-- since version 2 also watchlist items at your target, shopping-list materials you need, and upgrades.
 -- Two windows: the modern one (Blizzard_AuctionHouseUI, which the Forever client most likely uses) tags each
 -- item in the browse results by its lowest price per unit; the classic one (Blizzard_AuctionUI) tags each listing.
 local _, ns = ...
@@ -51,12 +52,31 @@ function ns.FlipOf(itemID, unit)
   return kind, best
 end
 
--- What a row's tag shows for an item at a unit price: a flip ("vendor" | "de", profit per unit), or, with
--- "disenchant value on every row" on, "worth" and the disenchant value (complete: every material priced)
+-- What a row's tag shows for an item at a unit price, the first that applies:
+--   a flip ("vendor" | "de", profit per unit), a watchlist item at or below its target ("target", the price),
+--   a shopping-list material you still need ("need", units), an upgrade over your gear ("upgrade", item levels),
+--   or, with "disenchant value on every row" on, "worth" and the disenchant value (complete: every material priced)
+local PER_UNIT = { vendor = true, de = true, worth = true } -- amounts that are per unit (a classic listing shows the stack's)
 function ns.RowTag(itemID, unit)
-  local kind, profit = ns.FlipOf(itemID, unit)
-  if kind then return kind, profit, true end
-  if ns.db.show.deAll and itemID then
+  if not itemID then return nil end
+  local show, house = ns.db.show, ns.House()
+  if show.flips and house then
+    local kind, profit = ns.FlipOf(itemID, unit)
+    if kind then return kind, profit, true end
+  end
+  if show.watch then
+    local target = ns.WatchTarget(itemID)
+    if target and target > 0 and unit and unit <= target then return "target", unit, true end
+  end
+  if show.shopping then
+    local need = ns.ShoppingNeed(itemID)
+    if need and need > 0 then return "need", need, true end
+  end
+  if show.upgrades then
+    local slot, gain = ns.Upgrade(itemID)
+    if slot then return "upgrade", gain, true end
+  end
+  if show.deAll and house then
     local worth, _, complete = ns.Disenchant(itemID)
     if worth and worth > 0 then return "worth", worth, complete end
   end
@@ -71,6 +91,15 @@ local function paint(t, kind, amount, complete)
   elseif kind == "de" then
     t.text:SetText("|cffbb8cffDE +|r" .. money)
     t.bg:SetColorTexture(0.7, 0.5, 1, 0.12)
+  elseif kind == "target" then
+    t.text:SetText("|cffffd100Target|r " .. money)
+    t.bg:SetColorTexture(1, 0.82, 0, 0.12)
+  elseif kind == "need" then
+    t.text:SetText("|cffffd100Need " .. amount .. "|r")
+    t.bg:SetColorTexture(1, 0.82, 0, 0.08)
+  elseif kind == "upgrade" then
+    t.text:SetText("|cff66ccffUpgrade +" .. amount .. "|r")
+    t.bg:SetColorTexture(0.4, 0.8, 1, 0.1)
   elseif kind == "worth" then
     -- not a flip: what disenchanting it gives, grey and without the tint ("~": some materials unpriced)
     t.text:SetText("|cff999999DE " .. (complete and "" or "~") .. M.ShortMoney(amount, true) .. "|r")
@@ -83,7 +112,7 @@ local function paint(t, kind, amount, complete)
 end
 
 local function update()
-  local on = ns.db and ns.db.show.flips and ns.House()
+  local on = ns.db ~= nil
   local offset = FauxScrollFrame_GetOffset(BrowseScrollFrame)
   for i = 1, (NUM_BROWSE_TO_DISPLAY or 8) do
     local button = _G["BrowseButton" .. i]
@@ -95,7 +124,7 @@ local function update()
         local _, _, count, _, _, _, _, _, _, buyout, _, _, _, _, _, _, itemID = GetAuctionItemInfo("list", offset + i)
         if buyout and buyout > 0 and count and count > 0 then
           local kind, amount, complete = ns.RowTag(itemID, buyout / count)
-          if kind then paint(t, kind, amount * count, complete) end
+          if kind then paint(t, kind, PER_UNIT[kind] and amount * count or amount, complete) end
         end
       end
     end
@@ -230,7 +259,6 @@ end
 local function tagRow(frame, data)
   local t = tagFor(frame)
   paint(t, nil)
-  if not (ns.db.show.flips and ns.House()) then return end
   local result, source = browseResult(frame, data)
   ns.lastRow = type(data) .. " -> " .. source -- for /fa debug
   if not (result and result.itemKey and result.minPrice) then return end

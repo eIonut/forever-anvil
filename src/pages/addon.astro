@@ -13,7 +13,7 @@ const links = [
 ---
 <BaseLayout
   title="Forever Anvil addon for WoW: Forever | Auction prices in game"
-  description="Free WoW: Forever addon: auction house market price, sales per day and disenchant value on every tooltip, flips tagged in the auction house and craft profits in your profession window."
+  description="Free WoW: Forever addon: auction prices, sales per day and disenchant value on every tooltip, flips and upgrades tagged in the auction house, craft profits and a leveling helper in your profession window."
   page="addon"
 >
   <PageHero icon="prices" eyebrow="In-game addon" title="Forever Anvil in your game" facts={[{ icon: "clock", text: "Fresh prices several times a day" }, { icon: "check", text: "Free, no account" }, { icon: "globe", text: "Europe" }]}>
@@ -33,17 +33,34 @@ const links = [
         <li><b>Sold per day</b>, estimated from how listings change hour to hour</li>
         <li><b>Region median</b>: the typical price across the region's auction houses</li>
         <li><b>Disenchant value</b> after the auction cut, and the Enchanting skill it needs</li>
+        <li><b>Upgrades</b>: gear with a higher item level than what you wear in that slot, that your class can use at your level</li>
+        <li><b>Waylaid crates</b>: the Merchant's Favor a crate pays and the cheapest bundle to fill it</li>
       </ul>
       <h3>Auction house</h3>
       <ul class="gems">
         <li><b>Disenchant flips</b>: gear listed for less than its enchanting materials sell for, tagged <code>DE +X</code> in the Browse list</li>
         <li><b>Vendor flips</b>: items listed for less than a vendor pays, tagged <code>Vendor +X</code></li>
+        <li><b>Your watchlist</b>: items at or below your target price, tagged <code>Target</code></li>
+        <li><b>Your shopping list</b>: materials you still need, tagged <code>Need X</code>, and a small list beside the auction house that ticks off what's in your bags and bank</li>
+        <li><b>Upgrades</b> for your character, tagged <code>Upgrade +X</code></li>
         <li>Optional: every disenchantable item's value in grey, to see how close it is to a flip</li>
       </ul>
       <h3>Profession window</h3>
       <ul class="gems">
         <li><b>Profit per craft</b> on every recipe, after the 5% auction cut and the reagents</li>
+        <li><b>Leveling helper</b>: the recipe you know that gives skill points for the least gold right now is marked <code>skill-up</code>, with its chance and cost per point</li>
         <li>The selected recipe's reagent cost; reagents that aren't on the auction house use the vendor's price</li>
+      </ul>
+      <h3>Prices window</h3>
+      <ul class="gems">
+        <li><b>Every item on your auction house</b>, like this site's <a href="/prices">prices page</a>: search by name, pick a category, sort by market, lowest price, units listed or sold per day (<b>/fa prices</b>, or the minimap menu)</li>
+        <li>Switch to the other faction's house or the neutral one, and click an item for its details, to watch it or to add it to your shopping list</li>
+      </ul>
+      <h3>Your watchlist and shopping list</h3>
+      <ul class="gems">
+        <li><b>Alt-click</b> any item to watch it, and set a target price in the watchlist window (<b>/fa watch</b>)</li>
+        <li>In a profession window, <b>Add to shopping list</b> adds a recipe's reagents for as many crafts as you want (<b>/fa list</b> shows the list)</li>
+        <li>Both windows show each item's icon, with buttons to edit or remove it, and an editor to add more. Or bring your lists from this site: press <b>Copy for the addon</b> on your <a href="/watchlist">watchlist</a> or <a href="/planner">crafting planner</a>, then type <b>/fa import</b> in game and paste it.</li>
       </ul>
     </div>
 
@@ -66,7 +83,7 @@ const links = [
         <li>Install it with the {links.map((l) => l.label).join(" or ") || "CurseForge or Wago"} app, picking <b>WoW: Forever</b> as the game version. Or download the zip and unpack both folders (<code>ForeverAnvil</code> and <code>ForeverAnvil_Data_EU</code>) into your game's <code>Interface/AddOns</code> folder.</li>
         <li>Log in and type <b>/fa</b>. It names your ruleset and auction house.</li>
         <li>If it asks, set your realm's ruleset once: <b>/fa ruleset PvP</b> (or Normal, Roleplay, RP-PvP).</li>
-        <li>Turn features on or off with <b>/fa options</b>.</li>
+        <li>Click the crest on your minimap for the menu: your lists, quick on/off switches and the settings (also <b>/fa options</b>).</li>
       </ol>
 
       <h2>Good to know</h2>
@@ -74,7 +91,8 @@ const links = [
         <li><b>It never buys, sells or crafts for you.</b> It only shows numbers; every action is still your own click.</li>
         <li><b>Prices are an estimate</b> from the last update, and the auction house moves. Check before a big purchase.</li>
         <li><b>Europe for now.</b> The Americas will follow, as on this site, once its rulesets are confirmed.</li>
-        <li>For price history, the crafting planner, leveling costs, gear upgrades and talents, use <a href="/">this site</a>: everything here stays free.</li>
+        <li><b>Upgrades go by item level</b>, which is a shortlist, not a verdict: a strength sword is no upgrade for a healer.</li>
+        <li>For price history, full leveling routes and talents, use <a href="/">this site</a>: everything here stays free.</li>
       </ul>
       <p class="faint">Data provided by Blizzard Entertainment. Forever Anvil is a fan project, not made or endorsed by Blizzard.</p>
     </div>

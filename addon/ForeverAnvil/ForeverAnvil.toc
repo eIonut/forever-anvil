@@ -1,9 +1,10 @@
 ## Interface: 16001
 ## Title: Forever Anvil
-## Notes: Auction prices from foreveranvil.com in your tooltips, auction house and profession window. Data provided by Blizzard Entertainment.
+## Notes: Auction prices from foreveranvil.com in your tooltips, auction house and profession window, plus upgrades, a leveling helper, crate values and your watchlist and shopping list. Data provided by Blizzard Entertainment.
 ## Author: Forever Anvil
 ## Version: @project-version@
 ## SavedVariables: ForeverAnvilDB
+## IconTexture: Interface\AddOns\ForeverAnvil\Media\Icon
 ## X-Website: https://foreveranvil.com
 ## X-Curse-Project-ID: 1823345
 ## X-Wago-ID: 96EX0jNg
@@ -13,4 +14,7 @@ Core.lua
 Tooltip.lua
 Auction.lua
 Profession.lua
+Lists.lua
+Prices.lua
+Minimap.lua
 Options.lua

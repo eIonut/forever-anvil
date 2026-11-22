@@ -23,6 +23,7 @@
   import { FACTIONS } from "../lib/labels";
   import { addToWatch, setTarget, setWatch } from "../lib/watchstore";
   import { changeSince, cheapestHouse, decodeIds, encodeIds, hitMessages, targetHits } from "../lib/watchmath.js";
+  import { watchString } from "../lib/addonstring.js";
   import { autoRefresh } from "../lib/autorefresh";
   import MoneyInput from "./MoneyInput.svelte";
   import { SHARDS } from "../lib/pricemath.js";
@@ -136,6 +137,11 @@
     if (await copyText(url, "Copy this link to your watchlist:")) notify("Link copied: anyone who opens it sees these items");
   }
 
+  async function copyForAddon() {
+    const text = watchString(watch.items);
+    if (await copyText(text, "Copy this, then type /fa import in game and paste it:")) notify("Copied: in game, type /fa import and paste it");
+  }
+
   async function clearAll() {
     const n = watch.items.length;
     if (!n) return;
@@ -218,6 +224,7 @@
       {#if !shared && watch.items.length}
         <div class="wl-actions">
           <button type="button" class="btn btn-ghost btn-sm" onclick={shareLink}><Icon name="link" size={16} line />Copy share link</button>
+          <button type="button" class="btn btn-ghost btn-sm" onclick={copyForAddon} title="For the Forever Anvil addon: type /fa import in game and paste it"><Icon name="copy" size={16} line />Copy for the addon</button>
           <button type="button" class="btn btn-ghost btn-sm" onclick={clearAll}>Clear all</button>
         </div>
       {/if}
