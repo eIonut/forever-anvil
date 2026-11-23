@@ -9,6 +9,7 @@
 ## IconTexture: Interface\AddOns\Landfall\Media\Icon
 ## X-Website: https://foreveranvil.com
 ## X-Curse-Project-ID: 1827101
+## X-Wago-ID: aND9AA6o
 
 Logic.lua
 Discovery.lua

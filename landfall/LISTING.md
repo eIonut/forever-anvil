@@ -21,7 +21,7 @@ Beautiful zone title cards: the name, whose land it is, its level range for you,
 - Main category: **Map & Minimap**. Extra: **Quests & Leveling**, **Miscellaneous**.
 - Game versions come from the toc per file: **WoW Forever** and **Classic Era**.
 - License: **MIT**. Project image: `landfall/brand/logo.png`.
-- Screenshots, in this order: a contested zone with the red PvP warning and "dangerous for you" (the "know before you go" shot), a "First visit" stamp, the bronze style, the cinematic style with its bars, a zone card with "Dungeons here" and "Better for your level", the settings page.
+- Screenshots (made in build/landfall-screenshots, upload in this order): 01 First visit in Tanaris with the PvP warning and "Dungeon here" (the "know before you go" shot, also the featured image), 02 Cinematic over the world, 03 "Better for your level" in Thousand Needles, 04 a "Discovered" stamp, 05 Riverglades (a new Forever zone), 06 the settings page, 07 the minimap menu. Still to add: Bronze (after its fix) and the danger flash.
 
 ## Description
 
