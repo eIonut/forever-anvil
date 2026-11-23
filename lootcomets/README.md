@@ -19,6 +19,8 @@ Only reads where the game's frames are; it never changes them, so it can't taint
 
 Bag addons: **Bagnon** is supported (its inventory window, from the global `Bagnon.Frames`; its item buttons keep the bag in `.bag` and the slot as their ID). Others (Baganator, ElvUI bags, AdiBags) aren't looked for yet: with one of those, comets fly to the bag bar, or the bottom right corner when the bar is hidden too. The bank counts as open from `BANKFRAME_OPENED` to `BANKFRAME_CLOSED`, since bag addons hide the game's bank window.
 
+The CurseForge and Wago page text (name with keywords, summary, categories, description) is in [LISTING.md](LISTING.md).
+
 ## Commands
 
 - `/comets`: settings

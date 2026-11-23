@@ -1,6 +1,7 @@
 ## Interface: 120105, 50504, 40402, 30404, 20506, 16001, 11509
 ## Title: Loot Comets
-## Notes: Items you loot fly into the bag slot they land in, glowing in their quality colour.
+## Notes: Loot effects: items you loot fly into the bag slot they land in as glowing comets, with trails and sparkles in their quality colour.
+## Category: Bags & Inventory
 ## Author: Forever Anvil
 ## Version: @project-version@
 ## SavedVariables: LootCometsDB
