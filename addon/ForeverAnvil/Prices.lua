@@ -463,7 +463,9 @@ function ns.ShowPrices(search)
     if not win:IsShown() then win:Show() end
     return
   end
-  if win:IsShown() then win:Hide() else win:Show() end
+  if win:IsShown() then win:Hide() return end
+  win:Show()
+  if ns.data and not ns.Ruleset() and ns.ShowRulesetPicker then ns.ShowRulesetPicker() end -- prices need it
 end
 
 function ns.PricesShown() return win ~= nil and win:IsShown() end

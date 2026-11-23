@@ -370,6 +370,7 @@ function ns.ShowUpgrades(on)
   win = win or build()
   if on == nil then on = not win:IsShown() end
   if on then win:Show() else win:Hide() end
+  if on and ns.data and not ns.Ruleset() and ns.ShowRulesetPicker then ns.ShowRulesetPicker() end -- prices need it
 end
 
 function ns.UpgradesShown() return win ~= nil and win:IsShown() end

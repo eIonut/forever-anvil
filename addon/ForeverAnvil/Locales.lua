@@ -235,7 +235,6 @@ ns.AddLocale({ "deDE" }, {
   ["What disenchanting the item is worth after the auction cut, and the Enchanting skill it needs."] = "Was das Entzaubern nach der Auktionsgebühr wert ist, und welche Verzauberkunst-Fertigkeit es braucht.",
   ["which item? Shift-click it into the chat line: |cffffffff/fa watch <item> [price]|r"] = "welcher Gegenstand? Shift-Klick in die Chatzeile: |cffffffff/fa watch <Gegenstand> [Preis]|r",
   ["which item? Shift-click it into the Item box, or type its name or number."] = "welcher Gegenstand? Shift-Klick ins Gegenstandsfeld, oder Namen oder Nummer eingeben.",
-  ["which ruleset is this realm? Type |cffffffff/fa ruleset <name>|r, one of: %s. Prices show once it's set."] = "welcher Realmtyp ist dieser Realm? Gib |cffffffff/fa ruleset <Name>|r ein, einer von: %s. Preise erscheinen, sobald er festgelegt ist.",
   ["Worth"] = "Wert",
   ["wrists"] = "Handgelenke",
   ["you have all %d"] = "du hast alle %d",
@@ -330,6 +329,12 @@ ns.AddLocale({ "deDE" }, {
   ["A note in chat when your prices are over a day old, or when someone in your guild or group has newer ones. New prices come with addon updates: turn on auto-update in your CurseForge or Wago app to always have them."] = "Ein Hinweis im Chat, wenn deine Preise älter als einen Tag sind oder jemand in deiner Gilde oder Gruppe neuere hat. Neue Preise kommen mit Addon-Updates: Schalte automatische Updates in deiner CurseForge- oder Wago-App ein, um sie immer zu haben.",
   ["your prices were last updated %s. Update the addon in your CurseForge or Wago app, or turn on auto-update there, for fresh ones."] = "deine Preise wurden zuletzt %s aktualisiert. Aktualisiere das Addon in deiner CurseForge- oder Wago-App oder schalte dort automatische Updates ein, um neue zu bekommen.",
   ["%s has newer prices than you (updated %s). Update the addon in your CurseForge or Wago app to get them."] = "%s hat neuere Preise als du (aktualisiert %s). Aktualisiere das Addon in deiner CurseForge- oder Wago-App, um sie zu bekommen.",
+  ["? not confirmed in game yet for this region"] = "? in dieser Region noch nicht im Spiel bestätigt",
+  ["Click to change this realm's ruleset"] = "Klicken, um den Realmtyp zu ändern",
+  ["Later"] = "Später",
+  ["Pick the one you chose on the login screen. Each ruleset has its own auction houses, so the prices depend on it."] = "Wähle den, den du beim Einloggen gewählt hast. Jeder Realmtyp hat eigene Auktionshäuser, die Preise hängen also davon ab.",
+  ["pick this realm's ruleset"] = "Realmtyp wählen",
+  ["Which ruleset are you playing?"] = "Welchen Realmtyp spielst du?",
 })
 
 ns.AddLocale({ "frFR" }, {
@@ -563,7 +568,6 @@ ns.AddLocale({ "frFR" }, {
   ["What disenchanting the item is worth after the auction cut, and the Enchanting skill it needs."] = "Ce que rapporte le désenchantement après la commission, et la compétence d'Enchantement requise.",
   ["which item? Shift-click it into the chat line: |cffffffff/fa watch <item> [price]|r"] = "quel objet ? Maj-clic dans la ligne de discussion : |cffffffff/fa watch <objet> [prix]|r",
   ["which item? Shift-click it into the Item box, or type its name or number."] = "quel objet ? Maj-clic dans la case Objet, ou tapez son nom ou son numéro.",
-  ["which ruleset is this realm? Type |cffffffff/fa ruleset <name>|r, one of: %s. Prices show once it's set."] = "quel est le type de ce royaume ? Tapez |cffffffff/fa ruleset <nom>|r, parmi : %s. Les prix s'affichent ensuite.",
   ["Worth"] = "Valeur",
   ["wrists"] = "poignets",
   ["you have all %d"] = "vous avez les %d",
@@ -658,6 +662,12 @@ ns.AddLocale({ "frFR" }, {
   ["A note in chat when your prices are over a day old, or when someone in your guild or group has newer ones. New prices come with addon updates: turn on auto-update in your CurseForge or Wago app to always have them."] = "Un message dans la discussion quand vos prix ont plus d'un jour, ou quand quelqu'un de votre guilde ou de votre groupe en a de plus récents. Les nouveaux prix arrivent avec les mises à jour de l'addon : activez la mise à jour automatique dans votre application CurseForge ou Wago pour toujours les avoir.",
   ["your prices were last updated %s. Update the addon in your CurseForge or Wago app, or turn on auto-update there, for fresh ones."] = "dernière mise à jour de vos prix : %s. Mettez à jour l'addon dans votre application CurseForge ou Wago, ou activez-y la mise à jour automatique, pour en avoir de nouveaux.",
   ["%s has newer prices than you (updated %s). Update the addon in your CurseForge or Wago app to get them."] = "%s a des prix plus récents que vous (mis à jour %s). Mettez à jour l'addon dans votre application CurseForge ou Wago pour les avoir.",
+  ["? not confirmed in game yet for this region"] = "? pas encore vérifié en jeu pour cette région",
+  ["Click to change this realm's ruleset"] = "Cliquez pour changer le type de royaume",
+  ["Later"] = "Plus tard",
+  ["Pick the one you chose on the login screen. Each ruleset has its own auction houses, so the prices depend on it."] = "Choisissez celui pris à l'écran de connexion. Chaque type de royaume a ses propres hôtels des ventes, les prix en dépendent donc.",
+  ["pick this realm's ruleset"] = "choisir le type de royaume",
+  ["Which ruleset are you playing?"] = "Sur quel type de royaume jouez-vous ?",
 })
 
 ns.AddLocale({ "esES", "esMX" }, {
@@ -891,7 +901,6 @@ ns.AddLocale({ "esES", "esMX" }, {
   ["What disenchanting the item is worth after the auction cut, and the Enchanting skill it needs."] = "Lo que vale desencantarlo tras la comisión de subasta, y la habilidad de Encantamiento que necesita.",
   ["which item? Shift-click it into the chat line: |cffffffff/fa watch <item> [price]|r"] = "¿qué objeto? Mayús-clic en la línea de chat: |cffffffff/fa watch <objeto> [precio]|r",
   ["which item? Shift-click it into the Item box, or type its name or number."] = "¿qué objeto? Mayús-clic en la casilla Objeto, o escribe su nombre o número.",
-  ["which ruleset is this realm? Type |cffffffff/fa ruleset <name>|r, one of: %s. Prices show once it's set."] = "¿qué tipo de reino es este? Escribe |cffffffff/fa ruleset <nombre>|r, uno de: %s. Los precios aparecen al fijarlo.",
   ["Worth"] = "Valor",
   ["wrists"] = "muñecas",
   ["you have all %d"] = "tienes los %d",
@@ -986,6 +995,12 @@ ns.AddLocale({ "esES", "esMX" }, {
   ["A note in chat when your prices are over a day old, or when someone in your guild or group has newer ones. New prices come with addon updates: turn on auto-update in your CurseForge or Wago app to always have them."] = "Un aviso en el chat cuando tus precios tienen más de un día, o cuando alguien de tu hermandad o grupo los tiene más recientes. Los precios nuevos llegan con las actualizaciones del addon: activa la actualización automática en tu aplicación de CurseForge o Wago para tenerlos siempre.",
   ["your prices were last updated %s. Update the addon in your CurseForge or Wago app, or turn on auto-update there, for fresh ones."] = "tus precios se actualizaron por última vez %s. Actualiza el addon en tu aplicación de CurseForge o Wago, o activa allí la actualización automática, para tener precios nuevos.",
   ["%s has newer prices than you (updated %s). Update the addon in your CurseForge or Wago app to get them."] = "%s tiene precios más recientes que tú (actualizados %s). Actualiza el addon en tu aplicación de CurseForge o Wago para tenerlos.",
+  ["? not confirmed in game yet for this region"] = "? aún no comprobado en el juego para esta región",
+  ["Click to change this realm's ruleset"] = "Haz clic para cambiar el tipo de reino",
+  ["Later"] = "Más tarde",
+  ["Pick the one you chose on the login screen. Each ruleset has its own auction houses, so the prices depend on it."] = "Elige el que escogiste en la pantalla de inicio. Cada tipo de reino tiene sus propias casas de subastas, así que los precios dependen de él.",
+  ["pick this realm's ruleset"] = "elegir el tipo de reino",
+  ["Which ruleset are you playing?"] = "¿En qué tipo de reino juegas?",
 })
 
 ns.ApplyLocale()
