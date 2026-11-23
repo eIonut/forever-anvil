@@ -8,6 +8,7 @@
 ## SavedVariablesPerCharacter: LandfallCharDB
 ## IconTexture: Interface\AddOns\Landfall\Media\Icon
 ## X-Website: https://foreveranvil.com
+## X-Curse-Project-ID: 1827101
 
 Logic.lua
 Discovery.lua
