@@ -50,4 +50,5 @@ jobs:
         with:
           name: loot-comets
           path: build/lootcomets-src/.release/*.zip
+          include-hidden-files: true # the packager writes into .release, a hidden folder upload-artifact skips by default
           retention-days: 7

@@ -57,4 +57,5 @@ jobs:
         with:
           name: forever-anvil
           path: build/addon-src/.release/*.zip
+          include-hidden-files: true # the packager writes into .release, a hidden folder upload-artifact skips by default
           retention-days: 7
