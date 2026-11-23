@@ -1,0 +1,54 @@
+# Publishes the Landfall addon (landfall/) to CurseForge and Wago. Only by hand, after changing its code:
+#   Actions → "Landfall release" → Run workflow
+#
+# Each run: tests, a staged copy tagged with landfall/VERSION (tools/landfall-release.sh), then the BigWigs
+# packager zips it and uploads it. Same secrets as the Forever Anvil release: CF_API_KEY, WAGO_API_TOKEN.
+# Project ids are in landfall/Landfall/Landfall.toc (X-Curse-Project-ID, X-Wago-ID); a site without one
+# is skipped, and the zip is still kept as a download on the run's page.
+name: Landfall release
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: landfall
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - name: Tests
+        run: node --test pipeline/landfall.test.js
+
+      - name: Stage the release
+        run: bash tools/landfall-release.sh
+
+      - name: Package and upload
+        uses: BigWigsMods/packager@01e8631a69c69d7654c788d152630d5fed9e3812 # v2
+        with:
+          args: -t build/landfall-src
+        env:
+          CF_API_KEY: ${{ secrets.CF_API_KEY }}
+          WAGO_API_TOKEN: ${{ secrets.WAGO_API_TOKEN }}
+
+      - name: Keep the zip
+        uses: actions/upload-artifact@v7
+        with:
+          name: landfall
+          path: build/landfall-src/.release/*.zip
+          include-hidden-files: true # the packager writes into .release, a hidden folder upload-artifact skips by default
+          retention-days: 7

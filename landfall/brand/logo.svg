@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#14183a"/>
+      <stop offset="0.45" stop-color="#3b2d5c"/>
+      <stop offset="0.7" stop-color="#b8584a"/>
+      <stop offset="0.82" stop-color="#f2a25a"/>
+    </linearGradient>
+    <radialGradient id="sun" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#fff3c4"/>
+      <stop offset="0.55" stop-color="#ffd27a"/>
+      <stop offset="1" stop-color="#ffb04a"/>
+    </radialGradient>
+    <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffd27a" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#ff9a4a" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="far" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6b3f63"/>
+      <stop offset="1" stop-color="#3c2347"/>
+    </linearGradient>
+    <linearGradient id="mid" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3a2340"/>
+      <stop offset="1" stop-color="#1f1328"/>
+    </linearGradient>
+    <linearGradient id="near" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1a0f1f"/>
+      <stop offset="1" stop-color="#0b070e"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#e8c36a" stop-opacity="0"/>
+      <stop offset="0.25" stop-color="#e8c36a"/>
+      <stop offset="0.75" stop-color="#e8c36a"/>
+      <stop offset="1" stop-color="#e8c36a" stop-opacity="0"/>
+    </linearGradient>
+    <clipPath id="round"><rect width="512" height="512" rx="96"/></clipPath>
+  </defs>
+
+  <g clip-path="url(#round)">
+    <rect width="512" height="512" fill="url(#sky)"/>
+
+    <!-- stars -->
+    <g fill="#fff6dc">
+      <circle cx="84" cy="70" r="2.4"/><circle cx="150" cy="40" r="1.6"/><circle cx="214" cy="92" r="1.8"/>
+      <circle cx="330" cy="54" r="2"/><circle cx="410" cy="96" r="1.6"/><circle cx="460" cy="44" r="2.2"/>
+      <circle cx="268" cy="30" r="1.4"/><circle cx="52" cy="150" r="1.4"/>
+      <path d="M392 150 L397 166 L413 171 L397 176 L392 192 L387 176 L371 171 L387 166 Z" opacity="0.95"/>
+    </g>
+
+    <!-- the sun on the horizon -->
+    <circle cx="256" cy="330" r="190" fill="url(#sunGlow)"/>
+    <circle cx="256" cy="330" r="78" fill="url(#sun)"/>
+
+    <!-- mountains, far to near -->
+    <path d="M0 330 L70 270 L120 300 L190 230 L250 290 L300 250 L360 300 L430 240 L512 300 L512 512 L0 512 Z" fill="url(#far)"/>
+    <path d="M0 370 L60 330 L110 350 L170 300 L230 352 L290 318 L340 350 L400 310 L470 345 L512 330 L512 512 L0 512 Z" fill="url(#mid)"/>
+    <path d="M0 420 L90 380 L170 410 L250 372 L330 408 L420 376 L512 404 L512 512 L0 512 Z" fill="url(#near)"/>
+
+    <!-- the title card's rule: a gold line with a diamond -->
+    <rect x="40" y="452" width="432" height="4" fill="url(#gold)"/>
+    <g transform="translate(256 454) rotate(45)">
+      <rect x="-15" y="-15" width="30" height="30" fill="#e8c36a"/>
+      <rect x="-23" y="-23" width="46" height="46" fill="none" stroke="#e8c36a" stroke-width="3" opacity="0.75"/>
+    </g>
+    <circle cx="160" cy="454" r="5" fill="#e8c36a"/>
+    <circle cx="352" cy="454" r="5" fill="#e8c36a"/>
+  </g>
+</svg>
