@@ -19,7 +19,9 @@ Loot effects: items you loot fly into your bags as glowing comets, with trails, 
 ## Categories and game versions
 
 - Main category: **Bags & Inventory**. Extra: **Miscellaneous** (or an art/cosmetic category if the site has one).
-- Game versions: **WoW Forever**, **Retail**, **Classic Era**, and the other Classic versions offered (Burning Crusade, Wrath, Cataclysm, MoP). Uploads for a version the project doesn't list are refused.
+- Game versions are set per file, not on the project: the release workflow tags each upload from the toc's `## Interface:` list (Forever, Retail, Classic Era, Burning Crusade, Wrath, Cataclysm, MoP). For a file uploaded by hand, tick them under "Supported Version".
+- License: **MIT** (the `LICENSE` file in the addon). Class: **Addons**.
+- A new project is reviewed by CurseForge's moderators only once it has a file: create it, put its project ID in the toc (`## X-Curse-Project-ID:`), then run the release workflow.
 - Project image (avatar): `lootcomets/brand/logo.png` (512×512, from `brand/logo.svg` via `node tools/lootcomets-logo.js`).
 - Screenshots: a comet mid-flight (a rainbow or dust trail shows best), an epic landing with the screen glow, and the settings page.
 

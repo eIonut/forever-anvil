@@ -7,6 +7,7 @@
 ## SavedVariables: LootCometsDB
 ## IconTexture: Interface\AddOns\LootComets\Media\Icon
 ## X-Website: https://foreveranvil.com
+## X-Curse-Project-ID: 1826094
 
 Logic.lua
 Targets.lua
