@@ -1,0 +1,17 @@
+## Interface: 16001, 11509
+## Title: Landfall
+## Notes: Zone title cards: arriving somewhere shows its name, whose territory it is, its level range against yours, and first visits and discoveries. Replaces the plain zone text.
+## Category: Map & Minimap
+## Author: Forever Anvil
+## Version: @project-version@
+## SavedVariables: LandfallDB
+## SavedVariablesPerCharacter: LandfallCharDB
+## IconTexture: Interface\AddOns\Landfall\Media\Icon
+## X-Website: https://foreveranvil.com
+
+Logic.lua
+Discovery.lua
+Cards.lua
+Options.lua
+Minimap.lua
+Core.lua

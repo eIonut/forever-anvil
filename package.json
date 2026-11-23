@@ -7,7 +7,7 @@
     "build": "astro build",
     "preview": "astro preview",
     "check": "astro check && svelte-check --threshold warning",
-    "test": "node --test pipeline/aggregate.test.js pipeline/talentmath.test.js pipeline/econmath.test.js pipeline/sales.test.js pipeline/cratemath.test.js pipeline/levelmath.test.js pipeline/upgrades.test.js pipeline/watchmath.test.js pipeline/homesummary.test.js pipeline/demath.test.js pipeline/addon.test.js pipeline/lootcomets.test.js worker/hourly.test.js",
+    "test": "node --test pipeline/aggregate.test.js pipeline/talentmath.test.js pipeline/econmath.test.js pipeline/sales.test.js pipeline/cratemath.test.js pipeline/levelmath.test.js pipeline/upgrades.test.js pipeline/watchmath.test.js pipeline/homesummary.test.js pipeline/demath.test.js pipeline/addon.test.js pipeline/lootcomets.test.js pipeline/landfall.test.js worker/hourly.test.js",
     "prices": "node pipeline/run.js",
     "addon": "node pipeline/addon-data.js"
   },
