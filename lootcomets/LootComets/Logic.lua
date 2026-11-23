@@ -53,6 +53,18 @@ function C.Gains(old, now)
   return gains
 end
 
+-- Gains without the item you just moved by hand. Splitting a stack takes the split-off part out of the bag
+-- while it's on the cursor (3 → 2), and dropping it puts it back (2 → 3): that's a move, not loot. Same for
+-- dragging gear or bank items into the bags. held: the item ID that is or just was on the cursor (or nil).
+function C.WithoutHeld(gains, held)
+  if not held then return gains end
+  local out = {}
+  for _, g in ipairs(gains) do
+    if g.id ~= held then out[#out + 1] = g end
+  end
+  return out
+end
+
 -- The arc's bend: a point beside the straight line from (x0, y0) to (x1, y1), on its upper side, so comets
 -- loop up and over like something thrown. side (-1 to 1) nudges each comet so a handful don't overlap;
 -- height (the arc setting: 0.3 flat, 1 normal, 1.8 high) scales the bend.
@@ -152,6 +164,32 @@ function C.TestPicks(items)
     end
   end
   return picks
+end
+
+-- Coin comets for a money gain (in copper): which coins fly, biggest first. More coins for more money
+-- (2 for a few copper, up to 8 from 100 gold), and every kind in the amount gets at least one coin.
+function C.CoinPlan(copper)
+  if not copper or copper <= 0 then return {} end
+  local g, s, c = math.floor(copper / 10000), math.floor(copper / 100) % 100, copper % 100
+  local n = (g >= 100 and 8) or (g >= 10 and 6) or (g >= 1 and 5) or (s >= 1 and 3) or 2
+  local kinds = {}
+  if g > 0 then kinds[#kinds + 1] = "gold" end
+  if s > 0 then kinds[#kinds + 1] = "silver" end
+  if c > 0 then kinds[#kinds + 1] = "copper" end
+  local plan = {}
+  for i = 1, n - #kinds + 1 do plan[#plan + 1] = kinds[1] end -- the biggest kind takes the rest
+  for i = 2, #kinds do plan[#plan + 1] = kinds[i] end
+  return plan
+end
+
+-- "12g 34s 56c", leaving out the parts that are zero (for clients without the coin-icon text)
+function C.MoneyText(copper)
+  local g, s, c = math.floor(copper / 10000), math.floor(copper / 100) % 100, copper % 100
+  local parts = {}
+  if g > 0 then parts[#parts + 1] = g .. "g" end
+  if s > 0 then parts[#parts + 1] = s .. "s" end
+  if c > 0 or #parts == 0 then parts[#parts + 1] = c .. "c" end
+  return table.concat(parts, " ")
 end
 
 -- Whether an item of this quality gets a comet. quality nil (not known yet) counts as common.

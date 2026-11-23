@@ -13,7 +13,7 @@ The in-game AddOns list keeps the short name "Loot Comets" (`## Title` in the to
 ## Summary (one line, under 150 characters)
 
 ```
-Loot effects: items you loot fly into your bags as glowing comets, with trails, sparkles and rainbow colours. Works with Bagnon.
+Loot effects: items you loot fly into your bags as glowing comets, with trails, sparkles and rainbow colours. Works with Bagnon, ElvUI and Baganator.
 ```
 
 ## Categories and game versions
@@ -36,10 +36,11 @@ No data, no setup: install it and loot something.
 
 ## What you see
 
-- **Comets into the right slot:** open bags (the game's or **Bagnon**) show exactly where each item went. With your bags closed, it flies into that bag's button.
+- **Comets into the right slot:** open bags (the game's, **Bagnon**, **ElvUI** or **Baganator**) show exactly where each item went. With your bags closed, it flies into that bag's button.
 - **Quality colours:** grey, white, green, blue and purple items each fly in their own colour.
 - **Landings:** a flash and a ring on the slot; sparkles for green, blue and purple; a sound and a screen glow for epics.
 - **Stacks:** more of something you already carry gets a small, quick comet and a "+3" over the slot.
+- **Coins:** gold, silver and copper you loot or earn fly into the money shown in your bags, with how much you got.
 - **Not just loot:** items from vendors, quests, mail, trades and crafting fly out of the window they came from.
 - **Quiet when it should be:** moving items around your bags, swapping gear and using the bank never launch comets.
 
@@ -52,7 +53,7 @@ Esc → Options → AddOns → Loot Comets, or type `/comets`. Every change laun
 - **Colour:** the item's quality, a colour you pick, or rainbow
 - **Arc:** flat, normal or a high loop
 - **Landing:** subtle, normal or big; sparkles and the epic screen glow can be turned off
-- **Speed and size** sliders, grey items on or off, stack comets, counts and sound
+- **Speed and size** sliders, grey items on or off, stack comets, counts, coin comets and sound
 
 ## Commands
 
@@ -65,7 +66,7 @@ Esc → Options → AddOns → Loot Comets, or type `/comets`. Every change laun
 
 ## Works with
 
-WoW Forever, Retail and the Classic versions. The game's own bags and Bagnon. With other bag addons, comets fly to your bag bar.
+WoW Forever, Retail and the Classic versions. The game's own bags, Bagnon, ElvUI and Baganator. With other bag addons, comets fly to your bag bar.
 
 Lightweight: nothing runs until an item arrives, and it never touches the game's own frames.
 

@@ -195,19 +195,21 @@ local function particle(o)
   })
 end
 
--- "+3" rising off the slot
-local function countText(x, y, text, r, g, b)
+-- "+3" (or "+1g 20s") rising off the slot, kept inside the screen's right edge
+local function countText(x, y, text, r, g, b, long)
   local fs = getText()
   fs:SetText(text)
   fs:SetTextColor(r, g, b)
+  local cx = math.min(x + 14, layer:GetWidth() - (fs:GetStringWidth() or 0) / 2 - 8)
+  local life = long and 1.8 or 1.1
   add({
     age = 0,
     update = function(e, dt)
       e.age = e.age + dt
-      local p = e.age / 1.1
+      local p = e.age / life
       if p >= 1 then return false end
       fs:ClearAllPoints()
-      fs:SetPoint("CENTER", layer, "BOTTOMLEFT", x + 14, y + 10 + 34 * (1 - (1 - p) * (1 - p)))
+      fs:SetPoint("CENTER", layer, "BOTTOMLEFT", cx, y + 10 + 34 * (1 - (1 - p) * (1 - p)))
       fs:SetAlpha(p < 0.6 and 1 or (1 - (p - 0.6) / 0.4))
       return true
     end,
@@ -284,7 +286,9 @@ function ns.Land(o)
     if db.epicGlow then edgeGlow(r, g, b) end
   end
 
-  if db.counts and o.count and (o.count > 1 or o.small) then
+  if o.label then -- coins: how much money, on the last coin
+    countText(x, y, o.label, 1, 0.9, 0.55, true) -- gold text, up a little longer so you can read it
+  elseif db.counts and o.count and (o.count > 1 or o.small) then
     countText(x, y, "+" .. o.count, r, g, b)
   end
 end
@@ -306,9 +310,10 @@ function ns.Fire(o)
     return
   end
 
-  local rainbow = db.color == "rainbow"
+  local rainbow = db.color == "rainbow" and not o.color -- coins keep their own gold, silver or copper
   local hue0 = math.random()
   local r0, g0, b0 = ns.ColorFor(o.quality, hue0)
+  if o.color then r0, g0, b0 = o.color[1], o.color[2], o.color[3] end
   local size = 34 * (db.size or 1) * (o.small and 0.62 or 1)
   local cx, cy = Logic.Control(o.x0, o.y0, o.x1, o.y1, o.side, db.arc)
   local dur = Logic.Duration(o.x0, o.y0, o.x1, o.y1, db.speed) * (o.small and 0.85 or 1)

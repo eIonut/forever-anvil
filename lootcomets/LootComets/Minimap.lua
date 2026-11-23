@@ -130,6 +130,7 @@ local TOGGLES = {
   { "Sparkles on landing", "sparkles" },
   { "Screen glow for epics", "epicGlow" },
   { "Sound for epic items", "sound" },
+  { "Coin comets", "coins" },
 }
 
 local function buildMenu()

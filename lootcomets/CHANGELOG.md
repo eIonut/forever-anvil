@@ -1,3 +1,9 @@
+## 1.1
+
+- **Coin comets**: gold, silver and copper you loot or earn (vendors, quests, mail) fly into the money shown in your bags as little coins, with how much you got, like "+1g 20s". More money, more coins. Works with the game's bags, Bagnon, ElvUI and Baganator; turn it off under "Coin comets" in the settings or the minimap menu. `/comets test` shows a shower too.
+- **ElvUI and Baganator bags**: comets now land in the exact slot in ElvUI's bag window and in Baganator's, as they already did with the game's bags and Bagnon. With your bags closed, they fly to the bag bar as before (ElvUI's included).
+- Splitting a stack across slots no longer launches comets, and neither does dragging gear or bank items into your bags: an item you drop from the cursor is a move, not loot.
+
 ## 1.0.1
 
 - Test comets (`/comets test`, the menu and the settings page) always show real items from your bags. A quality you carry nothing of borrows another item, instead of showing a question mark.

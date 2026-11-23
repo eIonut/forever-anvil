@@ -12,6 +12,7 @@ local SWITCHES = {
   { "sparkles", "Sparkles on landing", "Green, blue and purple items burst into sparkles when they land." },
   { "epicGlow", "Screen glow for epics", "The edges of the screen glow in the item's colour when an epic or better item lands." },
   { "sound", "Sound for epic items", "A sound when an epic or better item lands." },
+  { "coins", "Coin comets", "Gold, silver and copper you loot or earn fly into the money shown in your bags, with how much you got." },
   { "minimapButton", "Minimap button", "Click: a menu to change the look and switch things on and off. Right-click: these settings. Drag: move it. /comets minimap brings it back." },
 }
 local SLIDERS = {

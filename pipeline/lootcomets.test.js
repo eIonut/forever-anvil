@@ -169,3 +169,123 @@ test("test comets: one per quality, each with a real bag item, borrowing the clo
   assert.equal(out,
     "0=0:3 1=0:1 2=0:2 3=1:1 4=0:2 | 0=0:5 1=0:4 2=0:3 3=0:2 4=0:1 5=0:6 | 0=2:7 1=2:7 2=2:7 3=2:7 4=2:7 | 0=none 1=none 2=none 3=none 4=none");
 });
+
+/** Runs Lua code with Targets.lua loaded as ns (frames mocked by the code itself); returns a string. */
+function runTargets(body) {
+  const L = lauxlib.luaL_newstate();
+  lualib.luaL_openlibs(L);
+  lua.lua_pushstring(L, to_luastring(fs.readFileSync(path.join(ADDON, "Targets.lua"), "utf8")));
+  lua.lua_setglobal(L, to_luastring("TARGETS_SRC"));
+  const code = `
+-- a frame: shown or not, placed at (x, y) or nowhere (x nil), with an ID and children
+local function frame(o)
+  o = o or {}
+  local kids = o.kids or {}
+  o.kids = nil
+  o.IsVisible = function() return o.shown ~= false end
+  o.GetCenter = function() if o.x then return o.x, o.y end end
+  o.GetEffectiveScale = function() return 1 end
+  o.GetWidth = function() return 36 end
+  o.GetID = function() return o.id or 0 end
+  o.GetChildren = function() return unpack(kids) end
+  o.GetParent = function() return o.parent end
+  for _, k in ipairs(kids) do k.parent = o end
+  return o
+end
+unpack = unpack or table.unpack
+UIParent = frame({ x = 1000, y = 500 }); UIParent.GetWidth = function() return 2000 end
+GetTime = function() return 0 end
+local ns = {}
+assert(load(TARGETS_SRC, "=Targets.lua"))("LootComets", ns)
+local function landing(bag, slot)
+  local x, y, _, to = ns.Landing(bag, slot)
+  return to .. "@" .. math.floor(x) .. "," .. math.floor(y)
+end
+${body}`;
+  if (lauxlib.luaL_loadstring(L, to_luastring(code)) !== lua.LUA_OK || lua.lua_pcall(L, 0, 1, 0) !== lua.LUA_OK) {
+    throw new Error(lua.lua_tojsstring(L, -1));
+  }
+  return lua.lua_tojsstring(L, -1);
+}
+
+test("ElvUI: its slot wins over the game's bag window that ElvUI leaves shown with no position", () => {
+  const out = runTargets(`
+    -- the game's combined bag window: shown, its slot matches, but nowhere on screen (ElvUI's DisableFrame)
+    local ghost = frame({ id = 1 }); ghost.GetBagID = function() return 0 end
+    ContainerFrameCombinedBags = frame({})
+    ContainerFrameCombinedBags.EnumerateValidItems = function() return ipairs({ ghost }) end
+    -- ElvUI's window: Bags[bag][slot]
+    local slot = frame({ id = 1, x = 1700, y = 300 }); slot.BagID = 0
+    ElvUI_ContainerFrame = frame({ x = 1750, y = 350 })
+    ElvUI_ContainerFrame.Bags = { [0] = { slot } }
+    return landing(0, 1) .. " | " .. ns.ElvUIReport(0, 1)`);
+  assert.equal(out, "slot@1700,300 | window on screen, game's bag window shown with no position (skipped), slot on screen, ID 1, BagID 0");
+});
+
+test("ElvUI with bags closed and no bag bar: the corner", () => {
+  const out = runTargets(`
+    ElvUI_ContainerFrame = frame({ shown = false })
+    ElvUI_ContainerFrame.Bags = {}
+    return landing(0, 1)`);
+  assert.equal(out, "corner@1940,60");
+});
+
+test("Baganator: a slot button found by the game's GetBagID under its backpack window", () => {
+  const out = runTargets(`
+    local button = frame({ id = 4, x = 1500, y = 420 })
+    button.GetBagID = function(self) return self.parent:GetID() end
+    local indexFrame = frame({ id = 2, x = 1, y = 1, kids = { button } })
+    Baganator_SingleViewBackpackViewFrameblizzard = frame({ x = 1500, y = 400, kids = { indexFrame } })
+    return landing(2, 4) .. " " .. ns.Landing(2, 5)`);
+  assert.match(out, /^slot@1500,420 /);
+});
+
+test("splitting a stack is a move, not loot: the item dropped from the cursor is left out", () => {
+  const out = runLua(`
+    local full = C.Snapshot({ it(0, 1, 2592, 3) })                     -- 3 wool cloth
+    local onCursor = C.Snapshot({ it(0, 1, 2592, 2) })                 -- 1 split off onto the cursor
+    local dropped = C.Snapshot({ it(0, 1, 2592, 2), it(0, 2, 2592, 1) }) -- dropped in an empty slot
+    local looted = C.Snapshot({ it(0, 1, 2592, 2), it(0, 2, 2592, 1), it(0, 3, 4306, 1) }) -- then silk loot
+    local function ids(g) local t = {} for _, x in ipairs(g) do t[#t + 1] = x.id .. "+" .. x.gained end return table.concat(t, ",") end
+    return table.concat({
+      ids(C.Gains(full, onCursor)),                                     -- picking up: nothing
+      ids(C.Gains(onCursor, dropped)),                                  -- without the cursor rule: looks like loot
+      ids(C.WithoutHeld(C.Gains(onCursor, dropped), 2592)),             -- with it: nothing
+      ids(C.WithoutHeld(C.Gains(dropped, looted), 2592)),               -- real loot of another item still flies
+      ids(C.WithoutHeld(C.Gains(onCursor, dropped), nil)),              -- nothing held: unchanged
+    }, " | ")`);
+  assert.equal(out, " | 2592+1 |  | 4306+1 | 2592+1");
+});
+
+test("coin comets: more coins for more money, every kind in the amount gets one, biggest first", () => {
+  const out = runLua(`
+    local function show(copper) return table.concat(C.CoinPlan(copper), ",") end
+    return table.concat({ show(7), show(250), show(10005), show(123456), show(1500000), show(0), show(-3) }, " | ")`);
+  assert.equal(out, [
+    "copper,copper",
+    "silver,silver,copper",
+    "gold,gold,gold,gold,copper",
+    "gold,gold,gold,gold,silver,copper",
+    "gold,gold,gold,gold,gold,gold,gold,gold",
+    "",
+    "",
+  ].join(" | "));
+});
+
+test("money text leaves out zero parts", () => {
+  const out = runLua(`return table.concat({ C.MoneyText(123456), C.MoneyText(10005), C.MoneyText(250), C.MoneyText(0), C.MoneyText(1500000) }, " | ")`);
+  assert.equal(out, "12g 34s 56c | 1g 5c | 2s 50c | 0c | 150g");
+});
+
+test("coins land on the money in ElvUI's bag window (text with no scale of its own), else the corner", () => {
+  const out = runTargets(`
+    local closed = select(4, ns.MoneyLanding())
+    ElvUI_ContainerFrame = frame({ x = 1750, y = 350 })
+    ElvUI_ContainerFrame.Bags = {}
+    local text = { IsVisible = function() return true end, GetCenter = function() return 1880, 120 end,
+      GetWidth = function() return 90 end, GetParent = function() return ElvUI_ContainerFrame end }
+    ElvUI_ContainerFrame.goldText = text
+    local x, y, _, to = ns.MoneyLanding()
+    return closed .. " | " .. to .. "@" .. math.floor(x) .. "," .. math.floor(y)`);
+  assert.equal(out, "corner | ElvUI money@1880,120");
+});

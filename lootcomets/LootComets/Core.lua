@@ -19,6 +19,7 @@ ns.DEFAULTS = {
   landing = "normal",  -- "subtle", "normal", "big"
   sparkles = true,     -- sparkles when green and better items land
   epicGlow = true,     -- the screen's edges glow when an epic or better item lands
+  coins = true,        -- money you get flies into your money display as coins, with how much
   minimapButton = true,
   minimapAngle = 200,  -- where the minimap button sits (degrees around the minimap)
   v = 1,
@@ -84,7 +85,8 @@ local atBank = false -- the bank or guild bank is open (bag addons like Bagnon h
 local function quiet()
   if GetTime() < quietUntil or atBank then return true end
   -- taking items out of the bank is moving your own things, not loot
-  return (BankFrame and BankFrame:IsShown()) or (GuildBankFrame and GuildBankFrame:IsShown()) or false
+  -- (on screen, not just shown: ElvUI leaves the game's bank window shown with no position)
+  return ns.OnScreen(BankFrame) or ns.OnScreen(GuildBankFrame) or false
 end
 
 local FAN = { 0, 1, -1, 2, -2 }
@@ -113,11 +115,77 @@ local function launch(gains, now)
   end
 end
 
+-- the item on your cursor, and until when it counts as "just dropped" (a second after you let go)
+local held, heldUntil = nil, 0
+
+-- money on the cursor (picked up for a trade or the mail) and put back is a move too
+local moneyHeld, moneyHeldUntil = false, 0
+
+local function cursorChanged()
+  local kind, id = GetCursorInfo()
+  if kind == "item" and id then
+    held, heldUntil = id, math.huge
+  elseif held then
+    heldUntil = GetTime() + 1
+  end
+  if kind == "money" then
+    moneyHeld, moneyHeldUntil = true, math.huge
+  elseif moneyHeld then
+    moneyHeld, moneyHeldUntil = false, GetTime() + 1
+  end
+end
+
+---------------------------------------------------------------------------------------------------
+-- coins: money you get flies into your money display
+
+local COINS = {
+  gold = { "Interface\\MoneyFrame\\UI-GoldIcon", { 1, 0.82, 0.25 } },
+  silver = { "Interface\\MoneyFrame\\UI-SilverIcon", { 0.85, 0.88, 0.95 } },
+  copper = { "Interface\\MoneyFrame\\UI-CopperIcon", { 0.93, 0.55, 0.28 } },
+}
+
+local function moneyLabel(copper)
+  if GetCoinTextureString then
+    local ok, s = pcall(GetCoinTextureString, copper)
+    if ok and s then return "+" .. s end
+  end
+  return "+" .. Logic.MoneyText(copper)
+end
+
+-- a shower of coins for copper gained, from (x0, y0); the last coin shows how much
+function ns.CoinShower(copper, x0, y0, delay)
+  local plan = Logic.CoinPlan(copper)
+  local x1, y1, w, to = ns.MoneyLanding()
+  for i, kind in ipairs(plan) do
+    local spread = (i - 1) % 5 - 2
+    ns.Fire({
+      icon = COINS[kind][1], color = COINS[kind][2], quality = 1, small = true,
+      x0 = x0 + spread * 10, y0 = y0 + ((i - 1) % 3) * 6, x1 = x1, y1 = y1, w = w,
+      delay = (delay or 0) + (i - 1) * 0.07, side = spread / 2,
+      label = i == #plan and moneyLabel(copper) or nil,
+    })
+  end
+  ns.lastCoins = { amount = copper, to = to }
+end
+
+local lastMoney
+
+local function moneyChanged()
+  local now = GetMoney()
+  local gained = now - (lastMoney or now)
+  lastMoney = now
+  if gained <= 0 or not (ready and ns.db.enabled and ns.db.coins) or quiet() then return end
+  if moneyHeld or GetTime() < moneyHeldUntil then return end
+  local x0, y0 = ns.Launch("money")
+  ns.CoinShower(gained, x0, y0)
+end
+
 local function check()
   pending = false
   local now = readBags()
   if ready and last and ns.db.enabled and not quiet() then
     local gains = Logic.Gains(last, now)
+    if held and GetTime() < heldUntil then gains = Logic.WithoutHeld(gains, held) end
     if #gains > 0 then launch(gains, now) end
   end
   last = now
@@ -154,6 +222,7 @@ function ns.Test()
       x0 = x0 + spread * 30, y0 = y0, x1 = x1, y1 = y1, w = w, delay = (n - 1) * 0.18, side = spread / 2,
     })
   end
+  if ns.db.coins then ns.CoinShower(123456, x0, y0 - 20, 1.0) end -- and a shower of 12g 34s 56c
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -165,7 +234,7 @@ local function listen(event)
 end
 for _, e in ipairs({ "ADDON_LOADED", "PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "BAG_UPDATE_DELAYED", "LOOT_OPENED", "LOOT_CLOSED",
   "PLAYER_EQUIPMENT_CHANGED", "BANKFRAME_OPENED", "BANKFRAME_CLOSED", "GUILDBANKFRAME_OPENED", "GUILDBANKFRAME_CLOSED",
-  "BAG_CONTAINER_UPDATE" }) do
+  "BAG_CONTAINER_UPDATE", "CURSOR_CHANGED", "CURSOR_UPDATE", "PLAYER_MONEY" }) do
   listen(e)
 end
 
@@ -183,10 +252,16 @@ f:SetScript("OnEvent", function(_, event, arg1)
     ready = false
     C_Timer.After(3, function()
       last = readBags()
+      lastMoney = GetMoney()
       ready = true
     end)
   elseif event == "BAG_UPDATE_DELAYED" then
     bagsChanged()
+  elseif event == "PLAYER_MONEY" then
+    local ok, err = pcall(moneyChanged)
+    if not ok then ns.Print("error (please report it): " .. tostring(err)) end
+  elseif event == "CURSOR_CHANGED" or event == "CURSOR_UPDATE" then
+    pcall(cursorChanged)
   elseif event == "LOOT_OPENED" then
     pcall(ns.OnLootOpened)
   elseif event == "LOOT_CLOSED" then
@@ -226,6 +301,9 @@ SlashCmdList.LOOTCOMETS = function(msg)
     ns.Print(fl and ("last: %s from %s to %s"):format(fl.link or "?", fl.from, fl.to) or "no comets yet.")
     local x, y, _, to = ns.Landing(0, 1)
     ns.Print(("backpack slot 1 lands on: %s (%d, %d)"):format(to, x, y))
+    if _G.ElvUI_ContainerFrame then ns.Print("ElvUI bags: " .. ns.ElvUIReport(0, 1)) end
+    local _, _, _, money = ns.MoneyLanding()
+    ns.Print("coins land on: " .. money .. (ns.db.coins and "" or " (coin comets are off)"))
   elseif cmd == "" or cmd == "options" then
     if ns.OpenOptions then ns.OpenOptions() end
   else
