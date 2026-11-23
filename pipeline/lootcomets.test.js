@@ -146,3 +146,26 @@ test("the toc lists Forever and the other game versions", () => {
   for (const v of ["16001", "120105", "11509"]) assert.ok(versions.includes(v), `missing interface ${v}`);
   for (const v of versions) assert.match(v, /^\d{5,6}$/);
 });
+
+test("test comets: one per quality, each with a real bag item, borrowing the closest when one is missing", () => {
+  const out = runLua(`
+    local function it(bag, slot, q) return { bag = bag, slot = slot, quality = q, icon = "i" .. bag .. slot } end
+    local function show(items)
+      local parts = {}
+      for _, p in ipairs(C.TestPicks(items)) do
+        parts[#parts + 1] = p.quality .. "=" .. (p.item and (p.item.bag .. ":" .. p.item.slot) or "none")
+      end
+      return table.concat(parts, " ")
+    end
+    return table.concat({
+      -- grey, white, green only: blue borrows the unused white, then epic reuses the closest, the green
+      show({ it(0, 1, 1), it(0, 2, 2), it(0, 3, 0), it(1, 1, 1) }),
+      -- an item of every quality: each its own, legendary added
+      show({ it(0, 1, 4), it(0, 2, 3), it(0, 3, 2), it(0, 4, 1), it(0, 5, 0), it(0, 6, 5) }),
+      -- one item: every comet uses it
+      show({ it(2, 7, 1) }),
+      show({}),
+    }, " | ")`);
+  assert.equal(out,
+    "0=0:3 1=0:1 2=0:2 3=1:1 4=0:2 | 0=0:5 1=0:4 2=0:3 3=0:2 4=0:1 5=0:6 | 0=2:7 1=2:7 2=2:7 3=2:7 4=2:7 | 0=none 1=none 2=none 3=none 4=none");
+});

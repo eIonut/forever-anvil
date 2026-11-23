@@ -139,27 +139,20 @@ end
 ---------------------------------------------------------------------------------------------------
 -- /comets test: one comet per quality from the middle of the screen, into real items' slots where it can
 
+local EMPTY_BAGS_ICON = "Interface\\Icons\\INV_Misc_Gem_Amethyst_02" -- only when there's nothing in the bags
+
 function ns.Test()
-  local now = readBags()
-  local byQuality = {}
-  for _, s in pairs(now.slots) do
-    local q = s.quality or 1
-    local best = byQuality[q]
-    if not best or s.bag < best.bag or (s.bag == best.bag and s.slot < best.slot) then byQuality[q] = s end
-  end
+  local items = {}
+  for _, s in pairs(readBags().slots) do items[#items + 1] = s end
   local x0, y0 = UIParent:GetWidth() / 2, UIParent:GetHeight() * 0.42
-  local n = 0
-  for q = 0, 5 do
-    local s = byQuality[q]
-    if s or q <= 4 then
-      local x1, y1, w = ns.Landing(s and s.bag or 0, s and s.slot or 1)
-      local spread = n - 2
-      ns.Fire({
-        icon = s and s.icon, quality = q, count = 1,
-        x0 = x0 + spread * 30, y0 = y0, x1 = x1, y1 = y1, w = w, delay = n * 0.18, side = spread / 2,
-      })
-      n = n + 1
-    end
+  for n, pick in ipairs(Logic.TestPicks(items)) do
+    local s = pick.item
+    local x1, y1, w = ns.Landing(s and s.bag or 0, s and s.slot or 1)
+    local spread = n - 3
+    ns.Fire({
+      icon = s and s.icon or EMPTY_BAGS_ICON, quality = pick.quality, count = 1,
+      x0 = x0 + spread * 30, y0 = y0, x1 = x1, y1 = y1, w = w, delay = (n - 1) * 0.18, side = spread / 2,
+    })
   end
 end
 

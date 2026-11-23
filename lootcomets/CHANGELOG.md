@@ -1,3 +1,7 @@
+## 1.0.1
+
+- Test comets (`/comets test`, the menu and the settings page) always show real items from your bags. A quality you carry nothing of borrows another item, instead of showing a question mark.
+
 ## 1.0
 
 - **Loot Comets**: every item you loot flies out of the corpse (or the loot window) and into the exact bag slot it lands in, in a glow of its quality colour, and the slot flashes as it arrives. With your bags closed, it flies into that bag's button on the bag bar. Works with the game's bags and with Bagnon.

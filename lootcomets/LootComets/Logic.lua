@@ -118,6 +118,42 @@ function C.Duration(x0, y0, x1, y1, speed)
   return s / (speed or 1)
 end
 
+-- /comets test: which bag item each test comet shows and lands on. One comet per quality, grey to epic, plus
+-- legendary when you carry one. A quality you have no item of borrows another item (the closest quality, one
+-- not shown yet where possible), so no comet shows a "?" icon. items: { bag, slot, icon, quality } for the
+-- filled slots. Returns a list of { quality, item }, item nil only when the bags are empty.
+function C.TestPicks(items)
+  local list = {}
+  for _, it in ipairs(items) do list[#list + 1] = it end
+  table.sort(list, before)
+  local top = 4
+  for _, it in ipairs(list) do
+    if (it.quality or 1) == 5 then top = 5 end
+  end
+  local picks, used = {}, {}
+  for q = 0, top do
+    for _, it in ipairs(list) do
+      if (it.quality or 1) == q then
+        picks[q + 1] = { quality = q, item = it }
+        used[it] = true
+        break
+      end
+    end
+  end
+  for q = 0, top do
+    if not picks[q + 1] then
+      local best, bestScore
+      for _, it in ipairs(list) do
+        local score = math.abs((it.quality or 1) - q) + (used[it] and 100 or 0)
+        if not best or score < bestScore then best, bestScore = it, score end
+      end
+      if best then used[best] = true end
+      picks[q + 1] = { quality = q, item = best }
+    end
+  end
+  return picks
+end
+
 -- Whether an item of this quality gets a comet. quality nil (not known yet) counts as common.
 function C.Flies(quality, db)
   quality = quality or 1
