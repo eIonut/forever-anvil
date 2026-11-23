@@ -19,6 +19,8 @@ ns.DEFAULTS = {
   landing = "normal",  -- "subtle", "normal", "big"
   sparkles = true,     -- sparkles when green and better items land
   epicGlow = true,     -- the screen's edges glow when an epic or better item lands
+  minimapButton = true,
+  minimapAngle = 200,  -- where the minimap button sits (degrees around the minimap)
   v = 1,
 }
 
@@ -168,7 +170,7 @@ local f = CreateFrame("Frame")
 local function listen(event)
   pcall(f.RegisterEvent, f, event) -- events this client doesn't have are skipped
 end
-for _, e in ipairs({ "ADDON_LOADED", "PLAYER_ENTERING_WORLD", "BAG_UPDATE_DELAYED", "LOOT_OPENED", "LOOT_CLOSED",
+for _, e in ipairs({ "ADDON_LOADED", "PLAYER_LOGIN", "PLAYER_ENTERING_WORLD", "BAG_UPDATE_DELAYED", "LOOT_OPENED", "LOOT_CLOSED",
   "PLAYER_EQUIPMENT_CHANGED", "BANKFRAME_OPENED", "BANKFRAME_CLOSED", "GUILDBANKFRAME_OPENED", "GUILDBANKFRAME_CLOSED",
   "BAG_CONTAINER_UPDATE" }) do
   listen(e)
@@ -181,6 +183,9 @@ f:SetScript("OnEvent", function(_, event, arg1)
     copyDefaults(LootCometsDB, ns.DEFAULTS)
     ns.db = LootCometsDB
     if ns.InitOptions then pcall(ns.InitOptions) end
+  elseif event == "PLAYER_LOGIN" then
+    local ok, err = pcall(ns.InitMinimap)
+    if not ok then ns.Print("error (please report it): " .. tostring(err)) end
   elseif event == "PLAYER_ENTERING_WORLD" then
     ready = false
     C_Timer.After(3, function()
@@ -213,6 +218,13 @@ SlashCmdList.LOOTCOMETS = function(msg)
   elseif cmd == "on" or cmd == "off" then
     ns.db.enabled = cmd == "on"
     ns.Print(ns.db.enabled and "on." or "off. /comets on turns it back on.")
+    ns.OnSetting("enabled")
+  elseif cmd == "minimap" then
+    ns.db.minimapButton = true
+    ns.OnSetting("minimapButton")
+    ns.Print("minimap button shown. Drag it to move it.")
+  elseif cmd == "menu" then
+    ns.ToggleMenu(ns.minimapButton and ns.minimapButton:IsVisible() and ns.minimapButton or nil)
   elseif cmd == "debug" then
     local fl = ns.lastFlight
     ns.Print(("version %s, %s, %d in the air."):format(
@@ -224,6 +236,6 @@ SlashCmdList.LOOTCOMETS = function(msg)
   elseif cmd == "" or cmd == "options" then
     if ns.OpenOptions then ns.OpenOptions() end
   else
-    ns.Print("/comets: settings, /comets test: a comet of each quality, /comets on | off, /comets debug")
+    ns.Print("/comets: settings, /comets menu, /comets test: a comet of each quality, /comets on | off, /comets minimap, /comets debug")
   end
 end

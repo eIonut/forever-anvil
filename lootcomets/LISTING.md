@@ -20,6 +20,7 @@ Loot effects: items you loot fly into your bags as glowing comets, with trails, 
 
 - Main category: **Bags & Inventory**. Extra: **Miscellaneous** (or an art/cosmetic category if the site has one).
 - Game versions: **WoW Forever**, **Retail**, **Classic Era**, and the other Classic versions offered (Burning Crusade, Wrath, Cataclysm, MoP). Uploads for a version the project doesn't list are refused.
+- Project image (avatar): `lootcomets/brand/logo.png` (512×512, from `brand/logo.svg` via `node tools/lootcomets-logo.js`).
 - Screenshots: a comet mid-flight (a rainbow or dust trail shows best), an epic landing with the screen glow, and the settings page.
 
 ## Description
@@ -53,7 +54,9 @@ Esc → Options → AddOns → Loot Comets, or type `/comets`. Every change laun
 
 ## Commands
 
+- Minimap button: click for a quick menu (test comets, change the look in one click, switches), right-click for all settings, drag to move
 - `/comets`: settings
+- `/comets menu`: the quick menu; `/comets minimap` brings the button back
 - `/comets test`: one comet of each quality
 - `/comets on` / `/comets off`
 - `/comets debug`: where the last comet started and landed (for bug reports)

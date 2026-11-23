@@ -5,11 +5,12 @@
 ## Author: Forever Anvil
 ## Version: @project-version@
 ## SavedVariables: LootCometsDB
-## IconTexture: Interface\Icons\INV_Misc_Bag_08
+## IconTexture: Interface\AddOns\LootComets\Media\Icon
 ## X-Website: https://foreveranvil.com
 
 Logic.lua
 Targets.lua
 Comets.lua
 Options.lua
+Minimap.lua
 Core.lua

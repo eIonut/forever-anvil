@@ -1,0 +1,162 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="70%">
+      <stop offset="0" stop-color="#241a3d"/>
+      <stop offset="0.6" stop-color="#120d20"/>
+      <stop offset="1" stop-color="#08060e"/>
+    </radialGradient>
+    <radialGradient id="aura" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#9b7bff" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#9b7bff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="trailGlow" gradientUnits="userSpaceOnUse" x1="50" y1="130" x2="300" y2="215">
+      <stop offset="0" stop-color="#7a3cff" stop-opacity="0"/>
+      <stop offset="0.55" stop-color="#8f5bff" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#b79cff" stop-opacity="0.9"/>
+    </linearGradient>
+    <linearGradient id="trail" gradientUnits="userSpaceOnUse" x1="70" y1="125" x2="300" y2="215">
+      <stop offset="0" stop-color="#a335ee" stop-opacity="0"/>
+      <stop offset="0.45" stop-color="#a335ee" stop-opacity="0.85"/>
+      <stop offset="0.8" stop-color="#c9a8ff"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <linearGradient id="core" gradientUnits="userSpaceOnUse" x1="150" y1="110" x2="300" y2="215">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0"/>
+      <stop offset="1" stop-color="#ffffff"/>
+    </linearGradient>
+    <radialGradient id="head" cx="45%" cy="40%" r="60%">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.45" stop-color="#e6dcff"/>
+      <stop offset="1" stop-color="#9b7bff"/>
+    </radialGradient>
+    <radialGradient id="headGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#d7c8ff" stop-opacity="0.95"/>
+      <stop offset="0.4" stop-color="#9b7bff" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#7a3cff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="leather" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#a65d33"/>
+      <stop offset="0.55" stop-color="#7c3f20"/>
+      <stop offset="1" stop-color="#4a2211"/>
+    </linearGradient>
+    <linearGradient id="leatherTop" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#b8693b"/>
+      <stop offset="1" stop-color="#7c3f20"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff0b0"/>
+      <stop offset="0.45" stop-color="#f0c75a"/>
+      <stop offset="1" stop-color="#a8761f"/>
+    </linearGradient>
+    <radialGradient id="mouthGlow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffe9a8" stop-opacity="0.85"/>
+      <stop offset="1" stop-color="#ffcf5a" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur8" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="8"/></filter>
+    <filter id="blur3" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="3"/></filter>
+    <clipPath id="frame"><rect x="16" y="16" width="480" height="480" rx="30"/></clipPath>
+  </defs>
+
+  <!-- background, rings and stars -->
+  <rect x="16" y="16" width="480" height="480" rx="30" fill="url(#bg)"/>
+  <g clip-path="url(#frame)" fill="none" stroke="#9b7bff">
+    <circle cx="256" cy="262" r="214" stroke-opacity="0.13" stroke-width="2"/>
+    <circle cx="256" cy="262" r="190" stroke-opacity="0.09" stroke-width="2" stroke-dasharray="3 9"/>
+    <circle cx="256" cy="262" r="150" stroke-opacity="0.08" stroke-width="1.5"/>
+  </g>
+  <g fill="#e6dcff">
+    <circle cx="92" cy="300" r="2.2" opacity="0.7"/>
+    <circle cx="430" cy="110" r="2.6" opacity="0.8"/>
+    <circle cx="400" cy="200" r="1.6" opacity="0.5"/>
+    <circle cx="70" cy="420" r="1.8" opacity="0.5"/>
+    <circle cx="455" cy="390" r="2" opacity="0.6"/>
+    <circle cx="210" cy="70" r="1.6" opacity="0.6"/>
+    <circle cx="140" cy="210" r="1.4" opacity="0.5"/>
+  </g>
+  <circle cx="256" cy="300" r="200" fill="url(#aura)" opacity="0.6"/>
+
+  <g transform="translate(-24,0)">
+  <!-- the loot pouch -->
+  <ellipse cx="300" cy="462" rx="118" ry="14" fill="#000" opacity="0.45" filter="url(#blur3)"/>
+  <path d="M232 298 C176 334 160 420 214 452 C252 474 348 474 386 452 C440 420 424 334 368 298 Z"
+        fill="url(#leather)" stroke="#2a1208" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M226 330 C196 368 196 420 228 440" fill="none" stroke="#c97a45" stroke-width="6" stroke-linecap="round" opacity="0.55"/>
+  <path d="M216 360 C214 400 228 432 262 446 M384 360 C386 400 372 432 338 446" fill="none" stroke="#3a190b" stroke-width="3" stroke-dasharray="7 8" stroke-linecap="round" opacity="0.8"/>
+  <!-- gold star on the pouch -->
+  <path d="M300 352 L310 380 L338 388 L310 396 L300 424 L290 396 L262 388 L290 380 Z" fill="url(#gold)" stroke="#5a3a0c" stroke-width="3" stroke-linejoin="round"/>
+  <!-- the mouth, glowing where the comet goes in -->
+  <ellipse cx="300" cy="262" rx="98" ry="44" fill="url(#mouthGlow)" filter="url(#blur8)"/>
+  <path d="M236 292 C214 262 234 236 258 250 C268 228 292 228 300 246 C310 228 334 228 344 250 C368 236 388 262 364 292 Z"
+        fill="url(#leatherTop)" stroke="#2a1208" stroke-width="5" stroke-linejoin="round"/>
+  <ellipse cx="300" cy="262" rx="46" ry="12" fill="#1a0b05" opacity="0.85"/>
+  <!-- gold tie -->
+  <rect x="226" y="284" width="148" height="24" rx="11" fill="url(#gold)" stroke="#5a3a0c" stroke-width="4"/>
+  <circle cx="300" cy="296" r="10" fill="#fff3c4" stroke="#5a3a0c" stroke-width="3"/>
+
+  <!-- the comet: glow, quality-purple trail, white core, dotted trail, and an epic item as its head -->
+  <path d="M40 132 Q160 10 325 160 L255 222 Q148 108 40 132 Z" fill="url(#trailGlow)" filter="url(#blur8)"/>
+  <path d="M62 126 Q166 34 317 169 L263 211 Q150 100 62 126 Z" fill="url(#trail)"/>
+  <path d="M130 108 Q190 72 300 180 L282 198 Q186 96 130 108 Z" fill="url(#core)" opacity="0.9"/>
+  <g fill="#ffffff">
+    <circle cx="156" cy="110" r="5" opacity="0.55"/>
+    <circle cx="195" cy="123" r="7" opacity="0.7"/>
+    <circle cx="232" cy="144" r="9" opacity="0.85"/>
+  </g>
+
+  <defs>
+    <linearGradient id="epicBorder" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e7b6ff"/>
+      <stop offset="0.45" stop-color="#a335ee"/>
+      <stop offset="1" stop-color="#4d1180"/>
+    </linearGradient>
+    <radialGradient id="iconBg" cx="40%" cy="35%" r="75%">
+      <stop offset="0" stop-color="#4a2a6e"/>
+      <stop offset="1" stop-color="#100818"/>
+    </radialGradient>
+    <linearGradient id="blade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="0.5" stop-color="#dcd2f5"/>
+      <stop offset="1" stop-color="#8a7caf"/>
+    </linearGradient>
+    <linearGradient id="grip" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#6b2fa3"/>
+      <stop offset="1" stop-color="#2c0f4a"/>
+    </linearGradient>
+    <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.28"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <circle cx="290" cy="190" r="86" fill="url(#headGlow)"/>
+  <g transform="translate(290 190) rotate(-12)">
+    <!-- the icon: purple epic border, dark inside -->
+    <rect x="-50" y="-50" width="100" height="100" rx="9" fill="url(#epicBorder)" stroke="#1a0526" stroke-width="4"/>
+    <rect x="-41" y="-41" width="82" height="82" rx="4" fill="url(#iconBg)" stroke="#1a0526" stroke-width="2"/>
+    <!-- the sword, corner to corner -->
+    <g transform="rotate(45) scale(1.2) translate(0 -2)">
+      <path d="M0 -40 L8 -29 L8 13 L-8 13 L-8 -29 Z" fill="url(#blade)" stroke="#c77dff" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M0 -31 L0 10" stroke="#a335ee" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="0" cy="-16" r="2.4" fill="#f3d9ff"/>
+      <circle cx="0" cy="-2" r="2.4" fill="#f3d9ff"/>
+      <rect x="-21" y="13" width="42" height="9" rx="4" fill="url(#gold)" stroke="#4a2f08" stroke-width="2.5"/>
+      <rect x="-4.5" y="22" width="9" height="15" rx="2" fill="url(#grip)" stroke="#1a0526" stroke-width="2"/>
+      <circle cx="0" cy="41" r="6.5" fill="url(#gold)" stroke="#4a2f08" stroke-width="2.5"/>
+    </g>
+    <!-- gloss on the icon, like the game's icons -->
+    <path d="M-41 -41 L41 -41 L41 -10 Q0 4 -41 -18 Z" fill="url(#gloss)"/>
+    <!-- twinkle on the corner -->
+    <path d="M38 -62 L42 -46 L58 -42 L42 -38 L38 -22 L34 -38 L18 -42 L34 -46 Z" fill="#ffffff" opacity="0.9"/>
+  </g>
+
+  <!-- sparkles around the mouth -->
+  <g fill="#fff0b0">
+    <path d="M396 230 L400 244 L414 248 L400 252 L396 266 L392 252 L378 248 L392 244 Z"/>
+    <path d="M206 236 L209 246 L219 249 L209 252 L206 262 L203 252 L193 249 L203 246 Z" opacity="0.85"/>
+    <path d="M372 188 L374 195 L381 197 L374 199 L372 206 L370 199 L363 197 L370 195 Z" opacity="0.8"/>
+  </g>
+
+  </g>
+
+  <!-- frame -->
+  <rect x="16" y="16" width="480" height="480" rx="30" fill="none" stroke="#9b7bff" stroke-opacity="0.6" stroke-width="3"/>
+</svg>

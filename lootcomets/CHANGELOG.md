@@ -5,6 +5,7 @@
 - Rare items land with sparkles; epic items with a bigger burst, a sound and a glow around the edges of the screen.
 - More of something you already carry gets a small, quick comet and a "+3" over its slot.
 - Items from vendors, quests, mail, trades and crafting fly too, out of the window they came from. Moving items around your bags, swapping gear and the bank are left alone.
+- **Minimap button** with a menu: launch test comets, change the comet, trail, colour and landing with one click each, and switch things on and off. Right-click for all settings; drag to move it. Also in the addons button by the minimap on Retail.
 - **Make it yours** (Esc → Options → AddOns → Loot Comets, or `/comets`):
   - **Comet**: a round icon, a square icon with a coloured border, or a glowing orb.
   - **Trail**: dots, a smooth streak, sparkle dust that drifts down, or none.

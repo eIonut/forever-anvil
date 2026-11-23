@@ -12,6 +12,7 @@ local SWITCHES = {
   { "sparkles", "Sparkles on landing", "Green, blue and purple items burst into sparkles when they land." },
   { "epicGlow", "Screen glow for epics", "The edges of the screen glow in the item's colour when an epic or better item lands." },
   { "sound", "Sound for epic items", "A sound when an epic or better item lands." },
+  { "minimapButton", "Minimap button", "Click: a menu to change the look and switch things on and off. Right-click: these settings. Drag: move it. /comets minimap brings it back." },
 }
 local SLIDERS = {
   { "speed", "Speed", 0.5, 2, 0.05 },
@@ -25,6 +26,7 @@ local CHOICES = {
   { "arc", "Arc", { { "Flat", 0.3 }, { "Normal", 1 }, { "High", 1.8 } } },
   { "landing", "Landing", { { "Subtle", "subtle" }, { "Normal", "normal" }, { "Big", "big" } } },
 }
+ns.CHOICES = CHOICES -- the minimap menu cycles through these too
 
 local COL_X = { 16, 320 }
 local panel, category
@@ -122,8 +124,12 @@ local function build()
   panel.name = "Loot Comets"
   local refreshers = {}
 
+  local logo = panel:CreateTexture(nil, "ARTWORK")
+  logo:SetSize(36, 36)
+  logo:SetPoint("TOPLEFT", 16, -12)
+  logo:SetTexture("Interface\\AddOns\\LootComets\\Media\\Icon")
   local title = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
-  title:SetPoint("TOPLEFT", 16, -16)
+  title:SetPoint("TOPLEFT", logo, "TOPRIGHT", 8, -2)
   title:SetText("Loot Comets")
   local sub = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
   sub:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
@@ -143,7 +149,10 @@ local function build()
     label:SetPoint("LEFT", cb, "RIGHT", 2, 0)
     label:SetText(c[2])
     cb:SetHitRectInsets(0, -250, 0, 0) -- the label clicks too
-    cb:SetScript("OnClick", function(self) ns.db[c[1]] = self:GetChecked() and true or false end)
+    cb:SetScript("OnClick", function(self)
+      ns.db[c[1]] = self:GetChecked() and true or false
+      if ns.OnSetting then ns.OnSetting(c[1]) end
+    end)
     cb:SetScript("OnEnter", function(self)
       GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
       GameTooltip:AddLine(c[2])
@@ -177,6 +186,7 @@ local function build()
       b:SetScript("OnClick", function()
         ns.db[c[1]] = opt[2]
         panel.refresh()
+        if ns.RefreshMenu then ns.RefreshMenu() end
         if c[1] == "color" and opt[2] == "custom" then
           pickColour(function() panel.refresh() end)
         end
@@ -234,6 +244,7 @@ local function build()
       ns.db[key] = ns.DEFAULTS[key]
     end
     panel.refresh()
+    if ns.RefreshMenu then ns.RefreshMenu() end
     ns.Test()
   end)
   local hint = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
@@ -244,6 +255,10 @@ local function build()
 
   function panel.refresh()
     for _, fn in ipairs(refreshers) do fn() end
+  end
+  -- the minimap menu changed something: show it here too if the page is open
+  function ns.RefreshOptions()
+    if panel:IsVisible() then panel.refresh() end
   end
   panel:SetScript("OnShow", panel.refresh)
 
