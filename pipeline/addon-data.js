@@ -135,16 +135,17 @@ const readJSON = (file) => {
 export function buildRegion(region, inDir) {
   const meta = readJSON(path.join(inDir, `meta_${region}.json`));
   if (!meta) return null;
-  const names = Object.assign({}, meta.likely || {}, meta.rulesets || {});
   const rulesets = [];
   const houses = [];
   let updated = 0;
   for (const group of meta.groups || []) {
-    const name = names[group];
     const def = GROUPS.find((g) => g.id === group);
+    // confirmed names: houses.js (this build's), else the price job's meta; then the guessed ones
+    const sure = (def && def.ruleset && def.ruleset[region]) || (meta.rulesets || {})[group];
+    const name = sure || (meta.likely || {})[group];
     const file = readJSON(path.join(inDir, `prices_${region}_${group}.json`));
     if (!name || !def || !file) continue;
-    const likely = !(meta.rulesets || {})[group];
+    const likely = !sure;
     rulesets.push({ name, group, likely, houses: def.houses });
     updated = Math.max(updated, Date.parse(file.updated) || 0);
     for (const [id, h] of Object.entries(file.houses || {})) houses.push({ id: Number(id), group, faction: h.faction, items: h.items || {} });

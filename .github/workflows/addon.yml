@@ -39,7 +39,7 @@ jobs:
         run: node --test pipeline/addon.test.js pipeline/demath.test.js
 
       - name: Price data from foreveranvil.com
-        run: node pipeline/addon-data.js --live
+        run: node pipeline/addon-data.js --live --region=eu,us
 
       - name: Stage the release
         run: bash tools/addon-release.sh

@@ -313,7 +313,7 @@
       </div>
     </div>
   </div>
-  <p class="note">Blizzard's data doesn't name which ruleset each server group is, so we confirm them with in-game price checks. <b>All four Europe rulesets are checked.</b> The Americas names are worked out from Blizzard's data and marked with a <b>?</b> until they're checked in game.</p>
+  <p class="note">Blizzard's data doesn't name which ruleset each server group is, so we confirm them with in-game price checks. <b>All four Europe rulesets are checked.</b> The Americas have the same server groups in the same order, so they use Europe's names.</p>
 
   <!-- while searching or filtering, the results come first and the day's price changes move below them -->
   {#if searching}{@render results()}{/if}

@@ -1,5 +1,6 @@
 ## 2.4
 
+- **The Americas**: prices for the American realms too, with the same four rulesets as Europe. The addon picks your region by itself.
 - **Pick your ruleset in one click**: the first time you log in on a realm, a small window asks which ruleset you play on (PvP, Normal, Roleplay or RP-PvP), the one you chose on the login screen. Until you pick one, clicking the minimap button opens it too. Later, click the status line at the top of the minimap menu to change it, or type `/fa ruleset`. "Later" puts it off until your next login.
 
 ## 2.3

@@ -39,11 +39,9 @@ const config = {
   pricesApi: "/api",
 
   // Download pages of the in-game addon (addon/ in this repo). Leave one empty "" to hide its button.
-  // CurseForge: add the project page link once their moderators approve it (it isn't public before that),
-  // e.g. "https://www.curseforge.com/wow/addons/forever-anvil".
   addonUrls: {
     wago: "https://addons.wago.io/addons/forever-anvil",
-    curseforge: "",
+    curseforge: "https://www.curseforge.com/wow/addons/forever-anvil",
   },
 
   // Date of the last content update (shown in the footer).

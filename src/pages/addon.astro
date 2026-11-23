@@ -16,7 +16,7 @@ const links = [
   description="Free WoW: Forever addon: auction prices, sales per day and disenchant value on every tooltip, flips and upgrades tagged in the auction house, craft profits and a leveling helper in your profession window."
   page="addon"
 >
-  <PageHero icon="prices" eyebrow="In-game addon" title="Forever Anvil in your game" facts={[{ icon: "clock", text: "Fresh prices several times a day" }, { icon: "check", text: "Free, no account" }, { icon: "globe", text: "Europe" }]}>
+  <PageHero icon="prices" eyebrow="In-game addon" title="Forever Anvil in your game" facts={[{ icon: "clock", text: "Fresh prices several times a day" }, { icon: "check", text: "Free, no account" }, { icon: "globe", text: "Europe and the Americas" }]}>
     The same auction prices as this site, right where you need them: on every item tooltip, in the auction house and in your profession window.
     <div class="hero-actions" slot="actions">
       {links.map((l, i) => <a class:list={["btn", { "btn-ghost": i > 0 }]} href={l.href} target="_blank" rel="noopener"><Icon name="download" size={20} />Download on {l.label}</a>)}
@@ -88,9 +88,8 @@ const links = [
 
       <h2>Getting started</h2>
       <ol>
-        <li>Install it with the {links.map((l) => l.label).join(" or ") || "CurseForge or Wago"} app, picking <b>WoW: Forever</b> as the game version. Or download the zip and unpack both folders (<code>ForeverAnvil</code> and <code>ForeverAnvil_Data_EU</code>) into your game's <code>Interface/AddOns</code> folder.</li>
-        <li>Log in and type <b>/fa</b>. It names your ruleset and auction house.</li>
-        <li>If it asks, set your realm's ruleset once: <b>/fa ruleset PvP</b> (or Normal, Roleplay, RP-PvP).</li>
+        <li>Install it with the {links.map((l) => l.label).join(" or ") || "CurseForge or Wago"} app, picking <b>WoW: Forever</b> as the game version. Or download the zip and unpack all its folders (<code>ForeverAnvil</code>, <code>ForeverAnvil_Data_EU</code> and <code>ForeverAnvil_Data_US</code>) into your game's <code>Interface/AddOns</code> folder.</li>
+        <li>Log in. The first time, a small window asks which ruleset you play on (PvP, Normal, Roleplay or RP-PvP): one click. Change it later from the minimap menu or with <b>/fa ruleset</b>.</li>
         <li>Click the crest on your minimap for the menu: your lists, quick on/off switches and the settings (also <b>/fa options</b>).</li>
       </ol>
 
@@ -98,7 +97,7 @@ const links = [
       <ul class="gems">
         <li><b>It never buys, sells or crafts for you.</b> It only shows numbers; every action is still your own click.</li>
         <li><b>Prices are an estimate</b> from the last update, and the auction house moves. Check before a big purchase.</li>
-        <li><b>Europe for now.</b> The Americas will follow, as on this site, once its rulesets are confirmed.</li>
+        <li><b>Europe and the Americas.</b> The addon picks your region by itself and loads only its prices.</li>
         <li><b>English, German, French and Spanish.</b> The addon follows your game client's language.</li>
         <li><b>Upgrades go by item level</b>, which is a shortlist, not a verdict: a strength sword is no upgrade for a healer.</li>
         <li>For price history, full leveling routes and talents, use <a href="/">this site</a>: everything here stays free.</li>
