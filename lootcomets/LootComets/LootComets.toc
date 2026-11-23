@@ -8,6 +8,7 @@
 ## IconTexture: Interface\AddOns\LootComets\Media\Icon
 ## X-Website: https://foreveranvil.com
 ## X-Curse-Project-ID: 1826094
+## X-Wago-ID: kGr94eKy
 
 Logic.lua
 Targets.lua
