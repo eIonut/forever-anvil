@@ -922,6 +922,136 @@ test("smoke: minimap button opens the menu; its rows and switches work", () => {
   ]);
 });
 
+// Ruleset picker (Ruleset.lua): opens by itself after login while the realm has none, once a session; the minimap
+// button opens it instead of the menu until one is picked; the menu's status line and /fa ruleset reopen it.
+test("smoke: ruleset picker asks once after login and from the minimap button, menu and /fa ruleset", () => {
+  const house = encodeHouse({ 2589: [12, 15, 400, 30] });
+  const src = (f) => fs.readFileSync(path.join(ADDON, f), "utf8");
+  const out = runLua(`
+    local chat = {}
+    local noop = function() end
+    local PROPS = { TitleText = true, Icon = true, Text = true }
+    local function region()
+      local r = setmetatable({}, { __index = function(_, k) if PROPS[k] then return nil end return noop end })
+      function r:SetText(s) self.text = s end
+      function r:GetText() return self.text end
+      function r:SetShown(on) self.shown = on end
+      function r:IsShown() return self.shown ~= false end
+      function r:GetStringHeight() return 12 end
+      return r
+    end
+    local function frame(_, name, parent, template)
+      local fr = setmetatable({ parent = parent, template = template, regions = {} }, { __index = function(_, k)
+        if PROPS[k] or k:match("^On") then return nil end
+        return noop
+      end })
+      function fr:SetScript(k, fn) rawset(self, k, fn) end
+      function fr:GetScript(k) return rawget(self, k) end
+      function fr:GetFrameLevel() return 1 end
+      function fr:CreateFontString() local fs = region(); self.regions[#self.regions + 1] = fs; return fs end
+      function fr:CreateTexture() local t = region(); self.regions[#self.regions + 1] = t; return t end
+      function fr:Show() self.shown = true; if self.OnShow then self.OnShow(self) end end
+      function fr:Hide() self.shown = false end
+      function fr:SetShown(on) if on then self:Show() else self:Hide() end end
+      function fr:IsShown() return rawget(self, "shown") == true end
+      function fr:IsMouseOver() return false end
+      function fr:SetPoint(...) self.point = { ... } end
+      function fr:SetSize(w, h) self.w, self.h = w, h end
+      function fr:SetHeight(h) self.h = h end
+      function fr:LockHighlight() self.lit = true end
+      function fr:UnlockHighlight() self.lit = false end
+      function fr:RegisterEvent(e) local ev = rawget(self, "events") or {}; ev[e] = true; rawset(self, "events", ev) end
+      function fr:Click(button) self.OnClick(self, button or "LeftButton") end
+      if name then _G[name] = fr end
+      return fr
+    end
+    CreateFrame = frame
+    UIParent, UISpecialFrames, ChatFontNormal = frame(), {}, {}
+    function UIParent:GetWidth() return 1920 end
+    function UIParent:GetHeight() return 1080 end
+    Minimap = frame()
+    function Minimap:GetWidth() return 140 end
+    function Minimap:GetHeight() return 140 end
+    BackdropTemplateMixin = {}
+    tinsert = table.insert
+    local tipLines = {}
+    GameTooltip = frame()
+    function GameTooltip:AddLine(s) tipLines[#tipLines + 1] = s end
+    DEFAULT_CHAT_FRAME = { AddMessage = function(_, m) chat[#chat + 1] = m end }
+    SlashCmdList = {}
+    hooksecurefunc = function(t, name, fn) local orig = t[name]; t[name] = function(...) orig(...); fn(...) end end
+    GetCurrentRegion = function() return 3 end
+    GetRealmName = function() return "Forever" end -- the name doesn't say which ruleset
+    GetMinimapZoneText = function() return "Orgrimmar" end
+    GetZoneText = GetMinimapZoneText
+    UnitFactionGroup = function() return "Horde" end
+    C_AddOns = { IsAddOnLoaded = function() return false end, LoadAddOn = function() end }
+    time = os.time
+    C_Item = { GetItemInfo = function(id) if id == 2589 then return "Linen Cloth" end end, GetItemCount = function() return 0 end }
+    local timers = {}
+    C_Timer = { After = function(s, fn) timers[#timers + 1] = { s, fn } end }
+    local function runTimers() local t = timers; timers = {}; for _, e in ipairs(t) do e[2]() end; return #t end
+    ForeverAnvilData = { EU = { region = "eu", updated = os.time() - 7200,
+      rulesets = {
+        { name = "PvP", group = "A", likely = false, alliance = 110, horde = 113, neutral = 116 },
+        { name = "Normal", group = "B", likely = false, alliance = 111, horde = 114, neutral = 117 },
+        { name = "Roleplay", group = "C", likely = false, alliance = 119, horde = 120, neutral = 121 },
+        { name = "RP-PvP", group = "D", likely = false, alliance = 123, horde = 124, neutral = 125 } },
+      houses = { [113] = { group = "A", faction = "horde", data = HOUSE }, [114] = { group = "B", faction = "horde", data = HOUSE } },
+      regionMedian = "", vendorBuy = "", noDisenchant = "", skill = "", crates = "" } }
+    for _, f in ipairs({ "Core.lua", "Lists.lua", "Ruleset.lua", "Minimap.lua" }) do assert(load(_G[f], "=" .. f))("ForeverAnvil", ns) end
+    ns.frame.OnEvent(ns.frame, "ADDON_LOADED", "ForeverAnvil")
+    ns.frame.OnEvent(ns.frame, "PLAYER_LOGIN")
+
+    local out = {}
+    local function picker()
+      local p = ForeverAnvilRuleset
+      if not (p and p.shown) then return "hidden" end
+      local names = {}
+      for _, b in ipairs(p.buttons) do names[#names + 1] = b.ruleset.name .. (b.lit and "*" or "") end
+      return table.concat(names, " ") .. "; later " .. tostring(p.later.shown) .. "; status " .. (p.status.text ~= "" and p.status.text or "-")
+    end
+    out[#out + 1] = "at login: " .. picker() .. ", " .. tostring(timers[1] and timers[1][1]) .. "s timer"
+    runTimers()
+    out[#out + 1] = "after the timer: " .. picker()
+    ForeverAnvilRuleset.later:Click()
+    out[#out + 1] = "later: " .. picker()
+    ns.frame.OnEvent(ns.frame, "AUCTION_HOUSE_SHOW")
+    out[#out + 1] = "auction house, same session: " .. runTimers() .. " timers, " .. picker()
+    ns.frame.OnEvent(ns.frame, "AUCTION_HOUSE_CLOSED")
+    local b = ForeverAnvilMinimapButton
+    b.OnEnter(b)
+    out[#out + 1] = "tooltip: " .. tipLines[2] .. " / " .. tipLines[4]
+    b:Click("LeftButton")
+    out[#out + 1] = "minimap click: " .. picker() .. ", menu " .. tostring(ForeverAnvilMenu ~= nil)
+    ForeverAnvilRuleset.buttons[2]:Click()
+    out[#out + 1] = "picked Normal: " .. picker() .. ", saved " .. tostring(ns.db.realms.Forever) .. ", chat: " .. chat[#chat]
+    b:Click("LeftButton")
+    local menu = ForeverAnvilMenu
+    out[#out + 1] = "minimap click: menu " .. tostring(menu.shown) .. ", status " .. menu.status.text
+    menu.statusButton:Click()
+    out[#out + 1] = "status line: menu " .. tostring(menu.shown) .. ", " .. picker()
+    SlashCmdList.FOREVERANVIL("ruleset PvP")
+    out[#out + 1] = "/fa ruleset PvP: " .. picker()
+    ForeverAnvilRuleset:Hide()
+    SlashCmdList.FOREVERANVIL("ruleset")
+    out[#out + 1] = "/fa ruleset: " .. picker()
+    return table.concat(out, "\\n")`, { HOUSE: house, "Core.lua": src("Core.lua"), "Lists.lua": src("Lists.lua"), "Ruleset.lua": src("Ruleset.lua"), "Minimap.lua": src("Minimap.lua") });
+  assert.deepEqual(out.split("\n"), [
+    "at login: hidden, 4s timer",
+    "after the timer: PvP Normal Roleplay RP-PvP; later true; status -",
+    "later: hidden",
+    "auction house, same session: 0 timers, hidden",
+    "tooltip: |cffffd100Set this realm's ruleset|r / |cffffffffClick|r  pick this realm's ruleset",
+    "minimap click: PvP Normal Roleplay RP-PvP; later true; status -, menu false",
+    "picked Normal: hidden, saved Normal, chat: |cffe6a23cForever Anvil|r: Normal horde auction house (EU), prices from 2h ago.",
+    "minimap click: menu true, status Normal horde  |cff999999·  prices 2h ago|r",
+    "status line: menu false, PvP Normal* Roleplay RP-PvP; later false; status Normal, horde auction house. Prices from 2h ago.",
+    "/fa ruleset PvP: PvP* Normal Roleplay RP-PvP; later false; status PvP, horde auction house. Prices from 2h ago.",
+    "/fa ruleset: PvP* Normal Roleplay RP-PvP; later false; status PvP, horde auction house. Prices from 2h ago.",
+  ]);
+});
+
 test("shopping list amounts add up and counts are whole numbers", () => {
   const out = runLua(`
     local list = { { 2589, 10 } }

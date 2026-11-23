@@ -16,7 +16,7 @@ local atan2 = math.atan2 or math.atan -- the game has Lua 5.1's math.atan2
 function ns.StatusLine()
   if not ns.data then return "|cffff5555" .. L["No price data loaded"] .. "|r" end
   local id, r, side = ns.House()
-  if not id then return "|cffffd100" .. L["Set this realm's ruleset"] .. "|r  |cff999999(/fa ruleset)|r" end
+  if not id then return "|cffffd100" .. L["Set this realm's ruleset"] .. "|r" end
   return ("%s %s%s  |cff999999·  %s|r"):format(r.name, L[side], r.likely and "?" or "", L["prices %s"]:format(M.Age(ns.DataAge())))
 end
 
@@ -126,6 +126,25 @@ local function buildMenu()
   fr.status:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
   fr.status:SetWidth(WIDTH - 70)
   fr.status:SetJustifyH("LEFT")
+  -- the status line is a button: it opens the ruleset picker
+  local statusButton = CreateFrame("Button", nil, fr)
+  statusButton:SetPoint("TOPLEFT", fr.status, "TOPLEFT", -2, 2)
+  statusButton:SetPoint("BOTTOMRIGHT", fr.status, "BOTTOMRIGHT", 2, -2)
+  local glow = statusButton:CreateTexture(nil, "HIGHLIGHT")
+  glow:SetAllPoints()
+  glow:SetColorTexture(1, 0.82, 0.3, 0.12)
+  statusButton:SetScript("OnClick", function()
+    local anchor = menuAnchor
+    fr:Hide()
+    if ns.ShowRulesetPicker then ns.ShowRulesetPicker(anchor) end
+  end)
+  statusButton:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+    GameTooltip:AddLine(L["Click to change this realm's ruleset"], 1, 1, 1)
+    GameTooltip:Show()
+  end)
+  statusButton:SetScript("OnLeave", function() GameTooltip:Hide() end)
+  fr.statusButton = statusButton
   local close = CreateFrame("Button", nil, fr, "UIPanelCloseButton")
   close:SetSize(24, 24)
   close:SetPoint("TOPRIGHT", -4, -4)
@@ -241,11 +260,11 @@ local function buildMenu()
   return fr
 end
 
--- opens the menu beside anchor (the minimap button), on whichever side has room
-local function place(anchor)
-  menu:ClearAllPoints()
+-- puts frame beside anchor (the minimap button), on whichever side has room (the menu, the ruleset picker)
+function ns.PlaceBeside(frame, anchor)
+  frame:ClearAllPoints()
   if not (anchor and anchor.GetCenter and anchor:GetCenter()) then
-    menu:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -200, -180)
+    frame:SetPoint("TOPRIGHT", UIParent, "TOPRIGHT", -200, -180)
     return
   end
   local x, y = anchor:GetCenter()
@@ -254,15 +273,24 @@ local function place(anchor)
   local right = x > UIParent:GetWidth() / 2
   local top = y > UIParent:GetHeight() / 2
   local v, h = top and "TOP" or "BOTTOM", right and "RIGHT" or "LEFT"
-  menu:SetPoint(v .. h, anchor, (top and "BOTTOM" or "TOP") .. (right and "LEFT" or "RIGHT"), 0, 0)
+  frame:SetPoint(v .. h, anchor, (top and "BOTTOM" or "TOP") .. (right and "LEFT" or "RIGHT"), 0, 0)
 end
 
 function ns.ToggleMenu(anchor)
   menu = menu or buildMenu()
   if menu:IsShown() then menu:Hide(); return end
   menuAnchor = anchor
-  place(anchor)
+  ns.PlaceBeside(menu, anchor)
   menu:Show()
+end
+
+-- the minimap button's click: the ruleset picker while this realm has none (prices need it), else the menu
+local function openFrom(anchor)
+  if ns.data and not ns.Ruleset() and ns.ShowRulesetPicker then
+    if ns.RulesetPickerShown() then _G.ForeverAnvilRuleset:Hide() else ns.ShowRulesetPicker(anchor) end
+    return
+  end
+  ns.ToggleMenu(anchor)
 end
 
 function ns.RefreshMenu()
@@ -326,7 +354,7 @@ local function buildButton()
     if which == "RightButton" then
       if ns.OpenOptions then ns.OpenOptions() end
     else
-      ns.ToggleMenu(self)
+      openFrom(self)
     end
   end)
   b:SetScript("OnDragStart", function(self)
@@ -346,7 +374,7 @@ local function buildButton()
     local w, hits = ns.WatchSummary()
     if hits > 0 then GameTooltip:AddLine(L["%d of your %d watched items at target"]:format(hits, w), 0.2, 0.87, 0.33) end
     GameTooltip:AddLine(" ")
-    GameTooltip:AddLine("|cffffffff" .. L["Click"] .. "|r  " .. L["menu"], 0.6, 0.6, 0.6)
+    GameTooltip:AddLine("|cffffffff" .. L["Click"] .. "|r  " .. ((ns.data and not ns.Ruleset()) and L["pick this realm's ruleset"] or L["menu"]), 0.6, 0.6, 0.6)
     GameTooltip:AddLine("|cffffffff" .. L["Right-click"] .. "|r  " .. L["settings"], 0.6, 0.6, 0.6)
     GameTooltip:AddLine("|cffffffff" .. L["Drag"] .. "|r  " .. L["move this button"], 0.6, 0.6, 0.6)
     GameTooltip:Show()
@@ -379,6 +407,6 @@ function ns.InitMinimap()
   if AddonCompartmentFrame and AddonCompartmentFrame.RegisterAddon and not ns.inCompartment then
     ns.inCompartment = true
     AddonCompartmentFrame:RegisterAddon({ text = "Forever Anvil", icon = ns.ICON, notCheckable = true,
-      func = function() ns.ToggleMenu(AddonCompartmentFrame) end })
+      func = function() openFrom(AddonCompartmentFrame) end })
   end
 end

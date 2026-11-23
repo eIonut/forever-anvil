@@ -1,3 +1,7 @@
+## 2.4
+
+- **Pick your ruleset in one click**: the first time you log in on a realm, a small window asks which ruleset you play on (PvP, Normal, Roleplay or RP-PvP), the one you chose on the login screen. Until you pick one, clicking the minimap button opens it too. Later, click the status line at the top of the minimap menu to change it, or type `/fa ruleset`. "Later" puts it off until your next login.
+
 ## 2.3
 
 - **Old price notes**: new prices come with addon updates, so the addon now tells you when yours are old. At login, a note in chat when your prices are over a day old. Copies of the addon in your guild and group also tell each other how new their prices are (one tiny hidden message), so you get a note when someone has newer ones. You see nothing while your prices are current. Turn the notes off under Minimap and chat in the settings.

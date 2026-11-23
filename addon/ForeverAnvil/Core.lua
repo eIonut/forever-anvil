@@ -154,6 +154,7 @@ function ns.SetRuleset(name)
   local r = ns.FindRuleset(name)
   if not r then return nil end
   ns.db.realms[GetRealmName()] = r.name
+  if ns.OnRulesetChanged then ns.Safe("ruleset", ns.OnRulesetChanged) end
   return r
 end
 
@@ -405,13 +406,9 @@ function ns.ItemID(link)
 end
 
 ---------------------------------------------------------------------------------------------------
-local asked = false
-local function askForRuleset()
-  if asked or not ns.data or ns.Ruleset() then return end
-  asked = true
-  local names = {}
-  for _, r in ipairs(ns.data.rulesets) do names[#names + 1] = r.name end
-  ns.Print(L["which ruleset is this realm? Type |cffffffff/fa ruleset <name>|r, one of: %s. Prices show once it's set."]:format(table.concat(names, ", ")))
+-- no ruleset for this realm yet: the picker (Ruleset.lua) opens by itself, once a session
+local function askForRuleset(delay)
+  if ns.OfferRulesetPicker then ns.Safe("ruleset", ns.OfferRulesetPicker, delay) end
 end
 ns.AskForRuleset = askForRuleset
 
@@ -443,11 +440,11 @@ f:SetScript("OnEvent", function(_, event, arg1)
     end
     if ns.InitOptions then ns.InitOptions() end
     if ns.InitMinimap then ns.Safe("minimap", ns.InitMinimap) end
-    askForRuleset()
+    askForRuleset(4) -- after the loading screen and the game's own login windows
   elseif event == "AUCTION_HOUSE_SHOW" then
     ns.atNeutral = atNeutralAuctionHouse()
     ns.InitSoon("auction", ns.InitAuction)
-    askForRuleset()
+    askForRuleset(0.5)
     if ns.OnAuctionOpen then ns.Safe("lists", ns.OnAuctionOpen) end
   elseif event == "TRADE_SKILL_SHOW" then
     ns.InitSoon("profession", ns.InitProfession)
@@ -463,7 +460,10 @@ SlashCmdList.FOREVERANVIL = function(msg)
   local cmd, rest = (msg or ""):match("^%s*(%S*)%s*(.-)%s*$")
   cmd = cmd:lower()
   if cmd == "ruleset" then
-    if rest == "" then askForRuleset(); asked = false; return end
+    if rest == "" then
+      if not (ns.ShowRulesetPicker and ns.ShowRulesetPicker()) then ns.Print(L["no price data loaded."]) end
+      return
+    end
     local r = ns.SetRuleset(rest)
     if r then ns.Print(L["this realm now uses %s prices."]:format(r.name)) else ns.Print(L["unknown ruleset: %s"]:format(rest)) end
   elseif cmd == "debug" then
@@ -526,7 +526,7 @@ SlashCmdList.FOREVERANVIL = function(msg)
       ns.Print(L["no price data loaded."])
     elseif not id then
       ns.Print(L["prices from %s, but the ruleset for %s isn't set."]:format(M.Age(ns.DataAge()), GetRealmName()))
-      askForRuleset(); asked = false
+      if ns.ShowRulesetPicker then ns.ShowRulesetPicker() end
     else
       ns.Print(L["%s %s auction house (%s), prices from %s."]:format(r.name, L[side], ns.regionCode, M.Age(ns.DataAge())))
     end
