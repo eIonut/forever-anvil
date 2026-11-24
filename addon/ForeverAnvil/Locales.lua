@@ -373,6 +373,8 @@ ns.AddLocale({ "deDE" }, {
   ["%d items to go. Upgrades show up here as they arrive."] = "Noch %d Gegenstände. Upgrades erscheinen hier, sobald sie ankommen.",
   ["Getting your items from the game…"] = "Hole deine Gegenstände vom Spiel…",
   ["loading…"] = "lädt…",
+  ["Join us on Discord"] = "Komm auf unseren Discord",
+  ["Questions, a bug or an idea? Click the link, copy it with Ctrl+C (Cmd+C on a Mac) and paste it into your browser."] = "Fragen, ein Fehler oder eine Idee? Klicke auf den Link, kopiere ihn mit Strg+C (Cmd+C auf dem Mac) und füge ihn in deinen Browser ein.",
 })
 
 ns.AddLocale({ "frFR" }, {
@@ -744,6 +746,8 @@ ns.AddLocale({ "frFR" }, {
   ["%d items to go. Upgrades show up here as they arrive."] = "Encore %d objets. Les améliorations s'affichent ici à mesure qu'ils arrivent.",
   ["Getting your items from the game…"] = "Récupération de vos objets auprès du jeu…",
   ["loading…"] = "chargement…",
+  ["Join us on Discord"] = "Rejoignez-nous sur Discord",
+  ["Questions, a bug or an idea? Click the link, copy it with Ctrl+C (Cmd+C on a Mac) and paste it into your browser."] = "Une question, un bug ou une idée ? Cliquez sur le lien, copiez-le avec Ctrl+C (Cmd+C sur Mac) et collez-le dans votre navigateur.",
 })
 
 ns.AddLocale({ "esES", "esMX" }, {
@@ -1115,6 +1119,8 @@ ns.AddLocale({ "esES", "esMX" }, {
   ["%d items to go. Upgrades show up here as they arrive."] = "Faltan %d objetos. Las mejoras aparecen aquí a medida que llegan.",
   ["Getting your items from the game…"] = "Obteniendo tus objetos del juego…",
   ["loading…"] = "cargando…",
+  ["Join us on Discord"] = "Únete a nuestro Discord",
+  ["Questions, a bug or an idea? Click the link, copy it with Ctrl+C (Cmd+C on a Mac) and paste it into your browser."] = "¿Preguntas, un error o una idea? Haz clic en el enlace, cópialo con Ctrl+C (Cmd+C en Mac) y pégalo en tu navegador.",
 })
 
 ns.ApplyLocale()
