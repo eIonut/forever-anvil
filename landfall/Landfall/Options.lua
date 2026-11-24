@@ -82,7 +82,7 @@ local function discordBox(x, y)
   box:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
   box:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
   box:SetScript("OnEnter", function(self)
-    GameTooltip:SetOwner(self, "ANCHOR_BOTTOMRIGHT")
+    GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT")
     GameTooltip:AddLine("Join us on Discord")
     GameTooltip:AddLine("Questions, a bug or a zone card idea? Click the link, copy it with Ctrl+C (Cmd+C on a Mac) and paste it into your browser.", 1, 1, 1, true)
     GameTooltip:Show()
@@ -223,6 +223,7 @@ local function build()
   end
   panel:SetScript("OnShow", panel.refresh)
   panel:SetScript("OnHide", function() if ns.moving then ns.SetMoving(false) end end)
+  panel:Hide() -- a new frame starts out shown: hidden, so opening the settings runs OnShow and fills the page in
 
   if Settings and Settings.RegisterCanvasLayoutCategory then
     category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
