@@ -1,3 +1,11 @@
+## 2.6
+
+- **Sell marks in your bags**: turn on "Mark in bags" in the bag value window (or Sell marks in your bags in the settings, under Bags) and the items worth selling on the auction house get the auction house symbol (the one from the minimap) on their bag slot: unbound items worth more there after its cut than to a vendor or disenchanted. Works with the game's bags and bag addons like Bagnon. Off unless you turn it on.
+- **Tick boxes in the bag value window**: every item has a tick. Untick what you are keeping to leave it out of the worth (and take its sell mark off); it stays in the list, greyed out, so you can tick it again any time. Right-clicking a row still does the same.
+- **The reagent bag counts** in your bag value now; it was left out before.
+- Money in the bag value, upgrades, prices, shopping list and watchlist windows shows the game's gold, silver and copper coins instead of g / s / c.
+- The settings have a link to the Forever Anvil Addons Discord, and the Scan button shows that it is waiting for the auction house's list instead of sitting at 0%.
+
 ## 2.5
 
 - **Scan the auction house** (the Scan button under the auction house window, or `/fa scan` while it is open): reads every auction on the house you are at and uses those prices right away, so your prices stay current between addon updates. The next addon update with newer prices takes over again. Sold per day still comes from the site. The game allows one scan every 15 minutes, and the button shows how old your scan is.

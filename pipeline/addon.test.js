@@ -34,6 +34,9 @@ function runLua(body, globals = {}) {
   return lua.lua_tojsstring(L, -1);
 }
 
+// The windows draw money with the game's coin icons; tests read them back as g / s / c
+const coinLetters = (s) => s.replace(/\|TInterface\\MoneyFrame\\UI-(\w)\w+Icon:0:0:2:0\|t/g, (_, u) => u.toLowerCase());
+
 test("every addon Lua file parses", () => {
   for (const file of fs.readdirSync(ADDON).filter((f) => f.endsWith(".lua"))) {
     const L = lauxlib.luaL_newstate();
@@ -359,7 +362,7 @@ test("smoke: modern profession and auction windows show profits and flips", () =
     texts[#texts + 1] = "ui: " .. ns.professionUI .. ", " .. ns.auctionUI
     return table.concat(texts, "\\n")`, { HOUSE: house, "Core.lua": src("Core.lua"), "Tooltip.lua": src("Tooltip.lua"), "Auction.lua": src("Auction.lua"), "Profession.lua": src("Profession.lua") });
   // 10000 × 0.95 − (8 × 275 Heavy Leather + 2 × 100 vendor thread); the optional reagent doesn't count
-  assert.deepEqual(out.split("\n"), [
+  assert.deepEqual(coinLetters(out).split("\n"), [
     "recipe: |cff33dd55+71s|r",
     "enchant: []",
     "unpriced: |cff777777?|r",
@@ -683,7 +686,7 @@ test("smoke: upgrades, crates, watchlist and shopping list in tooltips, auction 
     ns.frame.OnEvent(ns.frame, "AUCTION_HOUSE_SHOW")
     for i = before + 1, #lines do out[#out + 1] = lines[i]:gsub("^chat: |cffe6a23cForever Anvil|r: ", "") end
     return table.concat(out, "\\n")`, { HOUSE: house, "Core.lua": src("Core.lua"), "Tooltip.lua": src("Tooltip.lua"), "Auction.lua": src("Auction.lua"), "Lists.lua": src("Lists.lua") });
-  assert.deepEqual(out.split("\n"), [
+  assert.deepEqual(coinLetters(out).split("\n"), [
     "9100:   Upgrade = |cff33dd55+10 item level|r  |cff999999over your head|r",
     "9101: ",
     "9102: ",
@@ -769,7 +772,7 @@ test("smoke: profession window marks the cheapest skill-up", () => {
     end
     return table.concat(texts, "\\n")`, { HOUSE: house, "Core.lua": src("Core.lua"), "Profession.lua": src("Profession.lua") });
   const tag = "|cff40c0ffskill-up|r ";
-  assert.deepEqual(out.split("\n"), [
+  assert.deepEqual(coinLetters(out).split("\n"), [
     // skill 1: Linen Bandage (15c, sure) beats Heavy (30c, sure)
     `1: 3275=[${tag}] 3276=[] 7934=[] form=[|cffe6a23cForever Anvil|r  |cff40c0ffskill-up 100%, 30c per point|r]`,
     // skill 35: Linen Bandage is 75% (15c → 20c per point), Heavy still orange (30c)
@@ -902,7 +905,7 @@ test("smoke: minimap button opens the menu; its rows and switches work", () => {
     out[#out + 1] = "dragged: angle " .. string.format("%.0f", ns.db.minimap.angle) .. ", at " .. string.format("%.0f,%.0f", b.point[4], b.point[5])
     return table.concat(out, "\\n")`, { HOUSE: house, "Core.lua": src("Core.lua"), "Lists.lua": src("Lists.lua"), "Minimap.lua": src("Minimap.lua") });
   // default angle 210°: cos −0.866, sin −0.5 at radius 75
-  assert.deepEqual(out.split("\n"), [
+  assert.deepEqual(coinLetters(out).split("\n"), [
     "button: true, at -65,-38",
     "compartment: Forever Anvil, Interface\\AddOns\\ForeverAnvil\\Media\\Icon",
     "tooltip: |cffe6a23cForever Anvil|r / PvP horde  |cff999999·  prices 2h ago|r / 1 of your 2 watched items at target /   / |cffffffffClick|r  menu / |cffffffffRight-click|r  settings / |cffffffffDrag|r  move this button",
@@ -1037,7 +1040,7 @@ test("smoke: ruleset picker asks once after login and from the minimap button, m
     SlashCmdList.FOREVERANVIL("ruleset")
     out[#out + 1] = "/fa ruleset: " .. picker()
     return table.concat(out, "\\n")`, { HOUSE: house, "Core.lua": src("Core.lua"), "Lists.lua": src("Lists.lua"), "Ruleset.lua": src("Ruleset.lua"), "Minimap.lua": src("Minimap.lua") });
-  assert.deepEqual(out.split("\n"), [
+  assert.deepEqual(coinLetters(out).split("\n"), [
     "at login: hidden, 4s timer",
     "after the timer: PvP Normal Roleplay RP-PvP; later true; status -",
     "later: hidden",
@@ -1244,7 +1247,7 @@ test("smoke: watchlist and shopping list managed in game", () => {
     SlashCmdList.FOREVERANVIL("list")
     out[#out + 1] = "/fa list toggles: " .. tostring(S.shown)
     return table.concat(out, "\\n")`, { HOUSE: house, "Core.lua": src("Core.lua"), "Lists.lua": src("Lists.lua"), "Profession.lua": src("Profession.lua") });
-  assert.deepEqual(out.split("\n"), [
+  assert.deepEqual(coinLetters(out).split("\n"), [
     "watch window: true, |cff999999Empty. Add items below, Alt-click an item in your bags, or use the prices window.|r",
     "item box: |cffffffff|Hitem:2589::|h[Linen Cloth]|h|r, focus moved to the amount: true",
     "bad price: that price isn't clear: write it like 2g50s, 75s or 30c (or leave it empty). {}",
@@ -1291,7 +1294,7 @@ test("item names ship with the data and decode in the addon, commas and quotes i
       p[#p + 1] = e and table.concat({ id, e[1], tostring(e[2]), e[3], tostring(e[4]), tostring(e[5]) }, "|") or (id .. "|none")
     end
     return table.concat(p, "\\n")`, { S: JSON.stringify(s) });
-  assert.deepEqual(out.split("\n"), [
+  assert.deepEqual(coinLetters(out).split("\n"), [
     '7|BKP 2700 "Enforcer"|3|w|37|135610',
     "8|Legends of the Gurubashi, Volume 3|nil|o|nil|nil",
     "25|Worn Shortsword|1|w|1|135274",
@@ -1474,7 +1477,7 @@ test("smoke: prices window searches, filters, sorts, switches house and acts on 
     SlashCmdList.FOREVERANVIL("prices wool")
     out[#out + 1] = "/fa prices wool: " .. tostring(P.shown) .. ", " .. names() .. ", Esc closes: " .. tostring(UISpecialFrames[#UISpecialFrames] == "ForeverAnvilPrices")
     return table.concat(out, "\\n")`, { HORDE: horde, ALLIANCE: alliance, ITEMS: itemStr, "Core.lua": src("Core.lua"), "Lists.lua": src("Lists.lua"), "Prices.lua": src("Prices.lua") });
-  assert.deepEqual(out.split("\n"), [
+  assert.deepEqual(coinLetters(out).split("\n"), [
     "open: true; Wool Cloth, Linen Cloth, Silk Cloth, Copper Ore, Worn Shortsword; Showing 1–5 of 5 items  |cff999999PvP horde",
     "first row: icon 132911, 45c 40c 200 60",
     "categories: All items 5, Weapons 1, Trade goods 4",
@@ -1584,7 +1587,7 @@ test("smoke: settings page groups every switch and opens the windows", () => {
     P.open[2]:Click()
     out[#out + 1] = "open: " .. P.open[2].value .. " -> " .. tostring(ForeverAnvilWatchlist and ForeverAnvilWatchlist.shown)
     return table.concat(out, "\\n")`, { "Core.lua": src("Core.lua"), "Lists.lua": src("Lists.lua"), "Prices.lua": src("Prices.lua"), "Options.lua": src("Options.lua") });
-  assert.deepEqual(out.split("\n"), [
+  assert.deepEqual(coinLetters(out).split("\n"), [
     "missing: ; extra: ",
     "sections: Tooltips, Profession window, Auction house, Your gear and lists, Minimap and chat, Open, Ruleset for this realm",
     "checked: vendor false, flips true; status PvP, horde auction house.",
@@ -1622,7 +1625,7 @@ test("translations cover every text, with matching placeholders", () => {
   }
   const opt = fs.readFileSync(path.join(ADDON, "Options.lua"), "utf8");
   const optTables = opt.slice(opt.indexOf("local LEFT = {"), opt.indexOf("local panel, category"));
-  const keys = new Set(["market", "min", "sold", "region", "de", "vendor", "crates", "craft", "skillup", "flips", "deAll", "upgrades", "watch", "shopping", "minimap", "updates"]);
+  const keys = new Set(["market", "min", "sold", "region", "de", "vendor", "crates", "craft", "skillup", "flips", "deAll", "upgrades", "watch", "shopping", "minimap", "updates", "bagMarks"]);
   for (const m of optTables.matchAll(/"((?:[^"\\]|\\.)*)"/g)) if (!keys.has(unq(m[1]))) used.add(unq(m[1]));
   const mm = fs.readFileSync(path.join(ADDON, "Minimap.lua"), "utf8");
   for (const m of mm.matchAll(/sectionLabel\(fr, "([^"]+)"|actionRow\(fr, y, "[^"]+", "([^"]+)"|\{ "([^"]+)", \{ "/g)) used.add(m[1] || m[2] || m[3]);
@@ -1734,8 +1737,15 @@ test("smoke: bag value window totals your bags and the menu shows it", () => {
     UnitFactionGroup = function() return "Horde" end
     C_AddOns = { IsAddOnLoaded = function() return false end, LoadAddOn = noop }
     time = os.time
+    CreateFrame = function(...) -- tick boxes keep their state
+      local fr = frame(...)
+      function fr:SetChecked(on) self.checked = on and true or false end
+      function fr:GetChecked() return self.checked end
+      return fr
+    end
     -- bags: 30 Linen Cloth in two stacks, 3 Wool Cloth (a thin market), a soulbound sword (vendor 1s), a grey (vendor 5c)
     local bags = { [0] = { { 2589, 20 }, { 2589, 10 }, { 2592, 3 } }, [1] = { { 25, 1, true }, { 3300, 2 } } }
+    NUM_BAG_SLOTS, NUM_TOTAL_EQUIPPED_BAG_SLOTS = 4, 5 -- bags 0-4 and the reagent bag
     C_Container = {
       GetContainerNumSlots = function(bag) return bags[bag] and #bags[bag] or 0 end,
       GetContainerItemInfo = function(bag, slot)
@@ -1750,7 +1760,7 @@ test("smoke: bag value window totals your bags and the menu shows it", () => {
       rulesets = { { name = "PvP", group = "A", likely = false, alliance = 110, horde = 113, neutral = 116 } },
       houses = { [113] = { group = "A", faction = "horde", data = HOUSE } },
       regionMedian = "", vendorBuy = "", noDisenchant = "", skill = "", crates = "", items = "" } }
-    for _, f in ipairs({ "Core.lua", "Lists.lua", "Bags.lua" }) do assert(load(_G[f], "=" .. f))("ForeverAnvil", ns) end
+    for _, f in ipairs({ "Core.lua", "Lists.lua", "Bags.lua", "BagMarks.lua" }) do assert(load(_G[f], "=" .. f))("ForeverAnvil", ns) end
     ns.frame.OnEvent(ns.frame, "ADDON_LOADED", "ForeverAnvil")
     ns.frame.OnEvent(ns.frame, "PLAYER_LOGIN")
     SlashCmdList.FOREVERANVIL("bags")
@@ -1762,21 +1772,20 @@ test("smoke: bag value window totals your bags and the menu shows it", () => {
     out[#out + 1] = B.total.text
     out[#out + 1] = B.split.text
     out[#out + 1] = "worth " .. ns.BagWorth()
-    -- right-click the Wool to leave it out; "Show ignored" lists it greyed under the rest; right-click counts it again
+    -- untick the Wool to leave it out: it keeps its place, greyed; a right-click on its row ticks it again
     local function rows()
       local t = {}
-      for _, b in ipairs(B.rows) do if b.itemID and b.shown ~= false then t[#t + 1] = b.itemID .. " " .. b.kind.text end end
+      for _, b in ipairs(B.rows) do
+        if b.itemID and b.shown ~= false then t[#t + 1] = b.itemID .. (b.check.checked and " [x] " or " [ ] ") .. b.kind.text end
+      end
       return table.concat(t, ", ")
     end
-    out[#out + 1] = "toggle " .. tostring(B.toggle.shown)
-    B.rows[2].OnClick(B.rows[2], "RightButton")
+    out[#out + 1] = rows() .. " / " .. B.hint.text
+    B.rows[2].check.OnClick(B.rows[2].check)
     out[#out + 1] = "ignored " .. tostring(ForeverAnvilDB.bagIgnore[2592]) .. ": " .. rows()
     out[#out + 1] = B.total.text .. " / worth " .. ns.BagWorth()
-    out[#out + 1] = "toggle " .. tostring(B.toggle.shown) .. " " .. B.toggle.value
-    B.toggle.OnClick(B.toggle)
-    out[#out + 1] = rows() .. " / " .. B.toggle.value .. " / " .. B.hint.text
-    B.rows[4].OnClick(B.rows[4], "RightButton")
-    out[#out + 1] = "back " .. tostring(ForeverAnvilDB.bagIgnore[2592]) .. ": " .. rows() .. " / toggle " .. tostring(B.toggle.shown) .. " / worth " .. ns.BagWorth()
+    B.rows[2].OnClick(B.rows[2], "RightButton")
+    out[#out + 1] = "back " .. tostring(ForeverAnvilDB.bagIgnore[2592]) .. ": " .. rows() .. " / worth " .. ns.BagWorth()
     -- right after login the game may not have loaded an item yet: the window says so, then counts it once it arrives
     local saved = bags
     bags = { [0] = { { 4500, 2 } } }
@@ -1786,25 +1795,67 @@ test("smoke: bag value window totals your bags and the menu shows it", () => {
     B.OnShow(B)
     out[#out + 1] = "arrived: " .. rows() .. " / " .. B.total.text
     bags = saved
-    return table.concat(out, "\\n")`, { HOUSE: house, "Core.lua": src("Core.lua"), "Lists.lua": src("Lists.lua"), "Bags.lua": src("Bags.lua") });
+    bags[5] = { { 2589, 4 } } -- 4 Linen Cloth in the reagent bag: 56c more
+    out[#out + 1] = "reagent bag: worth " .. ns.BagWorth()
+    bags[5] = nil
+    -- sell marks: a coin on the slots whose item sells best on the auction house, unbound and ticked
+    local buttons = {}
+    for bag, list in pairs(bags) do
+      for slot in ipairs(list) do
+        local b = frame("Button")
+        function b:GetID() return slot end
+        function b:GetBagID() return bag end
+        function b:CreateTexture()
+          local t = region()
+          function t:Show() self.on = true end
+          function t:Hide() self.on = false end
+          return t
+        end
+        buttons[#buttons + 1] = b
+      end
+    end
+    ContainerFrameCombinedBags = frame("Frame")
+    ContainerFrameCombinedBags.Items = buttons
+    local function marks()
+      local t = {}
+      for _, b in ipairs(buttons) do
+        if rawget(b, "ForeverAnvilMark") and b.ForeverAnvilMark.on then t[#t + 1] = b:GetBagID() .. "/" .. b:GetID() end
+      end
+      table.sort(t)
+      return table.concat(t, " ")
+    end
+    out[#out + 1] = "marks off by default: " .. marks() .. " / window switch " .. tostring(B.marks.checked)
+    B.marks.checked = true
+    B.marks.OnClick(B.marks)
+    out[#out + 1] = "marks on: " .. marks() .. " / setting " .. tostring(ForeverAnvilDB.show.bagMarks)
+    ns.SetBagIgnored(2592, true)
+    out[#out + 1] = "wool unticked: " .. marks()
+    ns.SetBagIgnored(2592, nil)
+    ns.SetBagMarks(false)
+    out[#out + 1] = "marks off: " .. marks()
+    return table.concat(out, "\\n")`, { HOUSE: house, "Core.lua": src("Core.lua"), "Lists.lua": src("Lists.lua"), "Bags.lua": src("Bags.lua"), "BagMarks.lua": src("BagMarks.lua") });
   // Linen: 15c × 0.95 = 14c each, 30 → 4s 20c; Wool: 43c × 3 = 1s 29c (thin: under 3 listings); sword 1s (bound: vendor); grey 5c × 2
-  assert.deepEqual(out.split("\n"), [
+  // (the window's coin icons read here as {g} {s} {c})
+  assert.deepEqual(out.replace(/\|TInterface\\MoneyFrame\\UI-(\w)\w+Icon:0:0:2:0\|t/g, (_, u) => `{${u.toLowerCase()}}`).split("\n"), [
     "shown true",
-    "2589 |cffffd100Auction house|r 4s 20c",
-    "2592 |cffffd100Auction house|r |cff999999~|r1s 29c",
-    "25 |cffbbbbbbVendor|r|cff777777 · bound|r 1s",
-    "3300 |cffbbbbbbVendor|r 10c",
-    "Worth |cffc7c7cf6s|r |cffeda55f59c|r",
-    "|cffffd100Auction house|r 5s 49c   |cffc080ffDisenchant|r 0c   |cffbbbbbbVendor|r 1s 10c",
+    "2589 |cffffd100Auction house|r 4{s} 20{c}",
+    "2592 |cffffd100Auction house|r |cff999999~|r1{s} 29{c}",
+    "25 |cffbbbbbbVendor|r|cff777777 · bound|r 1{s}",
+    "3300 |cffbbbbbbVendor|r 10{c}",
+    "Worth |cffffffff6{s} 59{c}|r",
+    "|cffffd100Auction house|r 5{s} 49{c}   |cffc080ffDisenchant|r 0{c}   |cffbbbbbbVendor|r 1{s} 10{c}",
     "worth 659",
-    "toggle false",
-    "ignored true: 2589 |cffffd100Auction house|r, 25 |cffbbbbbbVendor|r|cff777777 · bound|r, 3300 |cffbbbbbbVendor|r",
-    "Worth |cffc7c7cf5s|r |cffeda55f30c|r / worth 530",
-    "toggle true Show ignored (1)",
-    "2589 |cffffd100Auction house|r, 25 |cffbbbbbbVendor|r|cff777777 · bound|r, 3300 |cffbbbbbbVendor|r, 2592 |cff777777Ignored|r / Hide ignored / |cff777777Right-click one to count it again.|r",
-    "back nil: 2589 |cffffd100Auction house|r, 2592 |cffffd100Auction house|r, 25 |cffbbbbbbVendor|r|cff777777 · bound|r, 3300 |cffbbbbbbVendor|r / toggle false / worth 659",
+    "2589 [x] |cffffd100Auction house|r, 2592 [x] |cffffd100Auction house|r, 25 [x] |cffbbbbbbVendor|r|cff777777 · bound|r, 3300 [x] |cffbbbbbbVendor|r / |cff777777Untick items you keep to leave them out.|r",
+    "ignored true: 2589 [x] |cffffd100Auction house|r, 2592 [ ] |cff777777Auction house|r, 25 [x] |cffbbbbbbVendor|r|cff777777 · bound|r, 3300 [x] |cffbbbbbbVendor|r",
+    "Worth |cffffffff5{s} 30{c}|r / worth 530",
+    "back nil: 2589 [x] |cffffd100Auction house|r, 2592 [x] |cffffd100Auction house|r, 25 [x] |cffbbbbbbVendor|r|cff777777 · bound|r, 3300 [x] |cffbbbbbbVendor|r / worth 659",
     "loading: |cff999999Getting your items from the game…|r  |cff999999loading 1 items|r / worth 0,1",
-    "arrived: 4500 |cffbbbbbbVendor|r / Worth |cffeda55f14c|r",
+    "arrived: 4500 [x] |cffbbbbbbVendor|r / Worth |cffffffff14{c}|r",
+    "reagent bag: worth 715",
+    "marks off by default:  / window switch false",
+    "marks on: 0/1 0/2 0/3 / setting true",
+    "wool unticked: 0/1 0/2",
+    "marks off: ",
   ]);
 });
 
@@ -1921,7 +1972,7 @@ test("smoke: scanning the auction house replaces its prices until newer ones shi
     ns.LoadData()
     out[#out + 1] = "update " .. p(2589) .. " " .. p(4306) .. ", age " .. ns.DataAge()
     return table.concat(out, "\\n")`, { HOUSE: house, "Core.lua": src("Core.lua"), "Scan.lua": src("Scan.lua") });
-  assert.deepEqual(out.split("\n"), [
+  assert.deepEqual(coinLetters(out).split("\n"), [
     "closed: open the auction house to scan it.",
     "button Scan / |cff999999not scanned yet|r",
     "before 12/15/400/30/120 none, age 7200",
@@ -2068,7 +2119,7 @@ test("spec scoring: stats from the game, the spec from talents, gear for other s
     stats[7] = false -- the game never sent item 7: left out, not loading forever
     lines[#lines + 1] = run({})
     return table.concat(lines, "\\n")`);
-  assert.deepEqual(out.split("\n"), [
+  assert.deepEqual(coinLetters(out).split("\n"), [
     "agi=6 armor=80 crit=1 dps=9.5 heal=22 rap=12 sta=4",
     "2 2 1 1 3 nil",
     "7.2 1.5 70.0 0.0",
@@ -2212,7 +2263,7 @@ test("smoke: upgrades window ranks gear for your spec, hides other specs' gear, 
     out[#out + 1] = "no stats: " .. rows(U) .. " || " .. strip(U.total.text):gsub(" · prices.*", "")
     return table.concat(out, "\\n")`, { HORDE: horde, NEUTRAL: neutral, ITEMS: encodeItems(cache, ids), GEAR: encodeGear(cache, ids),
     "Core.lua": src("Core.lua"), "Lists.lua": src("Lists.lua"), "Upgrades.lua": src("Upgrades.lua") });
-  assert.deepEqual(out.split("\n"), [
+  assert.deepEqual(coinLetters(out).split("\n"), [
     "Level 30 Rogue  Combat (from your talents)",
     "Assassination, Combat *!, Subtlety",
     "[Head] Old Helm | +3 Agi | " +

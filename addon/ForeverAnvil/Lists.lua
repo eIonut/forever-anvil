@@ -301,12 +301,12 @@ local function buildList(o)
     b.icon:SetTexCoord(0.07, 0.93, 0.07, 0.93)
     b.name = b:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     b.name:SetPoint("LEFT", 22, 0)
-    b.name:SetWidth(128)
+    b.name:SetWidth(122)
     b.name:SetJustifyH("LEFT")
     b.name:SetWordWrap(false)
     b.count = b:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-    b.count:SetPoint("LEFT", 152, 0)
-    b.count:SetWidth(50)
+    b.count:SetPoint("LEFT", 146, 0)
+    b.count:SetWidth(56)
     b.count:SetJustifyH("RIGHT")
     b.cost = b:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     b.cost:SetPoint("LEFT", 206, 0)
@@ -546,7 +546,7 @@ function ns.RefreshShopping()
     local done = e.missing == 0
     e.dim = done
     e.count = (done and "|cff33dd55" or "") .. math.min(e.have, e.need) .. "/" .. e.need .. (done and "|r" or "")
-    e.cost = done and ("|cff33dd55" .. L["done"] .. "|r") or (e.cost and M.ShortMoney(e.cost, true) or "|cff777777?|r")
+    e.cost = done and ("|cff33dd55" .. L["done"] .. "|r") or (e.cost and M.CoinMoney(e.cost) or "|cff777777?|r")
   end
   shop.fill(list)
   local more = shop.range()
@@ -555,7 +555,7 @@ function ns.RefreshShopping()
   elseif open == 0 then
     shop.total:SetText("|cff33dd55" .. L["You have everything."] .. "|r" .. more)
   else
-    shop.total:SetText(L["To buy: %s"]:format((unpriced and "~" or "") .. M.ShortMoney(total, true)) .. more)
+    shop.total:SetText(L["To buy: %s"]:format((unpriced and "~" or "") .. M.CoinMoney(total)) .. more)
   end
 end
 
@@ -625,8 +625,8 @@ function ns.RefreshWatch()
     return a.name < b.name
   end)
   for _, e in ipairs(list) do
-    e.count = e.target > 0 and ("|cff999999" .. M.ShortMoney(e.target, true) .. "|r") or "|cff777777-|r"
-    e.cost = e.low and ((e.at and "|cff33dd55" or "") .. M.ShortMoney(e.low, true) .. (e.at and "|r" or "")) or "|cff777777none|r"
+    e.count = e.target > 0 and ("|cff999999" .. M.CoinMoney(e.target) .. "|r") or "|cff777777-|r"
+    e.cost = e.low and ((e.at and "|cff33dd55" or "") .. M.CoinMoney(e.low) .. (e.at and "|r" or "")) or "|cff777777none|r"
   end
   watchWin.fill(list)
   local n, hits = ns.WatchSummary()

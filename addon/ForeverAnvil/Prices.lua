@@ -47,7 +47,7 @@ local function cachedName(id)
   return name
 end
 
-local function priceText(c) return c and M.ShortMoney(c, true) or "|cff777777-|r" end
+local function priceText(c) return c and M.CoinMoney(c) or "|cff777777-|r" end
 
 local function refreshDetail()
   local d = win.detail

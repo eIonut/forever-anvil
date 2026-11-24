@@ -164,7 +164,7 @@ local function draw()
         b.stats:SetText("|cff33dd55+" .. e.gain .. "|r |cff999999" .. L["ilvl %d"]:format(e.ilvl) .. "|r")
       end
       b.req:SetText(e.req > 1 and ("|cff999999" .. L["level %d"]:format(e.req) .. "|r") or "")
-      b.price:SetText(M.ShortMoney(e.price, true))
+      b.price:SetText(M.CoinMoney(e.price))
       b:Show()
     end
   end
@@ -293,7 +293,7 @@ local function build()
     local b = CreateFrame("Button", nil, fr, "UIPanelButtonTemplate")
     b:SetSize(v == 0 and 84 or 52, 20)
     b:SetPoint("LEFT", prev, "RIGHT", 4, 0)
-    b:SetText(v == 0 and L["Any price"] or M.ShortMoney(v, true))
+    b:SetText(v == 0 and L["Any price"] or M.CoinMoney(v))
     b.value = v
     b:SetScript("OnClick", function(self)
       ns.db.upgradeBudget = self.value
@@ -358,7 +358,7 @@ local function build()
     b.req:SetJustifyH("LEFT")
     b.price = b:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
     b.price:SetPoint("RIGHT", -2, 0)
-    b.price:SetWidth(52)
+    b.price:SetWidth(66)
     b.price:SetJustifyH("RIGHT")
     -- click: search the auction house; Shift: link in chat; Ctrl: try it on
     b:SetScript("OnClick", function(self)

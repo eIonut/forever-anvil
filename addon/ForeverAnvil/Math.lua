@@ -864,4 +864,13 @@ function M.ShortMoney(copper, plain)
   return sign .. u(c, "c", C)
 end
 
+-- Like ShortMoney, with the game's gold, silver and copper coins in place of g / s / c, e.g. "1(g) 66(s)"
+M.COINS = { g = "Interface\\MoneyFrame\\UI-GoldIcon", s = "Interface\\MoneyFrame\\UI-SilverIcon",
+  c = "Interface\\MoneyFrame\\UI-CopperIcon" }
+function M.CoinMoney(copper)
+  return (M.ShortMoney(copper, true):gsub("(%d+)([gsc])", function(n, unit)
+    return n .. "|T" .. M.COINS[unit] .. ":0:0:2:0|t"
+  end))
+end
+
 return M
