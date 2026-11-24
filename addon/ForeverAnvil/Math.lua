@@ -701,7 +701,8 @@ function M.KeyStats(stats, weights, n)
 end
 
 -- Like M.FindUpgrades, but ranked for a spec by stats instead of item level.
--- statsOf(id): parsed stats of an item (M.ParseItemStats), or nil while the game hasn't loaded it.
+-- statsOf(id): parsed stats of an item (M.ParseItemStats), nil while the game hasn't loaded it, or false when
+-- the game never will (left out).
 -- weights: the spec's (M.SPECS). opts: { maxPrice, perSlot, showAll = keep gear made for other specs }.
 -- An option is an upgrade when its stats are worth more to the spec than what you wear there. Uncommon or
 -- better gear without stats rolls them when it drops: kept when its item level is higher, marked random.
@@ -754,6 +755,8 @@ function M.SpecUpgrades(gear, cls, level, houses, gearOf, statsOf, weights, opts
           local stats = statsOf(id)
           if stats == nil then
             if item.ilvl > baseline then pendingIds[id] = true end
+          elseif stats == false then
+            -- the game never sent this item's details: left out rather than loading forever
           elseif item.quality >= 2 and not M.HasStats(stats) then
             if item.ilvl > baseline then
               options[#options + 1] = { id = id, ilvl = item.ilvl, req = item.req or 0, price = c.price, side = c.side,

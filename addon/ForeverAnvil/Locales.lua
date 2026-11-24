@@ -368,6 +368,11 @@ ns.AddLocale({ "deDE" }, {
   ["At the auction house, press Scan under its window or type /fa scan to read its current prices yourself, between addon updates. The game allows one scan every 15 minutes."] = "Drück im Auktionshaus unter dem Fenster auf Scannen oder gib /fa scan ein, um seine aktuellen Preise selbst zu lesen, zwischen Addon-Updates. Das Spiel erlaubt einen Scan alle 15 Minuten.",
   ["At the auction house, reads every auction and uses those prices until an addon update brings newer ones. Also the Scan button under the auction house window, or /fa scan there. The game allows one scan every 15 minutes."] = "Liest im Auktionshaus jede Auktion und nutzt diese Preise, bis ein Addon-Update neuere bringt. Auch über den Knopf Scannen unter dem Auktionshausfenster oder /fa scan dort. Das Spiel erlaubt einen Scan alle 15 Minuten.",
   ["new: press Scan under the auction house window (or type |cffffffff/fa scan|r) to read its current prices yourself, any time. The game allows one scan every 15 minutes."] = "neu: drück unter dem Auktionshausfenster auf Scannen (oder gib |cffffffff/fa scan|r ein), um seine aktuellen Preise jederzeit selbst zu lesen. Das Spiel erlaubt einen Scan alle 15 Minuten.",
+  ["Pick this realm's ruleset to see upgrades."] = "Wähle den Realmtyp, um Upgrades zu sehen.",
+  ["Getting the gear on sale from the game…"] = "Hole die angebotene Ausrüstung vom Spiel…",
+  ["%d items to go. Upgrades show up here as they arrive."] = "Noch %d Gegenstände. Upgrades erscheinen hier, sobald sie ankommen.",
+  ["Getting your items from the game…"] = "Hole deine Gegenstände vom Spiel…",
+  ["loading…"] = "lädt…",
 })
 
 ns.AddLocale({ "frFR" }, {
@@ -734,6 +739,11 @@ ns.AddLocale({ "frFR" }, {
   ["At the auction house, press Scan under its window or type /fa scan to read its current prices yourself, between addon updates. The game allows one scan every 15 minutes."] = "À l'hôtel des ventes, appuyez sur Scanner sous sa fenêtre ou tapez /fa scan pour lire vous-même ses prix actuels, entre deux mises à jour de l'addon. Le jeu permet un scan toutes les 15 minutes.",
   ["At the auction house, reads every auction and uses those prices until an addon update brings newer ones. Also the Scan button under the auction house window, or /fa scan there. The game allows one scan every 15 minutes."] = "À l'hôtel des ventes, lit toutes les enchères et utilise ces prix jusqu'à ce qu'une mise à jour de l'addon en apporte de plus récents. Aussi avec le bouton Scanner sous la fenêtre de l'hôtel des ventes, ou /fa scan sur place. Le jeu permet un scan toutes les 15 minutes.",
   ["new: press Scan under the auction house window (or type |cffffffff/fa scan|r) to read its current prices yourself, any time. The game allows one scan every 15 minutes."] = "nouveau : appuyez sur Scanner sous la fenêtre de l'hôtel des ventes (ou tapez |cffffffff/fa scan|r) pour lire vous-même ses prix actuels, à tout moment. Le jeu permet un scan toutes les 15 minutes.",
+  ["Pick this realm's ruleset to see upgrades."] = "Choisissez le type de royaume pour voir les améliorations.",
+  ["Getting the gear on sale from the game…"] = "Récupération auprès du jeu de l'équipement en vente…",
+  ["%d items to go. Upgrades show up here as they arrive."] = "Encore %d objets. Les améliorations s'affichent ici à mesure qu'ils arrivent.",
+  ["Getting your items from the game…"] = "Récupération de vos objets auprès du jeu…",
+  ["loading…"] = "chargement…",
 })
 
 ns.AddLocale({ "esES", "esMX" }, {
@@ -1100,6 +1110,11 @@ ns.AddLocale({ "esES", "esMX" }, {
   ["At the auction house, press Scan under its window or type /fa scan to read its current prices yourself, between addon updates. The game allows one scan every 15 minutes."] = "En la casa de subastas, pulsa Escanear debajo de su ventana o escribe /fa scan para leer tú mismo sus precios actuales, entre actualizaciones del addon. El juego permite un escaneo cada 15 minutos.",
   ["At the auction house, reads every auction and uses those prices until an addon update brings newer ones. Also the Scan button under the auction house window, or /fa scan there. The game allows one scan every 15 minutes."] = "En la casa de subastas, lee todas las subastas y usa esos precios hasta que una actualización del addon traiga otros más nuevos. También con el botón Escanear debajo de la ventana de la casa de subastas, o /fa scan allí. El juego permite un escaneo cada 15 minutos.",
   ["new: press Scan under the auction house window (or type |cffffffff/fa scan|r) to read its current prices yourself, any time. The game allows one scan every 15 minutes."] = "nuevo: pulsa Escanear debajo de la ventana de la casa de subastas (o escribe |cffffffff/fa scan|r) para leer tú mismo sus precios actuales, cuando quieras. El juego permite un escaneo cada 15 minutos.",
+  ["Pick this realm's ruleset to see upgrades."] = "Elige el tipo de reino para ver mejoras.",
+  ["Getting the gear on sale from the game…"] = "Obteniendo del juego el equipo en venta…",
+  ["%d items to go. Upgrades show up here as they arrive."] = "Faltan %d objetos. Las mejoras aparecen aquí a medida que llegan.",
+  ["Getting your items from the game…"] = "Obteniendo tus objetos del juego…",
+  ["loading…"] = "cargando…",
 })
 
 ns.ApplyLocale()

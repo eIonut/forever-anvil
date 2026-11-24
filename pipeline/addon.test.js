@@ -592,9 +592,9 @@ test("smoke: upgrades, crates, watchlist and shopping list in tooltips, auction 
       function fr:GetName() return name end
       function fr:CreateFontString() local fs = region(); self.fs = fs; if self.parent then self.parent.fs = fs end; return fs end
       function fr:CreateTexture() return region() end
-      function fr:Show() self.shown = true; if self.OnShow then self.OnShow(self) end end
+      function fr:Show() if self:IsShown() then return end; self.shown = true; if self.OnShow then self.OnShow(self) end end -- like the game: OnShow only when it was hidden
       function fr:Hide() self.shown = false end
-      function fr:IsShown() return self.shown end
+      function fr:IsShown() return rawget(self, "shown") ~= false end -- like the game: a new frame is shown
       function fr:SetText(s) self.value = s end
       function fr:GetText() return self.value end
       function fr:AddDoubleLine(l, r) lines[#lines + 1] = l .. " = " .. r end
@@ -805,10 +805,10 @@ test("smoke: minimap button opens the menu; its rows and switches work", () => {
       function fr:GetFrameLevel() return 1 end
       function fr:CreateFontString() local fs = region(); self.regions[#self.regions + 1] = fs; return fs end
       function fr:CreateTexture() local t = region(); self.regions[#self.regions + 1] = t; return t end
-      function fr:Show() self.shown = true; if self.OnShow then self.OnShow(self) end end
+      function fr:Show() if self:IsShown() then return end; self.shown = true; if self.OnShow then self.OnShow(self) end end -- like the game: OnShow only when it was hidden
       function fr:Hide() self.shown = false end
       function fr:SetShown(on) if on then self:Show() else self:Hide() end end
-      function fr:IsShown() return rawget(self, "shown") == true end
+      function fr:IsShown() return rawget(self, "shown") ~= false end -- like the game: a new frame is shown
       function fr:IsMouseOver() return false end
       function fr:SetPoint(...) self.point = { ... } end
       function fr:SetSize(w, h) self.w, self.h = w, h end
@@ -856,7 +856,7 @@ test("smoke: minimap button opens the menu; its rows and switches work", () => {
 
     local out = {}
     local b = ForeverAnvilMinimapButton
-    out[#out + 1] = "button: " .. tostring(b ~= nil and b.shown) .. ", at " .. string.format("%.0f,%.0f", b.point[4], b.point[5])
+    out[#out + 1] = "button: " .. tostring(b ~= nil and b:IsShown()) .. ", at " .. string.format("%.0f,%.0f", b.point[4], b.point[5])
     out[#out + 1] = "compartment: " .. tostring(compartment and compartment.text) .. ", " .. tostring(compartment and compartment.icon)
     b.OnEnter(b)
     out[#out + 1] = "tooltip: " .. table.concat(tipLines, " / ")
@@ -950,10 +950,10 @@ test("smoke: ruleset picker asks once after login and from the minimap button, m
       function fr:GetFrameLevel() return 1 end
       function fr:CreateFontString() local fs = region(); self.regions[#self.regions + 1] = fs; return fs end
       function fr:CreateTexture() local t = region(); self.regions[#self.regions + 1] = t; return t end
-      function fr:Show() self.shown = true; if self.OnShow then self.OnShow(self) end end
+      function fr:Show() if self:IsShown() then return end; self.shown = true; if self.OnShow then self.OnShow(self) end end -- like the game: OnShow only when it was hidden
       function fr:Hide() self.shown = false end
       function fr:SetShown(on) if on then self:Show() else self:Hide() end end
-      function fr:IsShown() return rawget(self, "shown") == true end
+      function fr:IsShown() return rawget(self, "shown") ~= false end -- like the game: a new frame is shown
       function fr:IsMouseOver() return false end
       function fr:SetPoint(...) self.point = { ... } end
       function fr:SetSize(w, h) self.w, self.h = w, h end
@@ -1006,10 +1006,10 @@ test("smoke: ruleset picker asks once after login and from the minimap button, m
     local out = {}
     local function picker()
       local p = ForeverAnvilRuleset
-      if not (p and p.shown) then return "hidden" end
+      if not (p and p:IsShown()) then return "hidden" end
       local names = {}
       for _, b in ipairs(p.buttons) do names[#names + 1] = b.ruleset.name .. (b.lit and "*" or "") end
-      return table.concat(names, " ") .. "; later " .. tostring(p.later.shown) .. "; status " .. (p.status.text ~= "" and p.status.text or "-")
+      return table.concat(names, " ") .. "; later " .. tostring(p.later:IsShown()) .. "; status " .. (p.status.text ~= "" and p.status.text or "-")
     end
     out[#out + 1] = "at login: " .. picker() .. ", " .. tostring(timers[1] and timers[1][1]) .. "s timer"
     runTimers()
@@ -1090,9 +1090,9 @@ test("smoke: watchlist and shopping list managed in game", () => {
       function fr:GetFrameLevel() return 1 end
       function fr:CreateFontString() return region() end
       function fr:CreateTexture() return region() end
-      function fr:Show() self.shown = true; if self.OnShow then self.OnShow(self) end end
+      function fr:Show() if self:IsShown() then return end; self.shown = true; if self.OnShow then self.OnShow(self) end end -- like the game: OnShow only when it was hidden
       function fr:Hide() self.shown = false end
-      function fr:IsShown() return rawget(self, "shown") == true end
+      function fr:IsShown() return rawget(self, "shown") ~= false end -- like the game: a new frame is shown
       function fr:SetShown(on) if on then self:Show() else self:Hide() end end
       function fr:SetText(s) self.value = s end
       function fr:GetText() return self.value or "" end
@@ -1384,9 +1384,9 @@ test("smoke: prices window searches, filters, sorts, switches house and acts on 
       function fr:GetFrameLevel() return 1 end
       function fr:CreateFontString() return region() end
       function fr:CreateTexture() return region() end
-      function fr:Show() self.shown = true; if self.OnShow then self.OnShow(self) end end
+      function fr:Show() if self:IsShown() then return end; self.shown = true; if self.OnShow then self.OnShow(self) end end -- like the game: OnShow only when it was hidden
       function fr:Hide() self.shown = false end
-      function fr:IsShown() return rawget(self, "shown") == true end
+      function fr:IsShown() return rawget(self, "shown") ~= false end -- like the game: a new frame is shown
       function fr:SetShown(on) if on then self:Show() else self:Hide() end end
       function fr:SetText(s) self.value = s; if self.OnTextChanged then self.OnTextChanged(self) end end
       function fr:GetText() return self.value or "" end
@@ -1516,9 +1516,9 @@ test("smoke: settings page groups every switch and opens the windows", () => {
       function fr:GetFrameLevel() return 1 end
       function fr:CreateFontString() return region() end
       function fr:CreateTexture() return region() end
-      function fr:Show() self.shown = true; if self.OnShow then self.OnShow(self) end end
+      function fr:Show() if self:IsShown() then return end; self.shown = true; if self.OnShow then self.OnShow(self) end end -- like the game: OnShow only when it was hidden
       function fr:Hide() self.shown = false end
-      function fr:IsShown() return rawget(self, "shown") == true end
+      function fr:IsShown() return rawget(self, "shown") ~= false end -- like the game: a new frame is shown
       function fr:SetText(s) self.value = s end
       function fr:GetText() return self.value or "" end
       function fr:SetChecked(on) self.checked = on and true or false end
@@ -1715,9 +1715,9 @@ test("smoke: bag value window totals your bags and the menu shows it", () => {
       function fr:GetFrameLevel() return 1 end
       function fr:CreateFontString() return region() end
       function fr:CreateTexture() return region() end
-      function fr:Show() self.shown = true; if self.OnShow then self.OnShow(self) end end
+      function fr:Show() if self:IsShown() then return end; self.shown = true; if self.OnShow then self.OnShow(self) end end -- like the game: OnShow only when it was hidden
       function fr:Hide() self.shown = false end
-      function fr:IsShown() return rawget(self, "shown") == true end
+      function fr:IsShown() return rawget(self, "shown") ~= false end -- like the game: a new frame is shown
       function fr:SetText(s) self.value = s end
       if name then _G[name] = fr end
       return fr
@@ -1777,6 +1777,15 @@ test("smoke: bag value window totals your bags and the menu shows it", () => {
     out[#out + 1] = rows() .. " / " .. B.toggle.value .. " / " .. B.hint.text
     B.rows[4].OnClick(B.rows[4], "RightButton")
     out[#out + 1] = "back " .. tostring(ForeverAnvilDB.bagIgnore[2592]) .. ": " .. rows() .. " / toggle " .. tostring(B.toggle.shown) .. " / worth " .. ns.BagWorth()
+    -- right after login the game may not have loaded an item yet: the window says so, then counts it once it arrives
+    local saved = bags
+    bags = { [0] = { { 4500, 2 } } }
+    B.OnShow(B)
+    out[#out + 1] = "loading: " .. B.total.text .. " / worth " .. table.concat({ ns.BagWorth() }, ",")
+    sells[4500] = 7
+    B.OnShow(B)
+    out[#out + 1] = "arrived: " .. rows() .. " / " .. B.total.text
+    bags = saved
     return table.concat(out, "\\n")`, { HOUSE: house, "Core.lua": src("Core.lua"), "Lists.lua": src("Lists.lua"), "Bags.lua": src("Bags.lua") });
   // Linen: 15c × 0.95 = 14c each, 30 → 4s 20c; Wool: 43c × 3 = 1s 29c (thin: under 3 listings); sword 1s (bound: vendor); grey 5c × 2
   assert.deepEqual(out.split("\n"), [
@@ -1794,6 +1803,8 @@ test("smoke: bag value window totals your bags and the menu shows it", () => {
     "toggle true Show ignored (1)",
     "2589 |cffffd100Auction house|r, 25 |cffbbbbbbVendor|r|cff777777 · bound|r, 3300 |cffbbbbbbVendor|r, 2592 |cff777777Ignored|r / Hide ignored / |cff777777Right-click one to count it again.|r",
     "back nil: 2589 |cffffd100Auction house|r, 2592 |cffffd100Auction house|r, 25 |cffbbbbbbVendor|r|cff777777 · bound|r, 3300 |cffbbbbbbVendor|r / toggle false / worth 659",
+    "loading: |cff999999Getting your items from the game…|r  |cff999999loading 1 items|r / worth 0,1",
+    "arrived: 4500 |cffbbbbbbVendor|r / Worth |cffeda55f14c|r",
   ]);
 });
 
@@ -1838,7 +1849,7 @@ test("smoke: scanning the auction house replaces its prices until newer ones shi
       function fr:CreateTexture() return region() end
       function fr:Show() self.shown = true end
       function fr:Hide() self.shown = false end
-      function fr:IsShown() return rawget(self, "shown") == true end
+      function fr:IsShown() return rawget(self, "shown") ~= false end -- like the game: a new frame is shown
       function fr:SetText(s) self.value = s end
       if name then _G[name] = fr end
       frames[#frames + 1] = fr
@@ -2049,6 +2060,8 @@ test("spec scoring: stats from the game, the spec from talents, gear for other s
     lines[#lines + 1] = run({})
     lines[#lines + 1] = run({ showAll = true })
     lines[#lines + 1] = run({ maxPrice = 600 })
+    stats[7] = false -- the game never sent item 7: left out, not loading forever
+    lines[#lines + 1] = run({})
     return table.concat(lines, "\\n")`);
   assert.deepEqual(out.split("\n"), [
     "agi=6 armor=80 crit=1 dps=9.5 heal=22 rap=12 sta=4",
@@ -2060,6 +2073,7 @@ test("spec scoring: stats from the game, the spec from talents, gear for other s
     "HEAD:3@800n,4r@700h FINGER:6@400n pending 1 off 1",
     "HEAD:3@800n,4r@700h FINGER:6@400n pending 1 off 0",
     "FINGER:6@400n pending 1 off 1",
+    "HEAD:3@800n,4r@700h FINGER:6@400n pending 0 off 1",
   ]);
 });
 
@@ -2092,9 +2106,9 @@ test("smoke: upgrades window ranks gear for your spec, hides other specs' gear, 
       function fr:GetFrameLevel() return 1 end
       function fr:CreateFontString() return region() end
       function fr:CreateTexture() return region() end
-      function fr:Show() self.shown = true; if self.OnShow then self.OnShow(self) end end
+      function fr:Show() if self:IsShown() then return end; self.shown = true; if self.OnShow then self.OnShow(self) end end -- like the game: OnShow only when it was hidden
       function fr:Hide() self.shown = false end
-      function fr:IsShown() return rawget(self, "shown") == true end
+      function fr:IsShown() return rawget(self, "shown") ~= false end -- like the game: a new frame is shown
       function fr:SetText(s) self.value = s end
       function fr:SetChecked(on) self.checked = on end
       function fr:GetChecked() return self.checked end
@@ -2159,7 +2173,7 @@ test("smoke: upgrades window ranks gear for your spec, hides other specs' gear, 
     local function rows(U)
       local t = {}
       for _, b in ipairs(U.rows) do
-        if b.shown then
+        if b:IsShown() then
           t[#t + 1] = (b.slot.text ~= "" and ("[" .. b.slot.text .. "] ") or "") .. strip(b.name.text) .. " | " .. strip(b.stats.text) .. " | " .. (b.price.text or "")
         end
       end

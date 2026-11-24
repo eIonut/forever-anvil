@@ -72,6 +72,7 @@ local function buildImport()
       status:SetText("|cffff5555" .. msg .. "|r")
     end
   end)
+  fr:Hide() -- a new frame starts out shown: hide it, so opening it runs OnShow (draws it)
   return fr
 end
 
@@ -454,6 +455,7 @@ local function buildList(o)
   fr.total:SetWidth(WIDTH - 32)
   fr.total:SetJustifyH("LEFT")
   fr:SetScript("OnShow", function() o.refresh() end)
+  fr:Hide() -- a new frame starts out shown: hide it, so opening it runs OnShow (draws it)
   return fr
 end
 

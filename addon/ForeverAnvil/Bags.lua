@@ -51,7 +51,8 @@ end
 
 -- Everything in your bags, by item (bound and unbound copies apart), with its best use:
 -- { { id, count, bound, kind, unit, total, thin }, … } dearest first, the totals per kind, and the items
--- you ignore (same shape, ignored = true), which the totals leave out.
+-- you ignore (same shape, ignored = true), which the totals leave out; then how many items the game hasn't
+-- loaded yet (their vendor and disenchant values come with them; they're asked for, and the window redraws).
 function ns.BagItems()
   local by, order = {}, {}
   for _, s in ipairs(slots()) do
@@ -67,8 +68,12 @@ function ns.BagItems()
       e.count = e.count + count
     end
   end
-  local totals, list, ignored = { ah = 0, de = 0, vendor = 0, all = 0 }, {}, {}
+  local totals, list, ignored, loading = { ah = 0, de = 0, vendor = 0, all = 0 }, {}, {}, 0
   for _, e in ipairs(order) do
+    if not ns.ItemInfo(e.id) then
+      loading = loading + 1
+      if C_Item and C_Item.RequestLoadItemDataByID then pcall(C_Item.RequestLoadItemDataByID, e.id) end
+    end
     local p = not e.bound and ns.Price(e.id) or nil
     local de = ns.db.show.de and ns.Disenchant(e.id) or nil
     e.kind, e.unit = M.BestUse(p and p[2], de, ns.VendorSell(e.id))
@@ -91,11 +96,12 @@ function ns.BagItems()
   end
   table.sort(list, dearest)
   table.sort(ignored, dearest)
-  return list, totals, ignored
+  return list, totals, ignored, loading
 end
 
-local function draw()
-  local list, totals, ignored = ns.BagItems()
+local draw
+draw = function()
+  local list, totals, ignored, loading = ns.BagItems()
   if #ignored == 0 then win.showIgnored = false end
   -- the ignored items go under the counted ones, greyed, while "Show ignored" is on
   local shown = list
@@ -129,11 +135,14 @@ local function draw()
       b:Hide()
     end
   end
+  -- items the game is still loading: say so (an empty list isn't "nothing has a price" yet), and look again
+  -- in a second, for a while, in case the game's "item loaded" events don't cover them all
+  local more = loading > 0 and ("  |cff999999" .. L["loading %d items"]:format(loading) .. "|r") or ""
   if #list == 0 and #ignored == 0 then
-    win.total:SetText("|cff999999" .. L["Nothing in your bags has a price."] .. "|r")
+    win.total:SetText("|cff999999" .. (loading > 0 and L["Getting your items from the game…"] or L["Nothing in your bags has a price."]) .. "|r" .. more)
     win.split:SetText("")
   else
-    win.total:SetText(L["Worth"] .. " " .. M.ShortMoney(totals.all) .. (#shown > ROWS and ("  |cff999999" .. L["%d items, scroll for more"]:format(#shown) .. "|r") or ""))
+    win.total:SetText(L["Worth"] .. " " .. M.ShortMoney(totals.all) .. (#shown > ROWS and ("  |cff999999" .. L["%d items, scroll for more"]:format(#shown) .. "|r") or "") .. more)
     win.split:SetText(("|cffffd100%s|r %s   |cffc080ff%s|r %s   |cffbbbbbb%s|r %s"):format(L["Auction house"], M.ShortMoney(totals.ah, true),
       L["Disenchant"], M.ShortMoney(totals.de, true), L["Vendor"], M.ShortMoney(totals.vendor, true)))
   end
@@ -144,6 +153,13 @@ local function draw()
     win.toggle:Show()
   else
     win.toggle:Hide()
+  end
+  if loading > 0 and not win.retrying and (win.retries or 0) < 15 and C_Timer and C_Timer.After then
+    win.retrying, win.retries = true, (win.retries or 0) + 1
+    C_Timer.After(1, function()
+      win.retrying = false
+      if win:IsShown() then ns.Safe("bags", draw) end
+    end)
   end
 end
 
@@ -261,7 +277,8 @@ local function build()
     fr.showIgnored = not fr.showIgnored
     ns.Safe("bags", draw)
   end)
-  fr:SetScript("OnShow", function() ns.Safe("bags", draw) end)
+  fr:SetScript("OnShow", function() fr.retries = 0; ns.Safe("bags", draw) end)
+  fr:Hide() -- a new frame starts out shown: hide it, so opening it runs OnShow (draws it)
   return fr
 end
 
@@ -275,13 +292,14 @@ function ns.BagsShown() return win ~= nil and win:IsShown() end
 
 -- for the menu: the bags' total worth
 function ns.BagWorth()
-  local _, totals = ns.BagItems()
-  return totals.all
+  local _, totals, _, loading = ns.BagItems()
+  return totals.all, loading -- and how many items are still loading
 end
 
 -- bags change: redraw an open window (once per burst of changes)
 local events = CreateFrame("Frame")
 pcall(events.RegisterEvent, events, "BAG_UPDATE_DELAYED")
+pcall(events.RegisterEvent, events, "GET_ITEM_INFO_RECEIVED") -- an item's details arrived: its vendor and disenchant values
 local pending = false
 events:SetScript("OnEvent", function()
   if pending or not (win and win:IsShown()) then return end

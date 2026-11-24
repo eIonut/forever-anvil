@@ -248,18 +248,21 @@ local function buildMenu()
     else
       fr.watch.value:SetText((w == 1 and L["1 item"] or L["%d items"]:format(w)) .. (hits > 0 and ("  |cff33dd55" .. L["%d at target"]:format(hits) .. "|r") or ""))
     end
-    local up = ns.UpgradeCount and ns.UpgradeCount()
+    -- while the game is still loading items, "loading…" rather than "none" or "nothing priced"
+    local up, upLoading
+    if ns.UpgradeCount then up, upLoading = ns.UpgradeCount() end
     if up and up > 0 then
       fr.upgrades.value:SetText("|cff33dd55" .. (up == 1 and L["1 slot"] or L["%d slots"]:format(up)) .. "|r")
     elseif up then
-      fr.upgrades.value:SetText("|cff999999" .. L["none in budget"] .. "|r")
+      fr.upgrades.value:SetText("|cff999999" .. ((upLoading or 0) > 0 and L["loading…"] or L["none in budget"]) .. "|r")
     end
     if ns.ScanAgeText then fr.scan.value:SetText("|cff999999" .. ns.ScanAgeText() .. "|r") end
-    local worth = ns.BagWorth and ns.BagWorth()
+    local worth, bagsLoading
+    if ns.BagWorth then worth, bagsLoading = ns.BagWorth() end
     if worth and worth > 0 then
       fr.bags.value:SetText(M.ShortMoney(worth, true))
     else
-      fr.bags.value:SetText("|cff999999" .. L["nothing priced"] .. "|r")
+      fr.bags.value:SetText("|cff999999" .. ((bagsLoading or 0) > 0 and L["loading…"] or L["nothing priced"]) .. "|r")
     end
     for _, t in ipairs(fr.toggles) do t.refresh() end
     fr.hide:SetShown(ns.minimapButton ~= nil and ns.db.show.minimap)
@@ -268,9 +271,19 @@ local function buildMenu()
 
   -- a click anywhere else closes it
   pcall(fr.RegisterEvent, fr, "GLOBAL_MOUSE_DOWN")
-  fr:SetScript("OnEvent", function(self)
+  -- items the game was still loading arrived: update the open menu's lines (once per burst)
+  pcall(fr.RegisterEvent, fr, "GET_ITEM_INFO_RECEIVED")
+  local refreshing = false
+  fr:SetScript("OnEvent", function(self, event)
+    if event == "GET_ITEM_INFO_RECEIVED" then
+      if refreshing or not self:IsShown() or not (C_Timer and C_Timer.After) then return end
+      refreshing = true
+      C_Timer.After(0.5, function() refreshing = false; if self:IsShown() then ns.Safe("menu", self.refresh) end end)
+      return
+    end
     if self:IsShown() and not self:IsMouseOver() and not (menuAnchor and menuAnchor:IsMouseOver()) then self:Hide() end
   end)
+  fr:Hide() -- a new frame starts out shown: hide it, so opening it runs OnShow (draws it)
   return fr
 end
 

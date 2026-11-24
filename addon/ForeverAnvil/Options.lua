@@ -186,6 +186,7 @@ local function build()
     end
   end
   panel:SetScript("OnShow", panel.refresh)
+  panel:Hide() -- a new frame starts out shown: hidden, so opening the settings runs OnShow
 
   if Settings and Settings.RegisterCanvasLayoutCategory then
     category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
