@@ -207,6 +207,10 @@ main { flex: 1; padding-bottom: 56px; }
 @media (max-width: 1140px) { .topbar .header-addon { display: none; } }
 .topbar.compact .header-addon, .topbar.no-addon .header-addon { display: none; }
 .topbar.tight .btn-donate .donate-label { display: none; }
+/* Discord (Header.astro): always shown; just the logo once space runs short */
+.header-discord { white-space: nowrap; gap: 6px; padding-inline: 11px; }
+@media (max-width: 1140px) { .topbar .header-discord .discord-label { display: none; } }
+.topbar.tight .header-discord .discord-label, .topbar.compact .header-discord .discord-label { display: none; }
 /* the open menu: a panel under the header with one large row per page (icon, name, one-line description) */
 @media (max-width: 1140px) {
   .nav.open {

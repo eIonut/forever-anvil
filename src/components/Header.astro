@@ -57,6 +57,9 @@ const isActive = (n: NavLink) => !!n.pages?.includes(page);
         <Icon name="close" size={20} class="nav-toggle-close" />
         <span class="nav-toggle-text">Menu</span>
       </button>
+      {config.discordUrl && (
+        <a class="btn btn-ghost btn-sm header-discord" href={config.discordUrl} target="_blank" rel="noopener" title="Join the Forever Anvil Addons Discord" aria-label="Discord"><Icon name="discord" size={18} /><span class="discord-label">Discord</span></a>
+      )}
       {(config.addonUrls?.wago || config.addonUrls?.curseforge) && (
         <a class="btn btn-ghost btn-sm header-addon" href="/addon" title="Get the in-game addon" aria-current={page === "addon" ? "page" : undefined}><Icon name="download" size={16} />Addon</a>
       )}
