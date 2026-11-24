@@ -375,6 +375,9 @@ ns.AddLocale({ "deDE" }, {
   ["loading…"] = "lädt…",
   ["Join us on Discord"] = "Komm auf unseren Discord",
   ["Questions, a bug or an idea? Click the link, copy it with Ctrl+C (Cmd+C on a Mac) and paste it into your browser."] = "Fragen, ein Fehler oder eine Idee? Klicke auf den Link, kopiere ihn mit Strg+C (Cmd+C auf dem Mac) und füge ihn in deinen Browser ein.",
+  ["Waiting… %ds"] = "Warte… %d s",
+  ["the auction house is sending its auctions, up to a minute"] = "das Auktionshaus sendet seine Auktionen, bis zu einer Minute",
+  ["scanning: the auction house is sending every auction, which can take up to a minute. Keep it open."] = "Scan läuft: Das Auktionshaus sendet alle Auktionen, das kann bis zu einer Minute dauern. Lass es offen.",
 })
 
 ns.AddLocale({ "frFR" }, {
@@ -748,6 +751,9 @@ ns.AddLocale({ "frFR" }, {
   ["loading…"] = "chargement…",
   ["Join us on Discord"] = "Rejoignez-nous sur Discord",
   ["Questions, a bug or an idea? Click the link, copy it with Ctrl+C (Cmd+C on a Mac) and paste it into your browser."] = "Une question, un bug ou une idée ? Cliquez sur le lien, copiez-le avec Ctrl+C (Cmd+C sur Mac) et collez-le dans votre navigateur.",
+  ["Waiting… %ds"] = "Attente… %d s",
+  ["the auction house is sending its auctions, up to a minute"] = "l'hôtel des ventes envoie ses enchères, jusqu'à une minute",
+  ["scanning: the auction house is sending every auction, which can take up to a minute. Keep it open."] = "scan en cours : l'hôtel des ventes envoie toutes ses enchères, ce qui peut prendre jusqu'à une minute. Gardez-le ouvert.",
 })
 
 ns.AddLocale({ "esES", "esMX" }, {
@@ -1121,6 +1127,9 @@ ns.AddLocale({ "esES", "esMX" }, {
   ["loading…"] = "cargando…",
   ["Join us on Discord"] = "Únete a nuestro Discord",
   ["Questions, a bug or an idea? Click the link, copy it with Ctrl+C (Cmd+C on a Mac) and paste it into your browser."] = "¿Preguntas, un error o una idea? Haz clic en el enlace, cópialo con Ctrl+C (Cmd+C en Mac) y pégalo en tu navegador.",
+  ["Waiting… %ds"] = "Esperando… %d s",
+  ["the auction house is sending its auctions, up to a minute"] = "la casa de subastas está enviando sus subastas, hasta un minuto",
+  ["scanning: the auction house is sending every auction, which can take up to a minute. Keep it open."] = "escaneando: la casa de subastas está enviando todas sus subastas, lo que puede tardar hasta un minuto. Déjala abierta.",
 })
 
 ns.ApplyLocale()

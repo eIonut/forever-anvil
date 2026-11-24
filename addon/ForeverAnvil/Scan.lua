@@ -45,13 +45,22 @@ end
 
 local function refreshButton()
   if not button then return end
-  if state.running then
-    local pct = state.total and state.total > 0 and math.floor(state.done / state.total * 100) or 0
+  local waiting = state.running and not state.total -- asked the game, the auctions haven't come yet
+  if waiting then
+    -- this part can take up to a minute with nothing to count: show the seconds going by
+    button:SetText(L["Waiting… %ds"]:format(time() - state.started))
+    button:Disable()
+  elseif state.running then
+    local pct = state.total > 0 and math.floor(state.done / state.total * 100) or 0
     button:SetText(L["Scanning… %d%%"]:format(pct))
     button:Disable()
   else
     button:SetText(L["Scan"])
     if api() then button:Enable() else button:Disable() end
+  end
+  if waiting then
+    status:SetText(L["the auction house is sending its auctions, up to a minute"])
+    return
   end
   local wait = ns.ScanWait()
   local bits = { ns.ScanAgeText() }
@@ -126,8 +135,17 @@ function ns.StartScan()
   state = { running = true, house = house, key = ns.regionCode .. ":" .. house, started = time() }
   ns.db.lastScanRequest = time()
   A.ReplicateItems()
+  ns.Print(L["scanning: the auction house is sending every auction, which can take up to a minute. Keep it open."])
   refreshButton()
   local started = state.started
+  -- tick the button's seconds while the auctions are on their way
+  local function tick()
+    if state.running and state.started == started and not state.total then
+      refreshButton()
+      C_Timer.After(1, function() ns.Safe("scan", tick) end)
+    end
+  end
+  C_Timer.After(1, function() ns.Safe("scan", tick) end)
   C_Timer.After(TIMEOUT, function()
     if state.running and state.started == started and not state.total then
       finish(L["the auction house didn't send its auctions. Try again in 15 minutes."])

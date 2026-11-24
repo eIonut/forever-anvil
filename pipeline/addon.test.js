@@ -1903,8 +1903,11 @@ test("smoke: scanning the auction house replaces its prices until newer ones shi
     out[#out + 1] = "button " .. B.value .. " / " .. B.status.text
     out[#out + 1] = "before " .. p(2589) .. " " .. p(4306) .. ", age " .. ns.DataAge()
     B.OnClick(B)
-    out[#out + 1] = "requests " .. requests .. ", button " .. B.value
+    out[#out + 1] = "requests " .. requests .. ", button " .. B.value .. " / " .. B.status.text
+    out[#out + 1] = printed[#printed]
     now = now + 5
+    ns.RefreshScanButton() -- what the one-second tick does while the auctions are on their way
+    out[#out + 1] = "button " .. B.value
     scanFrame.OnEvent(scanFrame, "REPLICATE_ITEM_LIST_UPDATE")
     flush()
     out[#out + 1] = printed[#printed]
@@ -1922,7 +1925,9 @@ test("smoke: scanning the auction house replaces its prices until newer ones shi
     "closed: open the auction house to scan it.",
     "button Scan / |cff999999not scanned yet|r",
     "before 12/15/400/30/120 none, age 7200",
-    "requests 1, button Scanning… 0%",
+    "requests 1, button Waiting… 0s / the auction house is sending its auctions, up to a minute",
+    "scanning: the auction house is sending every auction, which can take up to a minute. Keep it open.",
+    "button Waiting… 5s",
     "scanned 4 auctions of 2 items. Your prices for this auction house are from now.",
     "after 10/10/30/2/120 40/45/200/2/60 500/500/1/1/- none none, age 0",
     "button Scan / |cff999999scanned 0m ago · again in 15 min|r",
