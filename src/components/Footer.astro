@@ -17,6 +17,9 @@ import Icon from "./Icon.astro";
           {(config.addonUrls?.wago || config.addonUrls?.curseforge) && (
             <a class="btn btn-ghost btn-sm footer-addon" href="/addon"><Icon name="download" size={16} />Get the addon</a>
           )}
+          {config.discordUrl && (
+            <a class="btn btn-ghost btn-sm footer-addon" href={config.discordUrl} target="_blank" rel="noopener"><Icon name="discord" size={16} />Discord</a>
+          )}
         </div>
       </div>
       <nav aria-labelledby="footer-tools">

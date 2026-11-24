@@ -44,6 +44,10 @@ const config = {
     curseforge: "https://www.curseforge.com/wow/addons/forever-anvil",
   },
 
+  // Invite to the Forever Anvil Addons Discord (support, feature requests, releases for all three addons).
+  // Shown in the header, footer and addon page. Leave empty "" to hide those buttons.
+  discordUrl: "https://discord.gg/GJvNf8Zvzt",
+
   // Date of the last content update (shown in the footer).
   lastUpdated: "2026-11-21"
 };

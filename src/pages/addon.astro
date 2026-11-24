@@ -20,6 +20,7 @@ const links = [
     The same auction prices as this site, right where you need them: on every item tooltip, in the auction house and in your profession window.
     <div class="hero-actions" slot="actions">
       {links.map((l, i) => <a class:list={["btn", { "btn-ghost": i > 0 }]} href={l.href} target="_blank" rel="noopener"><Icon name="download" size={20} />Download on {l.label}</a>)}
+      {config.discordUrl && <a class="btn btn-ghost" href={config.discordUrl} target="_blank" rel="noopener"><Icon name="discord" size={20} />Help &amp; ideas on Discord</a>}
     </div>
   </PageHero>
 
