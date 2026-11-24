@@ -1,3 +1,8 @@
+## 2.5
+
+- **Scan the auction house** (the Scan button under the auction house window, or `/fa scan` while it is open): reads every auction on the house you are at and uses those prices right away, so your prices stay current between addon updates. The next addon update with newer prices takes over again. Sold per day still comes from the site. The game allows one scan every 15 minutes, and the button shows how old your scan is.
+- **Leave items out of your bag value**: right-click an item in the bag value window to stop counting it, like materials or gear you are keeping. "Show ignored" lists those items greyed out under the rest, and right-clicking one counts it again. Your choices are kept for all your characters.
+
 ## 2.4
 
 - **The Americas**: prices for the American realms too, with the same four rulesets as Europe. The addon picks your region by itself.

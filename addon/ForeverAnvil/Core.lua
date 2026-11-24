@@ -19,6 +19,8 @@ ns.DEFAULTS = {
   shoppingPos = nil,
   pricesPos = nil, -- where the prices window was left
   bagsPos = nil,
+  bagIgnore = {}, -- [itemID] = true: items you keep, left out of the bag value (2.5)
+  scans = {},     -- ["EU:113"] = { time, data, auctions }: your own auction house scans (2.5, Scan.lua)
   upgradesPos = nil,
   upgradeBudget = 200000, -- the upgrade finder's price limit in copper (0: any price)
   upgradeSpec = {},       -- [class] = the talent tree to gear for (1-3), when not the one your talents point to
@@ -177,12 +179,20 @@ function ns.House()
   return id, r, side
 end
 
+-- your own scan of a house (Scan.lua), when it's newer than the shipped prices: { time, data, auctions }
+function ns.ScanOf(id)
+  local s = id and ns.data and ns.db.scans[ns.regionCode .. ":" .. id]
+  if s and s.time and ns.data.updated and s.time > ns.data.updated then return s end
+end
+
 local function houseItems(id)
   if not id or not ns.data then return nil end
   local t = ns.houseCache[id]
   if not t then
     local h = ns.data.houses[id]
     t = h and M.DecodeHouse(h.data) or {}
+    local scan = ns.ScanOf(id)
+    if scan then t = M.MergeScan(t, M.DecodeHouse(scan.data)) end
     ns.houseCache[id] = t
   end
   return t
@@ -396,7 +406,10 @@ function ns.Import(text)
   return true, L["shopping list imported: %d materials. |cffffffff/fa list|r shows it."]:format(#list)
 end
 
+-- how old your auction house's prices are: your scan's age when you scanned since the shipped prices
 function ns.DataAge()
+  local scan = ns.ScanOf((ns.House()))
+  if scan then return time() - scan.time end
   return ns.data and ns.data.updated and (time() - ns.data.updated)
 end
 
@@ -492,6 +505,7 @@ SlashCmdList.FOREVERANVIL = function(msg)
       (ProfessionsFrame and "ProfessionsFrame " or "") .. (TradeSkillFrame and "TradeSkillFrame" or ""))
     ns.Print(("windows: auction %s, professions %s; last auction row: %s"):format(ns.auctionUI or "not opened yet",
       ns.professionUI or "not opened yet", (ns.lastRow or "none yet") .. (ns.lastTagAnchor and (", tag at " .. ns.lastTagAnchor) or "")))
+    if ns.ScanDebug then ns.Print(ns.ScanDebug()) end
     local item = ns.ItemID(rest) or tonumber(rest) or 2589
     local p = ns.Price(item)
     ns.Print(("item %d: %s"):format(item, p and ("market " .. M.ShortMoney(p[2]) .. ", lowest " .. M.ShortMoney(p[1]) .. ", " .. p[4] .. " listings") or "no price on this house"))
@@ -514,6 +528,8 @@ SlashCmdList.FOREVERANVIL = function(msg)
     ns.Print(ns.db.show.minimap and L["minimap button shown."] or L["minimap button hidden (|cffffffff/fa minimap|r brings it back)."])
   elseif cmd == "list" and ns.ListCommand then
     ns.ListCommand(rest)
+  elseif cmd == "scan" and ns.StartScan then
+    ns.StartScan()
   elseif (cmd == "bags" or cmd == "bag") and ns.ShowBags then
     ns.ShowBags()
   elseif (cmd == "upgrades" or cmd == "upgrade" or cmd == "gear") and ns.ShowUpgrades then
@@ -532,5 +548,6 @@ SlashCmdList.FOREVERANVIL = function(msg)
     end
     ns.Print(L["|cffffffff/fa ruleset <name>|r sets this realm's ruleset, |cffffffff/fa options|r opens the settings. More tools at %s."]:format(ns.SITE))
     ns.Print(L["|cffffffff/fa prices|r browses every price, |cffffffff/fa bags|r values your bags, |cffffffff/fa upgrades|r finds gear for you, |cffffffff/fa watch|r and |cffffffff/fa list|r show your lists, |cffffffff/fa import|r pastes one from the site, |cffffffff/fa menu|r opens the menu."])
+    ns.Print(L["|cffffffff/fa scan|r at the auction house reads its current prices (or press Scan under it)."])
   end
 end

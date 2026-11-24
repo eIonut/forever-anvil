@@ -26,6 +26,11 @@ Version 2.2:
 
 - **Upgrades window** (`Upgrades.lua`, `/fa upgrades`): `M.SpecUpgrades` ranks gear by stats for your talent spec (`M.SPECS`: rough weights per class and tree; `M.SpecIndex` picks the tree with the most points). Item stats come from the game (`C_Item.GetItemStats`, after `RequestLoadItemDataByID` for items it hasn't loaded), parsed by `M.ParseItemStats`. Without that API it falls back to item level with `M.FindUpgrades`, a port of `findUpgrades` in `src/lib/upgrades.js` (tested against it). The gear details (subclass, slot, item level) ship in the data as `gear` (`encodeGear` in `pipeline/addon-data.js`, about 100 KB for Europe).
 
+Version 2.5:
+
+- **Auction house scan** (`Scan.lua`, `/fa scan` or the Scan button under the auction house): one `C_AuctionHouse.ReplicateItems` request (the game allows one every 15 minutes), then `GetReplicateItemInfo` is read 1,000 auctions per frame and summed up by `M.Aggregate`, a port of `aggregate` in `src/lib/pricemath.js` (tested against it). The result is saved per house in `ForeverAnvilDB.scans` (`"EU:113"`, in the shipped house format) and `ns.ScanOf` lays it over the shipped prices while it is newer (`M.MergeScan`: scanned items take the new min, market, quantity and listings and keep the shipped sold per day). `ns.DataAge` then reports the scan's age.
+- **Bag value ignore list** (`Bags.lua`): right-click a row to leave the item out (`ForeverAnvilDB.bagIgnore`, by item ID, for every character); "Show ignored" lists those items greyed out under the rest.
+
 ## Folders
 
 | Folder | What it is |
@@ -55,6 +60,7 @@ Version 2.2:
 - Tooltips use the modern tooltip system (`TooltipDataProcessor`). There's no global `GetItemInfo`, only `C_Item.GetItemInfo`; expect other classic globals to be missing too.
 - The profession window is the modern one (`Blizzard_Professions`): profits come from `C_TradeSkillUI.GetRecipeSchematic`, and rows from the recipe list's `ScrollBox`.
 - The auction window is the modern one (`Blizzard_AuctionHouseUI`). Its browse rows get only an index, which the addon looks up in the list. The window's code can load before the list is set up, so the addon hooks windows when they open (`AUCTION_HOUSE_SHOW`, `TRADE_SKILL_SHOW`) and never asks the list for rows before it's ready.
+- The auction house scan works (confirmed 2026-11-24): `C_AuctionHouse.ReplicateItems` and `REPLICATE_ITEM_LIST_UPDATE` exist, and `GetReplicateItemInfo` returns count 3rd, buyout 10th and item ID 17th, counted from 0. The Scan button sits on the tab row, at the window's bottom right.
 - The classic windows are still supported, in case another client uses them. `/fa debug` shows which windows and hooks are in use.
 
 ## Not checked in game yet
