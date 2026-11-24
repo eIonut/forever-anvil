@@ -24,6 +24,61 @@ function M.DecodePairs(s)
   return t
 end
 
+-- { [id] = { min, market, qty, listings, sold } } → "id,min,market,qty,listings,sold;…" (what DecodeHouse reads)
+function M.EncodeHouse(t)
+  local ids, out = {}, {}
+  for id in pairs(t) do ids[#ids + 1] = id end
+  table.sort(ids)
+  local function n(x) return x == nil and "" or tostring(floor(x + 0.5)) end
+  for _, id in ipairs(ids) do
+    local a = t[id]
+    out[#out + 1] = id .. "," .. n(a[1]) .. "," .. n(a[2]) .. "," .. n(a[3] or 0) .. "," .. n(a[4] or 0) .. "," .. n(a[5]) .. ";"
+  end
+  return table.concat(out)
+end
+
+-- Auction house scan (2.5): the site's aggregate (src/lib/pricemath.js) over the scanned listings.
+-- listings: { [itemID] = { { unit price, quantity }, … } } → { [itemID] = { min, market, qty, listings } }, where
+-- market is the quantity-weighted average of the cheapest 10% of units on sale (at least 1). Listings at
+-- M.PLACEHOLDER_PRICE or more per unit are parking, not prices, and left out.
+M.PLACEHOLDER_PRICE = 1000000 * 10000
+function M.Aggregate(listings)
+  local out = {}
+  for id, arr in pairs(listings) do
+    local list = {}
+    for _, l in ipairs(arr) do
+      if l[1] and l[1] >= 0 and l[1] < M.PLACEHOLDER_PRICE then list[#list + 1] = { l[1], l[2] or 1 } end
+    end
+    if #list > 0 then
+      table.sort(list, function(a, b) return a[1] < b[1] end)
+      local qty = 0
+      for _, l in ipairs(list) do qty = qty + l[2] end
+      local want = max(1, math.ceil(qty * 0.1))
+      local taken, sum = 0, 0
+      for _, l in ipairs(list) do
+        local use = math.min(l[2], want - taken)
+        sum = sum + l[1] * use
+        taken = taken + use
+        if taken >= want then break end
+      end
+      out[id] = { floor(list[1][1] + 0.5), floor(sum / taken + 0.5), qty, #list }
+    end
+  end
+  return out
+end
+
+-- A scanned house over the shipped one: scanned items take the scan's min, market, quantity and listings and
+-- keep the shipped sold per day (one scan can't tell sales); items the scan didn't see keep the shipped prices.
+function M.MergeScan(shipped, scanned)
+  local t = {}
+  for id, a in pairs(shipped) do t[id] = a end
+  for id, s in pairs(scanned) do
+    local old = shipped[id]
+    t[id] = { s[1], s[2], s[3], s[4], old and old[5] }
+  end
+  return t
+end
+
 -- "id;id;…" → { [id] = true }
 function M.DecodeSet(s)
   local t = {}
@@ -764,7 +819,7 @@ end
 ---------------------------------------------------------------------------------------------------
 -- Price freshness (Freshness.lua): the addon can't download, so it says when its prices are old, and copies
 -- in your guild and group tell each other the time of their prices over the hidden addon channel.
-M.OLD_AFTER = 86400  -- prices older than a day get a note at login (releases go out 4 times a day)
+M.OLD_AFTER = 172800 -- prices older than two days get a note at login (releases go out once a day; scans in between)
 M.NEWER_BY = 3600    -- someone's prices count as newer when they're at least an hour newer (a later release)
 M.SYNC_PREFIX = "ForeverAnvil"
 

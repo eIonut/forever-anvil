@@ -7,7 +7,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import fengari from "fengari";
 import { disenchantTable, disenchantValue } from "../src/lib/demath.js";
-import { craftProfit } from "../src/lib/pricemath.js";
+import { craftProfit, aggregate } from "../src/lib/pricemath.js";
 import { encodeHouse, regionMedians, encodeSkill, encodeCrates, encodeItems, encodeGear } from "./addon-data.js";
 import { findUpgrades } from "../src/lib/upgrades.js";
 import { skillUpChance, planLeveling } from "../src/lib/levelmath.js";
@@ -1762,6 +1762,21 @@ test("smoke: bag value window totals your bags and the menu shows it", () => {
     out[#out + 1] = B.total.text
     out[#out + 1] = B.split.text
     out[#out + 1] = "worth " .. ns.BagWorth()
+    -- right-click the Wool to leave it out; "Show ignored" lists it greyed under the rest; right-click counts it again
+    local function rows()
+      local t = {}
+      for _, b in ipairs(B.rows) do if b.itemID and b.shown ~= false then t[#t + 1] = b.itemID .. " " .. b.kind.text end end
+      return table.concat(t, ", ")
+    end
+    out[#out + 1] = "toggle " .. tostring(B.toggle.shown)
+    B.rows[2].OnClick(B.rows[2], "RightButton")
+    out[#out + 1] = "ignored " .. tostring(ForeverAnvilDB.bagIgnore[2592]) .. ": " .. rows()
+    out[#out + 1] = B.total.text .. " / worth " .. ns.BagWorth()
+    out[#out + 1] = "toggle " .. tostring(B.toggle.shown) .. " " .. B.toggle.value
+    B.toggle.OnClick(B.toggle)
+    out[#out + 1] = rows() .. " / " .. B.toggle.value .. " / " .. B.hint.text
+    B.rows[4].OnClick(B.rows[4], "RightButton")
+    out[#out + 1] = "back " .. tostring(ForeverAnvilDB.bagIgnore[2592]) .. ": " .. rows() .. " / toggle " .. tostring(B.toggle.shown) .. " / worth " .. ns.BagWorth()
     return table.concat(out, "\\n")`, { HOUSE: house, "Core.lua": src("Core.lua"), "Lists.lua": src("Lists.lua"), "Bags.lua": src("Bags.lua") });
   // Linen: 15c × 0.95 = 14c each, 30 → 4s 20c; Wool: 43c × 3 = 1s 29c (thin: under 3 listings); sword 1s (bound: vendor); grey 5c × 2
   assert.deepEqual(out.split("\n"), [
@@ -1773,6 +1788,135 @@ test("smoke: bag value window totals your bags and the menu shows it", () => {
     "Worth |cffc7c7cf6s|r |cffeda55f59c|r",
     "|cffffd100Auction house|r 5s 49c   |cffc080ffDisenchant|r 0c   |cffbbbbbbVendor|r 1s 10c",
     "worth 659",
+    "toggle false",
+    "ignored true: 2589 |cffffd100Auction house|r, 25 |cffbbbbbbVendor|r|cff777777 · bound|r, 3300 |cffbbbbbbVendor|r",
+    "Worth |cffc7c7cf5s|r |cffeda55f30c|r / worth 530",
+    "toggle true Show ignored (1)",
+    "2589 |cffffd100Auction house|r, 25 |cffbbbbbbVendor|r|cff777777 · bound|r, 3300 |cffbbbbbbVendor|r, 2592 |cff777777Ignored|r / Hide ignored / |cff777777Right-click one to count it again.|r",
+    "back nil: 2589 |cffffd100Auction house|r, 2592 |cffffd100Auction house|r, 25 |cffbbbbbbVendor|r|cff777777 · bound|r, 3300 |cffbbbbbbVendor|r / toggle false / worth 659",
+  ]);
+});
+
+// Auction house scan (Scan.lua, 2.5): M.Aggregate sums up scanned listings the way the site's aggregate
+// (src/lib/pricemath.js) does, and a scan replaces the shipped prices of your house until newer ones ship.
+test("scan aggregate matches pricemath.js aggregate for random listings", () => {
+  const rand = rng(25);
+  const listings = [];
+  const byItem = {};
+  for (let i = 0; i < 600; i++) {
+    const id = 1000 + Math.floor(rand() * 40);
+    const quantity = 1 + Math.floor(rand() * (rand() < 0.5 ? 1 : 20));
+    // whole stacks priced per stack (fractional per unit), sometimes parked at a placeholder price
+    const buyout = rand() < 0.03 ? 99999990000 * quantity : quantity * (5 + Math.floor(rand() * 5000)) + Math.floor(rand() * 3);
+    listings.push({ item: { id }, buyout, quantity });
+    (byItem[id] = byItem[id] || []).push(`{ ${buyout} / ${quantity}, ${quantity} }`);
+  }
+  const lua_ = runLua(`return M.EncodeHouse(M.Aggregate({ ${Object.entries(byItem).map(([id, l]) => `[${id}] = { ${l.join(", ")} }`).join(", ")} }))`);
+  assert.equal(lua_, encodeHouse(aggregate(listings)));
+  assert.ok(lua_.split(";").length > 30);
+});
+
+test("smoke: scanning the auction house replaces its prices until newer ones ship", () => {
+  const src = (f) => fs.readFileSync(path.join(ADDON, f), "utf8");
+  const house = encodeHouse({ 2589: [12, 15, 400, 30, 120], 2592: [40, 45, 200, 2, 60] });
+  const out = runLua(`
+    local noop = function() end
+    local printed = {}
+    local function region()
+      local r = setmetatable({}, { __index = function(_, k) if k:match("^%u") then return noop end end })
+      function r:SetText(s) self.text = s end
+      return r
+    end
+    local frames = {}
+    local function frame(kind, name, parent)
+      local fr = setmetatable({ kind = kind, parent = parent, events = {} }, { __index = function(_, k)
+        if k:match("^%u") and k ~= "TitleText" and not k:match("^On") then return noop end
+      end })
+      function fr:SetScript(k, fn) rawset(self, k, fn) end
+      function fr:RegisterEvent(e) self.events[e] = true end
+      function fr:CreateFontString() return region() end
+      function fr:CreateTexture() return region() end
+      function fr:Show() self.shown = true end
+      function fr:Hide() self.shown = false end
+      function fr:IsShown() return rawget(self, "shown") == true end
+      function fr:SetText(s) self.value = s end
+      if name then _G[name] = fr end
+      frames[#frames + 1] = fr
+      return fr
+    end
+    CreateFrame = frame
+    UIParent, UISpecialFrames = frame(), {}
+    GameTooltip = frame()
+    DEFAULT_CHAT_FRAME = { AddMessage = function(_, s) printed[#printed + 1] = (s:gsub("^|cffe6a23cForever Anvil|r: ", "")) end }
+    SlashCmdList = {}
+    hooksecurefunc = noop
+    GetCurrentRegion = function() return 3 end
+    GetRealmName = function() return "Forever PvP" end
+    UnitFactionGroup = function() return "Horde" end
+    C_AddOns = { IsAddOnLoaded = function() return false end, LoadAddOn = noop }
+    local now = 1800000000
+    time = function() return now end
+    local timers = {}
+    C_Timer = { After = function(_, fn) timers[#timers + 1] = fn end }
+    local function flush() local n = 0; while #timers > 0 and n < 100 do n = n + 1; table.remove(timers, 1)() end end
+    C_Item = { GetItemInfo = function() end, GetItemCount = function() return 0 end }
+    -- the auction house: Linen Cloth in two stacks (10c and 11c each), a new item, a bid-only one, a parked one
+    local auctions = { { 2589, 20, 200 }, { 2589, 10, 110 }, { 4306, 1, 500 }, { 2996, 1, 0 }, { 2997, 1, 99999990000 } }
+    local requests = 0
+    C_AuctionHouse = {
+      ReplicateItems = function() requests = requests + 1 end,
+      GetNumReplicateItems = function() return #auctions end,
+      GetReplicateItemInfo = function(i)
+        local a = auctions[i + 1]
+        return "item", nil, a[2], 1, true, 1, 0, 0, 0, a[3], 0, false, nil, "x", "x", 0, a[1], true
+      end,
+    }
+    ForeverAnvilData = { EU = { region = "eu", updated = now - 7200,
+      rulesets = { { name = "PvP", group = "A", likely = false, alliance = 110, horde = 113, neutral = 116 } },
+      houses = { [113] = { group = "A", faction = "horde", data = HOUSE } },
+      regionMedian = "", vendorBuy = "", noDisenchant = "", skill = "", crates = "", items = "" } }
+    for _, f in ipairs({ "Core.lua", "Scan.lua" }) do assert(load(_G[f], "=" .. f))("ForeverAnvil", ns) end
+    ns.frame.OnEvent(ns.frame, "ADDON_LOADED", "ForeverAnvil")
+    ns.frame.OnEvent(ns.frame, "PLAYER_LOGIN")
+    local scanFrame
+    for _, fr in ipairs(frames) do if fr.events.REPLICATE_ITEM_LIST_UPDATE then scanFrame = fr end end
+    local function p(id) local x = ns.Price(id); return x and table.concat({ x[1] or "-", x[2] or "-", x[3], x[4], x[5] or "-" }, "/") or "none" end
+    local out = {}
+    SlashCmdList.FOREVERANVIL("scan")
+    out[#out + 1] = "closed: " .. printed[#printed]
+    AuctionHouseFrame = frame("Frame", "AuctionHouseFrame")
+    AuctionHouseFrame:Show()
+    scanFrame.OnEvent(scanFrame, "AUCTION_HOUSE_SHOW")
+    flush()
+    local B = ForeverAnvilScanButton
+    out[#out + 1] = "button " .. B.value .. " / " .. B.status.text
+    out[#out + 1] = "before " .. p(2589) .. " " .. p(4306) .. ", age " .. ns.DataAge()
+    B.OnClick(B)
+    out[#out + 1] = "requests " .. requests .. ", button " .. B.value
+    now = now + 5
+    scanFrame.OnEvent(scanFrame, "REPLICATE_ITEM_LIST_UPDATE")
+    flush()
+    out[#out + 1] = printed[#printed]
+    out[#out + 1] = "after " .. p(2589) .. " " .. p(2592) .. " " .. p(4306) .. " " .. p(2996) .. " " .. p(2997) .. ", age " .. ns.DataAge()
+    out[#out + 1] = "button " .. B.value .. " / " .. B.status.text
+    now = now + 60
+    SlashCmdList.FOREVERANVIL("scan")
+    out[#out + 1] = "again: " .. printed[#printed] .. " (requests " .. requests .. ")"
+    -- an addon update brings prices newer than the scan
+    ForeverAnvilData.EU.updated = now
+    ns.LoadData()
+    out[#out + 1] = "update " .. p(2589) .. " " .. p(4306) .. ", age " .. ns.DataAge()
+    return table.concat(out, "\\n")`, { HOUSE: house, "Core.lua": src("Core.lua"), "Scan.lua": src("Scan.lua") });
+  assert.deepEqual(out.split("\n"), [
+    "closed: open the auction house to scan it.",
+    "button Scan / |cff999999not scanned yet|r",
+    "before 12/15/400/30/120 none, age 7200",
+    "requests 1, button Scanning… 0%",
+    "scanned 4 auctions of 2 items. Your prices for this auction house are from now.",
+    "after 10/10/30/2/120 40/45/200/2/60 500/500/1/1/- none none, age 0",
+    "button Scan / |cff999999scanned 0m ago · again in 15 min|r",
+    "again: the game allows one scan every 15 minutes: try again in 14 min. (requests 1)",
+    "update 12/15/400/30/120 none, age 0",
   ]);
 });
 
@@ -2128,14 +2272,14 @@ test("smoke: old prices get a note at login, and copies in a guild tell each oth
     local out = {}
     local function log(label) out[#out + 1] = label .. ": chat [" .. table.concat(chat, " | ") .. "] sent [" .. table.concat(sent, ", ") .. "]"; chat, sent = {}, {} end
 
-    -- 30 hours old: a note, and the time goes to the guild; a newer copy after that adds no second note
-    local hear, ours = login(30 * H)
+    -- over two days old: a note, and the time goes to the guild; a newer copy after that adds no second note
+    local hear, ours = login(50 * H)
     log("old login (" .. tostring(prefix) .. ")")
     hear("1:" .. (ours + 24 * H), "GUILD", "Fresh-Forever")
     log("then newer")
 
-    -- 8 hours old: no note; our own message and same-time copies are quiet
-    hear, ours = login(8 * H)
+    -- 30 hours old (a daily release, a few hours late): no note; our own message and same-time copies are quiet
+    hear, ours = login(30 * H)
     log("current login")
     hear("1:" .. ours, "GUILD", "Me-Forever")
     hear("1:" .. ours, "GUILD", "Same-Forever")
@@ -2164,14 +2308,14 @@ test("smoke: old prices get a note at login, and copies in a guild tell each oth
     return table.concat(out, "\\n")`, { "Core.lua": src("Core.lua"), "Freshness.lua": src("Freshness.lua") });
   const lines = out.split("\n").map((l) => l.replace(/1:\d+/g, "1:T"));
   assert.deepEqual(lines, [
-    "old login (ForeverAnvil): chat [your prices were last updated 30h ago. Update the addon in your CurseForge or Wago app, or turn on auto-update there, for fresh ones.] sent [GUILD 1:T]",
+    "old login (ForeverAnvil): chat [your prices were last updated 2d ago. Press Scan at the auction house for current ones, or update the addon in your CurseForge or Wago app.] sent [GUILD 1:T]",
     "then newer: chat [] sent []",
     "current login: chat [] sent [GUILD 1:T]",
     "same: chat [] sent []",
     "older, answered by someone else: chat [] sent []",
     "older, we answer: chat [] sent [GUILD 1:T]",
     "whisper and unknown format: chat [] sent []",
-    "newer, twice: chat [Fresh has newer prices than you (updated 2h ago). Update the addon in your CurseForge or Wago app to get them.] sent []",
+    "newer, twice: chat [Fresh has newer prices than you (updated 24h ago). Update the addon in your CurseForge or Wago app to get them.] sent []",
     "notes off: chat [] sent [GUILD 1:T]",
   ]);
 });

@@ -40,8 +40,18 @@ local function slotItem(bag, slot)
   end
 end
 
+-- Items you keep (right-click in the window): left out of the list and the totals.
+function ns.BagIgnored(id) return ns.db.bagIgnore[id] == true end
+
+function ns.SetBagIgnored(id, on)
+  ns.db.bagIgnore[id] = on and true or nil
+  local link = select(2, ns.ItemInfo(id)) or ("item " .. id)
+  ns.Print((on and L["%s no longer counts in your bag value."] or L["%s counts in your bag value again."]):format(link))
+end
+
 -- Everything in your bags, by item (bound and unbound copies apart), with its best use:
--- { { id, count, bound, kind, unit, total, thin }, … } dearest first, and the totals per kind.
+-- { { id, count, bound, kind, unit, total, thin }, … } dearest first, the totals per kind, and the items
+-- you ignore (same shape, ignored = true), which the totals leave out.
 function ns.BagItems()
   local by, order = {}, {}
   for _, s in ipairs(slots()) do
@@ -57,7 +67,7 @@ function ns.BagItems()
       e.count = e.count + count
     end
   end
-  local totals, list = { ah = 0, de = 0, vendor = 0, all = 0 }, {}
+  local totals, list, ignored = { ah = 0, de = 0, vendor = 0, all = 0 }, {}, {}
   for _, e in ipairs(order) do
     local p = not e.bound and ns.Price(e.id) or nil
     local de = ns.db.show.de and ns.Disenchant(e.id) or nil
@@ -65,51 +75,81 @@ function ns.BagItems()
     if e.kind then
       e.total = e.unit * e.count
       e.thin = e.kind == "ah" and p[4] < M.THIN
-      totals[e.kind] = totals[e.kind] + e.total
-      totals.all = totals.all + e.total
-      list[#list + 1] = e
+      if ns.BagIgnored(e.id) then
+        e.ignored = true
+        ignored[#ignored + 1] = e
+      else
+        totals[e.kind] = totals[e.kind] + e.total
+        totals.all = totals.all + e.total
+        list[#list + 1] = e
+      end
     end
   end
-  table.sort(list, function(a, b)
+  local function dearest(a, b)
     if a.total ~= b.total then return a.total > b.total end
     return a.id < b.id
-  end)
-  return list, totals
+  end
+  table.sort(list, dearest)
+  table.sort(ignored, dearest)
+  return list, totals, ignored
 end
 
 local function draw()
-  local list, totals = ns.BagItems()
-  local max = math.max(0, #list - ROWS)
+  local list, totals, ignored = ns.BagItems()
+  if #ignored == 0 then win.showIgnored = false end
+  -- the ignored items go under the counted ones, greyed, while "Show ignored" is on
+  local shown = list
+  if win.showIgnored then
+    shown = {}
+    for _, e in ipairs(list) do shown[#shown + 1] = e end
+    for _, e in ipairs(ignored) do shown[#shown + 1] = e end
+  end
+  local max = math.max(0, #shown - ROWS)
   if win.offset > max then win.offset = max end
   if win.offset < 0 then win.offset = 0 end
   for i, b in ipairs(win.rows) do
-    local e = list[win.offset + i]
+    local e = shown[win.offset + i]
     b.itemID = e and e.id
+    b.ignored = e and e.ignored
     if e then
       local name, quality, icon = ns.ItemMeta(e.id)
       b.icon:SetTexture(icon)
-      b.name:SetText("|cff" .. ns.QualityHex(quality) .. (name or ("item " .. e.id)) .. "|r" .. (e.count > 1 and ("|cff999999 ×" .. e.count .. "|r") or ""))
-      local k = KIND[e.kind]
-      b.kind:SetText("|cff" .. k[2] .. L[k[1]] .. "|r" .. (e.bound and ("|cff777777 · " .. L["bound"] .. "|r") or ""))
-      b.value:SetText((e.thin and "|cff999999~|r" or "") .. M.ShortMoney(e.total, true))
+      if b.icon.SetDesaturated then b.icon:SetDesaturated(e.ignored == true) end
+      b.name:SetText("|cff" .. (e.ignored and "777777" or ns.QualityHex(quality)) .. (name or ("item " .. e.id)) .. "|r" .. (e.count > 1 and ("|cff999999 ×" .. e.count .. "|r") or ""))
+      if e.ignored then
+        b.kind:SetText("|cff777777" .. L["Ignored"] .. "|r")
+        b.value:SetText("|cff777777" .. M.ShortMoney(e.total, true) .. "|r")
+      else
+        local k = KIND[e.kind]
+        b.kind:SetText("|cff" .. k[2] .. L[k[1]] .. "|r" .. (e.bound and ("|cff777777 · " .. L["bound"] .. "|r") or ""))
+        b.value:SetText((e.thin and "|cff999999~|r" or "") .. M.ShortMoney(e.total, true))
+      end
       b:Show()
     else
       b:Hide()
     end
   end
-  if #list == 0 then
+  if #list == 0 and #ignored == 0 then
     win.total:SetText("|cff999999" .. L["Nothing in your bags has a price."] .. "|r")
     win.split:SetText("")
   else
-    win.total:SetText(L["Worth"] .. " " .. M.ShortMoney(totals.all) .. (#list > ROWS and ("  |cff999999" .. L["%d items, scroll for more"]:format(#list) .. "|r") or ""))
+    win.total:SetText(L["Worth"] .. " " .. M.ShortMoney(totals.all) .. (#shown > ROWS and ("  |cff999999" .. L["%d items, scroll for more"]:format(#shown) .. "|r") or ""))
     win.split:SetText(("|cffffd100%s|r %s   |cffc080ff%s|r %s   |cffbbbbbb%s|r %s"):format(L["Auction house"], M.ShortMoney(totals.ah, true),
       L["Disenchant"], M.ShortMoney(totals.de, true), L["Vendor"], M.ShortMoney(totals.vendor, true)))
+  end
+  win.hint:SetText("|cff777777" .. (win.showIgnored and L["Right-click one to count it again."]
+    or L["Right-click an item to leave it out."]) .. "|r")
+  if #ignored > 0 then
+    win.toggle:SetText(win.showIgnored and L["Hide ignored"] or L["Show ignored (%d)"]:format(#ignored))
+    win.toggle:Show()
+  else
+    win.toggle:Hide()
   end
 end
 
 local function build()
   local fr = CreateFrame("Frame", "ForeverAnvilBags", UIParent, "BasicFrameTemplateWithInset")
-  fr:SetSize(WIDTH, 58 + ROWS * ROW_H + 52)
+  fr:SetSize(WIDTH, 58 + ROWS * ROW_H + 72)
   fr:SetFrameStrata("MEDIUM")
   fr:SetToplevel(true)
   fr:SetMovable(true)
@@ -177,9 +217,16 @@ local function build()
     b.value:SetPoint("RIGHT", -2, 0)
     b.value:SetWidth(60)
     b.value:SetJustifyH("RIGHT")
-    -- click: search the auction house for it; Shift: link it in chat
-    b:SetScript("OnClick", function(self)
+    -- click: search the auction house for it; Shift: link it in chat; right-click: ignore it, or count it again
+    b:RegisterForClicks("LeftButtonUp", "RightButtonUp")
+    b:SetScript("OnClick", function(self, button)
       if not self.itemID then return end
+      if button == "RightButton" then
+        ns.SetBagIgnored(self.itemID, not self.ignored)
+        GameTooltip:Hide()
+        ns.Safe("bags", draw)
+        return
+      end
       local link = select(2, ns.ItemInfo(self.itemID))
       if link and IsModifiedClick and IsModifiedClick() and HandleModifiedItemClick then HandleModifiedItemClick(link); return end
       if ns.SearchAuction then ns.SearchAuction(self.itemID) end
@@ -188,6 +235,7 @@ local function build()
       if not self.itemID then return end
       GameTooltip:SetOwner(self, "ANCHOR_LEFT")
       GameTooltip:SetItemByID(self.itemID)
+      GameTooltip:AddLine(self.ignored and L["Right-click: count it again"] or L["Right-click: leave it out of your bag value"], 0.6, 0.6, 0.6)
       GameTooltip:Show()
     end)
     b:SetScript("OnLeave", function() GameTooltip:Hide() end)
@@ -195,11 +243,24 @@ local function build()
   end
 
   fr.total = fr:CreateFontString(nil, "ARTWORK", "GameFontNormal")
-  fr.total:SetPoint("BOTTOMLEFT", 16, 30)
+  fr.total:SetPoint("BOTTOMLEFT", 16, 50)
   fr.total:SetJustifyH("LEFT")
   fr.split = fr:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-  fr.split:SetPoint("BOTTOMLEFT", 16, 12)
+  fr.split:SetPoint("BOTTOMLEFT", 16, 32)
   fr.split:SetJustifyH("LEFT")
+  fr.hint = fr:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+  fr.hint:SetPoint("BOTTOMLEFT", 16, 13)
+  fr.hint:SetWidth(WIDTH - 150)
+  fr.hint:SetJustifyH("LEFT")
+  fr.hint:SetWordWrap(false)
+  -- shows the ignored items under the others, to count one again
+  fr.toggle = CreateFrame("Button", nil, fr, "UIPanelButtonTemplate")
+  fr.toggle:SetSize(120, 20)
+  fr.toggle:SetPoint("BOTTOMRIGHT", -12, 8)
+  fr.toggle:SetScript("OnClick", function()
+    fr.showIgnored = not fr.showIgnored
+    ns.Safe("bags", draw)
+  end)
   fr:SetScript("OnShow", function() ns.Safe("bags", draw) end)
   return fr
 end
