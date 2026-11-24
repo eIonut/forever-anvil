@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="sky" cx="50%" cy="42%" r="70%">
+      <stop offset="0" stop-color="#3a2a63"/>
+      <stop offset="0.55" stop-color="#1e1638"/>
+      <stop offset="1" stop-color="#0b0814"/>
+    </radialGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0" stop-color="#ffb347" stop-opacity="0.55"/>
+      <stop offset="1" stop-color="#ffb347" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fff0b8"/>
+      <stop offset="0.45" stop-color="#f2c45a"/>
+      <stop offset="1" stop-color="#b9781f"/>
+    </linearGradient>
+    <linearGradient id="trail" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#7c3aed" stop-opacity="0"/>
+      <stop offset="0.6" stop-color="#a855f7" stop-opacity="0.75"/>
+      <stop offset="1" stop-color="#e9d5ff" stop-opacity="1"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#sky)"/>
+
+  <!-- stars -->
+  <g fill="#fff6e0">
+    <circle cx="96" cy="300" r="2.5" opacity="0.7"/>
+    <circle cx="408" cy="104" r="3" opacity="0.8"/>
+    <circle cx="436" cy="232" r="2" opacity="0.6"/>
+    <circle cx="352" cy="64" r="2" opacity="0.6"/>
+    <circle cx="70" cy="196" r="2" opacity="0.5"/>
+    <path d="M404 168 l6 16 l16 6 l-16 6 l-6 16 l-6 -16 l-16 -6 l16 -6 z" opacity="0.9"/>
+  </g>
+
+  <!-- sun glow behind the anvil -->
+  <circle cx="256" cy="330" r="190" fill="url(#glow)"/>
+
+  <!-- comet trail (Loot Comets) -->
+  <path d="M40 92 C 130 70 200 110 236 186 L 222 196 C 190 132 128 104 40 108 Z" fill="url(#trail)"/>
+  <circle cx="230" cy="190" r="13" fill="#f3e8ff"/>
+  <circle cx="230" cy="190" r="22" fill="#c084fc" opacity="0.35"/>
+
+  <!-- mountains (Landfall) -->
+  <path d="M0 400 L84 330 L140 372 L214 300 L276 356 L330 318 L404 378 L452 340 L512 384 L512 512 L0 512 Z" fill="#5b3b6e"/>
+  <path d="M0 436 L70 392 L150 430 L232 376 L300 420 L378 388 L456 428 L512 404 L512 512 L0 512 Z" fill="#3a2549"/>
+  <path d="M0 470 L110 440 L220 466 L330 438 L430 462 L512 446 L512 512 L0 512 Z" fill="#1a1222"/>
+
+  <!-- anvil (Forever Anvil) -->
+  <g transform="translate(0 6)">
+    <path d="M132 236 Q 186 228 236 228 L 380 228 L 380 266 L 346 266 Q 322 272 316 296 L 316 312 Q 332 318 344 334 L 344 350 L 172 350 L 172 334 Q 184 318 200 312 L 200 296 Q 194 274 172 266 Q 146 258 132 236 Z"
+          fill="url(#gold)" stroke="#5a2e08" stroke-width="7" stroke-linejoin="round"/>
+    <path d="M150 238 Q 190 234 236 234 L 372 234" fill="none" stroke="#fff8d6" stroke-width="5" stroke-linecap="round" opacity="0.8"/>
+  </g>
+
+  <!-- spark -->
+  <path d="M290 150 l9 26 l26 9 l-26 9 l-9 26 l-9 -26 l-26 -9 l26 -9 z" fill="#fff0b8"/>
+</svg>

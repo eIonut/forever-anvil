@@ -71,5 +71,9 @@ Esc → Options → AddOns → Landfall, or `/landfall`.
 
 WoW Forever and Classic Era. Lightweight: it only wakes up when you change zones.
 
-Made by the team behind [Forever Anvil](https://foreveranvil.com) and [Loot Comets](https://www.curseforge.com/wow/addons/loot-comets).
+## Help and ideas
+
+Questions, a bug, or a zone card idea? Join the **[Forever Anvil Addons Discord](https://discord.gg/GJvNf8Zvzt)**: support, feature requests and release announcements for Landfall, Loot Comets and Forever Anvil.
+
+Made by the team behind [Forever Anvil](https://foreveranvil.com) and [Loot Comets](https://www.curseforge.com/wow/addons/loot-comets-loot-effects-animations).
 ```

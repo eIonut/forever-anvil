@@ -70,5 +70,9 @@ WoW Forever, Retail and the Classic versions. The game's own bags, Bagnon, ElvUI
 
 Lightweight: nothing runs until an item arrives, and it never touches the game's own frames.
 
+## Help and ideas
+
+Questions, a bug, or an idea for a new effect? Join the **[Forever Anvil Addons Discord](https://discord.gg/GJvNf8Zvzt)**: support, feature requests and release announcements for Loot Comets, Landfall and Forever Anvil.
+
 Made by the team behind [Forever Anvil](https://foreveranvil.com), auction prices and crafting tools for WoW Forever.
 ```
