@@ -30,18 +30,24 @@ local function houses()
 end
 
 ---------------------------------------------------------------------------------------------------
--- Item stats from the game. An item it hasn't loaded yet is asked for once; GET_ITEM_INFO_RECEIVED redraws.
-local statCache, asked = {}, {}
+-- Item stats from the game. An item it hasn't loaded yet is asked for, and asked again every few seconds while
+-- the window waits (GET_ITEM_INFO_RECEIVED and the window's own retry redraw); after a few tries without an
+-- answer it's left out (false), so the window can't stay on "loading" for good.
+local RETRY_AFTER, MAX_TRIES = 3, 4
+local statCache, asked = {}, {} -- asked[id] = { when it was last asked for, how many times }
 local function getStats() return (C_Item and C_Item.GetItemStats) or GetItemStats end
+local function now() return (GetTime and GetTime()) or time() end
 
 local function statsOf(id)
   local s = statCache[id]
-  if s then return s end
+  if s ~= nil then return s end
   local _, link = ns.ItemInfo(id)
   if not link then
-    if not asked[id] and C_Item and C_Item.RequestLoadItemDataByID then
-      asked[id] = true
-      pcall(C_Item.RequestLoadItemDataByID, id)
+    local a, t = asked[id], now()
+    if not a or t - a[1] >= RETRY_AFTER then
+      if a and a[2] >= MAX_TRIES then statCache[id] = false; return false end
+      asked[id] = { t, (a and a[2] or 0) + 1 }
+      if C_Item and C_Item.RequestLoadItemDataByID then pcall(C_Item.RequestLoadItemDataByID, id) end
     end
     return nil
   end
@@ -193,6 +199,24 @@ local function draw()
     win.total:SetText("|cff999999" .. (pending > 0 and L["Loading item stats…"] or L["No upgrades on sale within this budget. Try a bigger one."]) .. "|r" .. extra)
   else
     win.total:SetText(L["%d upgrades for %d slots"]:format(nOptions, #slots) .. extra)
+  end
+  -- an empty list says why, in the middle of the window: still loading, no ruleset, or nothing in budget
+  if #list > 0 then
+    win.empty:SetText("")
+  elseif not r then
+    win.empty:SetText(L["Pick this realm's ruleset to see upgrades."])
+  elseif pending > 0 then
+    win.empty:SetText(L["Getting the gear on sale from the game…"] .. "\n|cff999999" .. L["%d items to go. Upgrades show up here as they arrive."]:format(pending) .. "|r")
+  else
+    win.empty:SetText(L["No upgrades on sale within this budget. Try a bigger one."])
+  end
+  -- while items are loading, look again in a second (asks again for any the game hasn't sent)
+  if pending > 0 and not win.retrying and C_Timer and C_Timer.After then
+    win.retrying = true
+    C_Timer.After(1, function()
+      win.retrying = false
+      if win:IsShown() then ns.Safe("upgrades", draw) end
+    end)
   end
   win.where:SetText("|cff999999" .. (r and L["%s %s auction house and Blackwater"]:format(r.name, L[side]) or "") .. "|r")
 end
@@ -353,6 +377,11 @@ local function build()
     fr.rows[i] = b
   end
 
+  fr.empty = area:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+  fr.empty:SetPoint("CENTER", 0, 20)
+  fr.empty:SetWidth(WIDTH - 80)
+  fr.empty:SetJustifyH("CENTER")
+
   fr.total = fr:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
   fr.total:SetPoint("BOTTOMLEFT", 16, 30)
   fr.total:SetPoint("BOTTOMRIGHT", -16, 30)
@@ -363,6 +392,7 @@ local function build()
   hint:SetJustifyH("LEFT")
   hint:SetText(L["Ranked by your spec's stats, roughly: read the tooltip. Click to search, Ctrl-click to try on."])
   fr:SetScript("OnShow", function() ns.Safe("upgrades", draw) end)
+  fr:Hide() -- a new frame starts out shown: hide it, so opening it runs OnShow (draws it)
   return fr
 end
 
@@ -377,7 +407,8 @@ function ns.UpgradesShown() return win ~= nil and win:IsShown() end
 
 -- for the menu: how many slots have an upgrade within your budget
 function ns.UpgradeCount()
-  return #(ns.FindUpgrades(ns.db.upgradeBudget, 1, ns.db.upgradeShowAll))
+  local slots, pending = ns.FindUpgrades(ns.db.upgradeBudget, 1, ns.db.upgradeShowAll)
+  return #slots, pending -- and how many items are still loading
 end
 
 -- gear, level or talents changed, or item stats arrived: redraw an open window (once per burst)
@@ -385,7 +416,15 @@ local events, pending = CreateFrame("Frame"), false
 for _, e in ipairs({ "PLAYER_EQUIPMENT_CHANGED", "PLAYER_LEVEL_UP", "CHARACTER_POINTS_CHANGED", "PLAYER_TALENT_UPDATE", "GET_ITEM_INFO_RECEIVED" }) do
   pcall(events.RegisterEvent, events, e)
 end
-events:SetScript("OnEvent", function()
+pcall(events.RegisterEvent, events, "PLAYER_LOGIN")
+events:SetScript("OnEvent", function(_, event)
+  if event == "PLAYER_LOGIN" then
+    -- ask the game for the gear on sale in the background, so the window has it when you open it
+    if C_Timer and C_Timer.After then
+      C_Timer.After(20, function() if ns.data then ns.Safe("upgrades", ns.UpgradeCount) end end)
+    end
+    return
+  end
   if pending or not (win and win:IsShown()) then return end
   pending = true
   local function run() pending = false; ns.Safe("upgrades", draw) end

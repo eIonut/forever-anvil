@@ -120,6 +120,7 @@ local function build()
     layout(fr)
   end
   fr:SetScript("OnShow", function() ns.Safe("ruleset", fr.refresh) end)
+  fr:Hide() -- a new frame starts out shown: hide it, so opening it runs OnShow (draws it)
   return fr
 end
 

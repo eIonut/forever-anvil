@@ -4,6 +4,7 @@
 - **Leave items out of your bag value**: right-click an item in the bag value window to stop counting it, like materials or gear you are keeping. "Show ignored" lists those items greyed out under the rest, and right-clicking one counts it again. Your choices are kept for all your characters.
 - The minimap menu has a **Scan prices** line showing when you last scanned the auction house you use (click it at the auction house to scan), and the settings have an **Auction house scan** section with a Scan now button. The first time you open the auction house, a note in chat points to the Scan button.
 - **New versions with fresh prices now come out once a day** instead of 4 times, since you can scan for current prices any time. The note about old prices now waits until they are over two days old, and it suggests scanning.
+- **No more empty windows**: the first time you opened a window in a session (bag value, upgrades, prices, your lists, the menu), it could stay empty until something changed. It now fills in right away. Also, right after login the game may not have your items or the gear on sale loaded yet. The upgrades and bag value windows now say they are loading and fill in as items arrive, instead of looking empty (or saying there are no upgrades or nothing has a price). The minimap menu shows "loading…" for them meanwhile. Items the game never sends are left out after a few seconds instead of keeping the window loading.
 
 ## 2.4
 

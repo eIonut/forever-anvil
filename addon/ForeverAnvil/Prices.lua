@@ -452,6 +452,7 @@ local function build()
     ns.Safe("prices", refresh)
     if LOCALIZED then ns.Safe("prices", loadNames) end
   end)
+  fr:Hide() -- a new frame starts out shown: hide it, so opening it runs OnShow (draws it)
   return fr
 end
 
