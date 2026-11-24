@@ -30,6 +30,19 @@ function ns.ScanWait()
   return math.max(0, GAP - (time() - last))
 end
 
+-- your last scan of the auction house you're on (the menu, the settings and the button show its age), or nil;
+-- unlike ns.ScanOf, also when an addon update has brought newer prices since
+function ns.LastScan()
+  local id = ns.House()
+  return id and ns.regionCode and ns.db.scans[ns.regionCode .. ":" .. id] or nil
+end
+
+-- "scanned 3h ago" or "not scanned yet"
+function ns.ScanAgeText()
+  local scan = ns.LastScan()
+  return scan and L["scanned %s"]:format(M.Age(time() - scan.time)) or L["not scanned yet"]
+end
+
 local function refreshButton()
   if not button then return end
   if state.running then
@@ -40,10 +53,8 @@ local function refreshButton()
     button:SetText(L["Scan"])
     if api() then button:Enable() else button:Disable() end
   end
-  local scan = ns.ScanOf((ns.House()))
   local wait = ns.ScanWait()
-  local bits = {}
-  bits[#bits + 1] = scan and L["scanned %s"]:format(M.Age(time() - scan.time)) or L["not scanned yet"]
+  local bits = { ns.ScanAgeText() }
   if wait > 0 and not state.running then bits[#bits + 1] = L["again in %d min"]:format(math.ceil(wait / 60)) end
   status:SetText("|cff999999" .. table.concat(bits, " · ") .. "|r")
 end
@@ -161,6 +172,14 @@ events:SetScript("OnEvent", function(_, event)
     ns.Safe("scan", onListReady)
   elseif event == "AUCTION_HOUSE_SHOW" then
     -- after Core.lua has worked out the house (neutral or not) on the same event
-    C_Timer.After(0, function() ns.Safe("scan", function() build(); refreshButton() end) end)
+    C_Timer.After(0, function() ns.Safe("scan", function()
+      build()
+      refreshButton()
+      -- once: say the button is there (until then players expect prices only from addon updates)
+      if api() and not ns.db.scanTipShown then
+        ns.db.scanTipShown = true
+        ns.Print(L["new: press Scan under the auction house window (or type |cffffffff/fa scan|r) to read its current prices yourself, any time. The game allows one scan every 15 minutes."])
+      end
+    end) end)
   end
 end)

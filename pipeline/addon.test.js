@@ -2272,14 +2272,14 @@ test("smoke: old prices get a note at login, and copies in a guild tell each oth
     local out = {}
     local function log(label) out[#out + 1] = label .. ": chat [" .. table.concat(chat, " | ") .. "] sent [" .. table.concat(sent, ", ") .. "]"; chat, sent = {}, {} end
 
-    -- 30 hours old: a note, and the time goes to the guild; a newer copy after that adds no second note
-    local hear, ours = login(30 * H)
+    -- over two days old: a note, and the time goes to the guild; a newer copy after that adds no second note
+    local hear, ours = login(50 * H)
     log("old login (" .. tostring(prefix) .. ")")
     hear("1:" .. (ours + 24 * H), "GUILD", "Fresh-Forever")
     log("then newer")
 
-    -- 8 hours old: no note; our own message and same-time copies are quiet
-    hear, ours = login(8 * H)
+    -- 30 hours old (a daily release, a few hours late): no note; our own message and same-time copies are quiet
+    hear, ours = login(30 * H)
     log("current login")
     hear("1:" .. ours, "GUILD", "Me-Forever")
     hear("1:" .. ours, "GUILD", "Same-Forever")
@@ -2308,14 +2308,14 @@ test("smoke: old prices get a note at login, and copies in a guild tell each oth
     return table.concat(out, "\\n")`, { "Core.lua": src("Core.lua"), "Freshness.lua": src("Freshness.lua") });
   const lines = out.split("\n").map((l) => l.replace(/1:\d+/g, "1:T"));
   assert.deepEqual(lines, [
-    "old login (ForeverAnvil): chat [your prices were last updated 30h ago. Update the addon in your CurseForge or Wago app, or turn on auto-update there, for fresh ones.] sent [GUILD 1:T]",
+    "old login (ForeverAnvil): chat [your prices were last updated 2d ago. Press Scan at the auction house for current ones, or update the addon in your CurseForge or Wago app.] sent [GUILD 1:T]",
     "then newer: chat [] sent []",
     "current login: chat [] sent [GUILD 1:T]",
     "same: chat [] sent []",
     "older, answered by someone else: chat [] sent []",
     "older, we answer: chat [] sent [GUILD 1:T]",
     "whisper and unknown format: chat [] sent []",
-    "newer, twice: chat [Fresh has newer prices than you (updated 2h ago). Update the addon in your CurseForge or Wago app to get them.] sent []",
+    "newer, twice: chat [Fresh has newer prices than you (updated 24h ago). Update the addon in your CurseForge or Wago app to get them.] sent []",
     "notes off: chat [] sent [GUILD 1:T]",
   ]);
 });

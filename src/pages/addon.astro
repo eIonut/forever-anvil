@@ -43,6 +43,7 @@ const links = [
         <li><b>Your watchlist</b>: items at or below your target price, tagged <code>Target</code></li>
         <li><b>Your shopping list</b>: materials you still need, tagged <code>Need X</code>, and a small list beside the auction house that ticks off what's in your bags and bank</li>
         <li><b>Upgrades</b> for your character, tagged <code>Upgrade +X</code></li>
+        <li><b>Scan</b>: the button under the auction house window (or <b>/fa scan</b> there) reads every auction and uses those prices right away, so you have current prices between addon updates (one scan every 15 minutes)</li>
         <li>Optional: every disenchantable item's value in grey, to see how close it is to a flip</li>
       </ul>
       <h3>Profession window</h3>
@@ -63,6 +64,7 @@ const links = [
       <h3>Bag value</h3>
       <ul class="gems">
         <li>What everything in your bags is worth, and the best way to sell each item: the auction house, disenchanting or a vendor (<b>/fa bags</b>, or the minimap menu)</li>
+        <li><b>Right-click</b> an item you're keeping to leave it out of the total</li>
       </ul>
       <h3>Your watchlist and shopping list</h3>
       <ul class="gems">
@@ -84,7 +86,7 @@ const links = [
           ))}
         </ul>
       ) : <p>Download links are coming soon.</p>}
-      <p>New versions with the latest prices come out 4 times a day. Turn on auto-update in your addon app to always have them. The addon tells you in chat when your prices are over a day old, or when someone in your guild or group has newer ones.</p>
+      <p>A new version with the latest prices comes out once a day; turn on auto-update in your addon app to always have it. For current prices in between, press Scan at the auction house (or type <code>/fa scan</code> there): the addon reads every auction and uses those prices right away. It tells you in chat when your prices are over two days old, or when someone in your guild or group has newer ones.</p>
 
       <h2>Getting started</h2>
       <ol>
@@ -96,7 +98,7 @@ const links = [
       <h2>Good to know</h2>
       <ul class="gems">
         <li><b>It never buys, sells or crafts for you.</b> It only shows numbers; every action is still your own click.</li>
-        <li><b>Prices are an estimate</b> from the last update, and the auction house moves. Check before a big purchase.</li>
+        <li><b>Prices are an estimate</b> from the last update or your last scan, and the auction house moves. Check before a big purchase.</li>
         <li><b>Europe and the Americas.</b> The addon picks your region by itself and loads only its prices.</li>
         <li><b>English, German, French and Spanish.</b> The addon follows your game client's language.</li>
         <li><b>Upgrades go by item level</b>, which is a shortlist, not a verdict: a strength sword is no upgrade for a healer.</li>

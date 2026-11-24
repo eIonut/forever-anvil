@@ -160,6 +160,19 @@ local function buildMenu()
   end)
   fr.prices.value:SetText("|cff999999" .. L["search every item"] .. "|r")
   y = y - 22
+  -- the auction house scan (Scan.lua): its age here, so players know it exists before they're at the auction house
+  fr.scan = actionRow(fr, y, "Interface\\Icons\\INV_Scroll_03", "Scan prices", function()
+    fr:Hide()
+    ns.StartScan()
+  end)
+  fr.scan:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_RIGHT")
+    GameTooltip:AddLine(L["Scan prices"])
+    GameTooltip:AddLine(L["At the auction house, reads every auction and uses those prices until an addon update brings newer ones. Also the Scan button under the auction house window, or /fa scan there. The game allows one scan every 15 minutes."], 1, 1, 1, true)
+    GameTooltip:Show()
+  end)
+  fr.scan:SetScript("OnLeave", function() GameTooltip:Hide() end)
+  y = y - 22
   fr.bags = actionRow(fr, y, "Interface\\Icons\\INV_Misc_Bag_07", "Bag value", function()
     fr:Hide()
     ns.ShowBags(true)
@@ -241,6 +254,7 @@ local function buildMenu()
     elseif up then
       fr.upgrades.value:SetText("|cff999999" .. L["none in budget"] .. "|r")
     end
+    if ns.ScanAgeText then fr.scan.value:SetText("|cff999999" .. ns.ScanAgeText() .. "|r") end
     local worth = ns.BagWorth and ns.BagWorth()
     if worth and worth > 0 then
       fr.bags.value:SetText(M.ShortMoney(worth, true))

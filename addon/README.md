@@ -40,7 +40,7 @@ Version 2.5:
 
 ## Releases
 
-`.github/workflows/addon.yml` publishes a new version 4 times a day, with fresh prices, to CurseForge (project 1823345) and Wago (project 96EX0jNg). You can also start it by hand under Actions → "Addon release".
+`.github/workflows/addon.yml` publishes a new version once a day (05:40 UTC), with fresh prices, to CurseForge (project 1823345) and Wago (project 96EX0jNg). You can also start it by hand under Actions → "Addon release".
 
 - **Version:** `addon/VERSION` plus the build time, e.g. `1.0.202611221340`. Raise `VERSION` (and add notes to `addon/CHANGELOG.md`) when the addon's code changes.
 - **How:** `tools/addon-release.sh` stages the addon and that run's data in `build/addon-src` as a throwaway git repo tagged with the version. The [BigWigs packager](https://github.com/BigWigsMods/packager) needs a tag to upload a "release" rather than an "alpha", and it skips files git doesn't track, like the price data. The packager then zips it and uploads it.

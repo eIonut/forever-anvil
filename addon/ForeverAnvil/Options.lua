@@ -33,7 +33,7 @@ local RIGHT = {
   },
   { "Minimap and chat",
     { "minimap", "Minimap button", "Click: menu. Right-click: these settings. Drag: move it. /fa minimap brings it back." },
-    { "updates", "Old price notes", "A note in chat when your prices are over a day old, or when someone in your guild or group has newer ones. New prices come with addon updates: turn on auto-update in your CurseForge or Wago app to always have them." },
+    { "updates", "Old price notes", "A note in chat when your prices are over two days old, or when someone in your guild or group has newer ones. For current prices, press Scan at the auction house, or turn on auto-update in your CurseForge or Wago app." },
   },
 }
 
@@ -132,7 +132,22 @@ local function build()
     x = x + 100
   end
 
+  -- the auction house scan (Scan.lua): when you last scanned, and how
   y = y - 60
+  header(panel, "Auction house scan", COL_X[1], y)
+  local scanNow = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+  scanNow:SetSize(96, 22)
+  scanNow:SetPoint("TOPLEFT", COL_X[1], y - 24)
+  scanNow:SetText(L["Scan now"])
+  scanNow:SetScript("OnClick", function() ns.Safe("options", ns.StartScan) end)
+  panel.scanNow = scanNow
+  local scanText = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+  scanText:SetPoint("TOPLEFT", COL_X[1] + 104, y - 22)
+  scanText:SetWidth(500)
+  scanText:SetJustifyH("LEFT")
+  panel.scanText = scanText
+
+  y = y - 64
   header(panel, "Ruleset for this realm", COL_X[1], y)
   local buttons = {}
   x = COL_X[1]
@@ -150,7 +165,7 @@ local function build()
   about:SetPoint("TOPLEFT", COL_X[1], y - 62)
   about:SetWidth(600)
   about:SetJustifyH("LEFT")
-  about:SetText(L["Prices are the same hourly snapshots as %s, from the version of this addon you have installed: update it often for fresh prices. Flips and profits are estimates; check before you buy. Every buy, post and craft is still your own click."]:format(ns.SITE)
+  about:SetText(L["Prices are the same hourly snapshots as %s, from the version of this addon you have installed, or from your own scan of the auction house when that's newer. Flips and profits are estimates; check before you buy. Every buy, post and craft is still your own click."]:format(ns.SITE)
     .. "\n\n" .. L["Bring your watchlist and crafting plan over with \"Copy for the addon\" on the site and Import. More tools (price history, crafting planner, leveling routes, talents) at %s."]:format(ns.SITE)
     .. "\n\n|cff999999" .. L["Data provided by Blizzard Entertainment. Forever Anvil is not made or endorsed by Blizzard."] .. "|r")
 
@@ -158,6 +173,9 @@ local function build()
     for key, cb in pairs(boxes) do cb:SetChecked(ns.db.show[key]) end
     local current = ns.Ruleset()
     for _, e in ipairs(buttons) do e[1]:SetEnabled(e[2] ~= current) end
+    local scan = ns.LastScan and ns.LastScan()
+    scanText:SetText((scan and L["Last scan of this auction house: %s."]:format(M.Age(time() - scan.time)) or L["You haven't scanned this auction house yet."])
+      .. "\n|cff999999" .. L["At the auction house, press Scan under its window or type /fa scan to read its current prices yourself, between addon updates. The game allows one scan every 15 minutes."] .. "|r")
     local id, r, side = ns.House()
     if not ns.data then
       status:SetText(L["No price data loaded."])

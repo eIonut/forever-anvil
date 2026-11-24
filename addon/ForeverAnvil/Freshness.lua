@@ -1,6 +1,6 @@
 -- Old prices: the addon can't download anything, so new prices come with addon updates. This tells players
 -- when theirs are old and how to get new ones:
---   at login    a note in chat when the prices are over a day old
+--   at login    a note in chat when the prices are over two days old (releases go out once a day)
 --   guild/group each copy sends the time of its prices over the hidden addon channel (one short message at
 --               login and when the group changes). A copy with newer prices answers one with older ones, and
 --               that player gets a note. Players whose prices are current see nothing.
@@ -59,7 +59,7 @@ local function isMe(sender) return UnitName and shortName(sender) == UnitName("p
 function ns.CheckOldPrices()
   local age = ns.DataAge()
   if age and age > M.OLD_AFTER then
-    tell(L["your prices were last updated %s. Update the addon in your CurseForge or Wago app, or turn on auto-update there, for fresh ones."]:format(M.Age(age)))
+    tell(L["your prices were last updated %s. Press Scan at the auction house for current ones, or update the addon in your CurseForge or Wago app."]:format(M.Age(age)))
   end
 end
 

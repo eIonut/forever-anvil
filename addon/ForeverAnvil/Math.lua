@@ -819,7 +819,7 @@ end
 ---------------------------------------------------------------------------------------------------
 -- Price freshness (Freshness.lua): the addon can't download, so it says when its prices are old, and copies
 -- in your guild and group tell each other the time of their prices over the hidden addon channel.
-M.OLD_AFTER = 86400  -- prices older than a day get a note at login (releases go out 4 times a day)
+M.OLD_AFTER = 172800 -- prices older than two days get a note at login (releases go out once a day; scans in between)
 M.NEWER_BY = 3600    -- someone's prices count as newer when they're at least an hour newer (a later release)
 M.SYNC_PREFIX = "ForeverAnvil"
 
