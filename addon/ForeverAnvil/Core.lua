@@ -12,7 +12,9 @@ ns.DEFAULTS = {
     -- version 2
     upgrades = true, crates = true, skillup = true, watch = true, shopping = true, minimap = true,
     -- 2.3
-    updates = true },
+    updates = true,
+    -- 2.6
+    bagMarks = false },
   minimap = { angle = 210 }, -- where the minimap button sits (degrees around the minimap)
   watch = {},    -- [itemID] = target price in copper (0: no target), from /fa import or /fa watch
   shopping = {}, -- { {itemID, units}, … }: materials for the crafting plan, from /fa import

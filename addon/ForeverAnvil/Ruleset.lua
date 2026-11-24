@@ -167,6 +167,7 @@ end
 function ns.OnRulesetChanged()
   if picker and picker:IsShown() then picker.refresh() end
   if ns.RefreshMenu then ns.RefreshMenu() end
+  if ns.RefreshBagMarks then ns.RefreshBagMarks() end
   local panel = ns.OptionsPanel and ns.OptionsPanel()
   if panel and panel:IsShown() and panel.refresh then ns.Safe("options", panel.refresh) end
   for _, name in ipairs({ "ForeverAnvilPrices", "ForeverAnvilUpgrades", "ForeverAnvilBags" }) do

@@ -16,6 +16,9 @@ local LEFT = {
     { "vendor", "Vendor price per item", "Off by default: the game's own tooltip already shows the stack's sell price." },
     { "crates", "Waylaid crates", "The Merchant's Favor a crate pays and the cheapest bundle to fill it." },
   },
+  { "Bags",
+    { "bagMarks", "Sell marks in your bags", "The auction house symbol on the items in your bags that sell best on the auction house: worth more there after its cut than to a vendor or disenchanted. Untick an item in the bag value window to take its mark off. Works with the game's bags and bag addons like Bagnon." },
+  },
   { "Profession window",
     { "craft", "Profit per craft", "On every recipe, after the 5% auction cut and the reagents." },
     { "skillup", "Cheapest skill-up", "Marks the recipe you know that gives skill points for the least gold, with its chance and cost per point." },
@@ -51,6 +54,39 @@ local function header(parent, text, x, y)
   return fs
 end
 
+-- The Discord invite, top right. The game can't open web links, so it's a box the text can be copied from:
+-- a click selects it all, Ctrl+C copies it, and typing can't change it.
+local DISCORD = "discord.gg/GJvNf8Zvzt"
+
+local function discordBox(parent, x, y)
+  local label = parent:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+  label:SetPoint("TOPLEFT", x, y)
+  label:SetText(L["Join us on Discord"])
+  local box = CreateFrame("EditBox", nil, parent, "InputBoxTemplate")
+  box:SetSize(170, 20)
+  box:SetPoint("TOPLEFT", x + 6, y - 14) -- the template's border sits left of the box
+  box:SetAutoFocus(false)
+  box:SetFontObject("GameFontHighlightSmall")
+  box:SetText(DISCORD)
+  box:SetCursorPosition(0)
+  box:SetScript("OnEditFocusGained", function(self) self:HighlightText() end)
+  box:SetScript("OnEditFocusLost", function(self) self:HighlightText(0, 0); self:SetCursorPosition(0) end)
+  box:SetScript("OnMouseUp", function(self) self:SetFocus(); self:HighlightText() end)
+  box:SetScript("OnTextChanged", function(self, typed)
+    if typed and self:GetText() ~= DISCORD then self:SetText(DISCORD); self:HighlightText() end
+  end)
+  box:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+  box:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
+  box:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT")
+    GameTooltip:AddLine(L["Join us on Discord"])
+    GameTooltip:AddLine(L["Questions, a bug or an idea? Click the link, copy it with Ctrl+C (Cmd+C on a Mac) and paste it into your browser."], 1, 1, 1, true)
+    GameTooltip:Show()
+  end)
+  box:SetScript("OnLeave", function() GameTooltip:Hide() end)
+  return box
+end
+
 local function build()
   panel = CreateFrame("Frame")
   panel.name = "Forever Anvil"
@@ -65,7 +101,9 @@ local function build()
   local status = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
   status:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
   status:SetJustifyH("LEFT")
+  status:SetWidth(360) -- leaves the top right to the Discord box
   panel.status = status
+  panel.discord = discordBox(panel, 430, -16)
 
   local boxes = {}
   panel.boxes = boxes

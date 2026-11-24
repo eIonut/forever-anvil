@@ -29,7 +29,8 @@ Version 2.2:
 Version 2.5:
 
 - **Auction house scan** (`Scan.lua`, `/fa scan` or the Scan button under the auction house): one `C_AuctionHouse.ReplicateItems` request (the game allows one every 15 minutes), then `GetReplicateItemInfo` is read 1,000 auctions per frame and summed up by `M.Aggregate`, a port of `aggregate` in `src/lib/pricemath.js` (tested against it). The result is saved per house in `ForeverAnvilDB.scans` (`"EU:113"`, in the shipped house format) and `ns.ScanOf` lays it over the shipped prices while it is newer (`M.MergeScan`: scanned items take the new min, market, quantity and listings and keep the shipped sold per day). `ns.DataAge` then reports the scan's age.
-- **Bag value ignore list** (`Bags.lua`): right-click a row to leave the item out (`ForeverAnvilDB.bagIgnore`, by item ID, for every character); "Show ignored" lists those items greyed out under the rest.
+- **Bag value ticks** (`Bags.lua`): each row has a tick box; unticking it (or right-clicking the row) leaves the item out of the worth and its sell mark (`ForeverAnvilDB.bagIgnore`, by item ID, for every character). Unticked items keep their place in the list, greyed out. The reagent bag counts too.
+- **Sell marks** (`BagMarks.lua`, setting `bagMarks`, off by default): the `auctioneer` atlas (minimap auction house icon) on the bag slots of unbound, ticked items whose best use is the auction house. Finds the item buttons of the game's bag windows (hooked `UpdateItems`), Bagnon (hooked `Bagnon.Item.Update`), and ElvUI and Baganator windows (looked at every second while open); only adds a texture.
 
 ## Folders
 

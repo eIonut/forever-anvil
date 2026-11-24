@@ -373,6 +373,18 @@ ns.AddLocale({ "deDE" }, {
   ["%d items to go. Upgrades show up here as they arrive."] = "Noch %d Gegenstände. Upgrades erscheinen hier, sobald sie ankommen.",
   ["Getting your items from the game…"] = "Hole deine Gegenstände vom Spiel…",
   ["loading…"] = "lädt…",
+  ["Join us on Discord"] = "Komm auf unseren Discord",
+  ["Questions, a bug or an idea? Click the link, copy it with Ctrl+C (Cmd+C on a Mac) and paste it into your browser."] = "Fragen, ein Fehler oder eine Idee? Klicke auf den Link, kopiere ihn mit Strg+C (Cmd+C auf dem Mac) und füge ihn in deinen Browser ein.",
+  ["Waiting… %ds"] = "Warte… %d s",
+  ["the auction house is sending its auctions, up to a minute"] = "das Auktionshaus sendet seine Auktionen, bis zu einer Minute",
+  ["scanning: the auction house is sending every auction, which can take up to a minute. Keep it open."] = "Scan läuft: Das Auktionshaus sendet alle Auktionen, das kann bis zu einer Minute dauern. Lass es offen.",
+  ["Bags"] = "Taschen",
+  ["Sell marks in your bags"] = "Verkaufsmarken in deinen Taschen",
+  ["The auction house symbol on the items in your bags that sell best on the auction house: worth more there after its cut than to a vendor or disenchanted. Untick an item in the bag value window to take its mark off. Works with the game's bags and bag addons like Bagnon."] = "Das Auktionshaus-Symbol auf den Gegenständen in deinen Taschen, die sich am besten im Auktionshaus verkaufen: dort nach der Gebühr mehr wert als beim Händler oder entzaubert. Entferne im Taschenwert-Fenster den Haken bei einem Gegenstand, um seine Marke wegzunehmen. Funktioniert mit den Taschen des Spiels und Taschen-Addons wie Bagnon.",
+  ["Mark in bags"] = "In Taschen markieren",
+  ["Untick items you keep to leave them out."] = "Haken weg bei dem, was du behältst: zählt nicht mehr mit.",
+  ["Tick it to count it in your bag value again."] = "Setze den Haken, damit er wieder zum Taschenwert zählt.",
+  ["Untick it to leave it out of your bag value, like things you keep. It loses its sell mark too."] = "Entferne den Haken, um ihn aus dem Taschenwert zu lassen, etwa Dinge, die du behältst. Er verliert auch seine Verkaufsmarke.",
 })
 
 ns.AddLocale({ "frFR" }, {
@@ -744,6 +756,18 @@ ns.AddLocale({ "frFR" }, {
   ["%d items to go. Upgrades show up here as they arrive."] = "Encore %d objets. Les améliorations s'affichent ici à mesure qu'ils arrivent.",
   ["Getting your items from the game…"] = "Récupération de vos objets auprès du jeu…",
   ["loading…"] = "chargement…",
+  ["Join us on Discord"] = "Rejoignez-nous sur Discord",
+  ["Questions, a bug or an idea? Click the link, copy it with Ctrl+C (Cmd+C on a Mac) and paste it into your browser."] = "Une question, un bug ou une idée ? Cliquez sur le lien, copiez-le avec Ctrl+C (Cmd+C sur Mac) et collez-le dans votre navigateur.",
+  ["Waiting… %ds"] = "Attente… %d s",
+  ["the auction house is sending its auctions, up to a minute"] = "l'hôtel des ventes envoie ses enchères, jusqu'à une minute",
+  ["scanning: the auction house is sending every auction, which can take up to a minute. Keep it open."] = "scan en cours : l'hôtel des ventes envoie toutes ses enchères, ce qui peut prendre jusqu'à une minute. Gardez-le ouvert.",
+  ["Bags"] = "Sacs",
+  ["Sell marks in your bags"] = "Marques de vente dans vos sacs",
+  ["The auction house symbol on the items in your bags that sell best on the auction house: worth more there after its cut than to a vendor or disenchanted. Untick an item in the bag value window to take its mark off. Works with the game's bags and bag addons like Bagnon."] = "Le symbole de l'hôtel des ventes sur les objets de vos sacs qui se vendent le mieux à l'hôtel des ventes : ils y valent plus, après sa commission, qu'auprès d'un marchand ou désenchantés. Décochez un objet dans la fenêtre de valeur des sacs pour retirer sa marque. Fonctionne avec les sacs du jeu et les addons de sacs comme Bagnon.",
+  ["Mark in bags"] = "Marquer dans les sacs",
+  ["Untick items you keep to leave them out."] = "Décochez ce que vous gardez : il sort du total.",
+  ["Tick it to count it in your bag value again."] = "Cochez-le pour le compter de nouveau dans la valeur des sacs.",
+  ["Untick it to leave it out of your bag value, like things you keep. It loses its sell mark too."] = "Décochez-le pour l'exclure de la valeur des sacs, comme ce que vous gardez. Il perd aussi sa marque de vente.",
 })
 
 ns.AddLocale({ "esES", "esMX" }, {
@@ -1115,6 +1139,18 @@ ns.AddLocale({ "esES", "esMX" }, {
   ["%d items to go. Upgrades show up here as they arrive."] = "Faltan %d objetos. Las mejoras aparecen aquí a medida que llegan.",
   ["Getting your items from the game…"] = "Obteniendo tus objetos del juego…",
   ["loading…"] = "cargando…",
+  ["Join us on Discord"] = "Únete a nuestro Discord",
+  ["Questions, a bug or an idea? Click the link, copy it with Ctrl+C (Cmd+C on a Mac) and paste it into your browser."] = "¿Preguntas, un error o una idea? Haz clic en el enlace, cópialo con Ctrl+C (Cmd+C en Mac) y pégalo en tu navegador.",
+  ["Waiting… %ds"] = "Esperando… %d s",
+  ["the auction house is sending its auctions, up to a minute"] = "la casa de subastas está enviando sus subastas, hasta un minuto",
+  ["scanning: the auction house is sending every auction, which can take up to a minute. Keep it open."] = "escaneando: la casa de subastas está enviando todas sus subastas, lo que puede tardar hasta un minuto. Déjala abierta.",
+  ["Bags"] = "Bolsas",
+  ["Sell marks in your bags"] = "Marcas de venta en tus bolsas",
+  ["The auction house symbol on the items in your bags that sell best on the auction house: worth more there after its cut than to a vendor or disenchanted. Untick an item in the bag value window to take its mark off. Works with the game's bags and bag addons like Bagnon."] = "El símbolo de la casa de subastas en los objetos de tus bolsas que mejor se venden en la casa de subastas: valen más allí, tras su comisión, que a un vendedor o desencantados. Desmarca un objeto en la ventana de valor de las bolsas para quitarle la marca. Funciona con las bolsas del juego y addons de bolsas como Bagnon.",
+  ["Mark in bags"] = "Marcar en bolsas",
+  ["Untick items you keep to leave them out."] = "Desmarca lo que guardas: deja de contar.",
+  ["Tick it to count it in your bag value again."] = "Márcalo para que vuelva a contar en el valor de las bolsas.",
+  ["Untick it to leave it out of your bag value, like things you keep. It loses its sell mark too."] = "Desmárcalo para dejarlo fuera del valor de las bolsas, como lo que guardas. También pierde su marca de venta.",
 })
 
 ns.ApplyLocale()

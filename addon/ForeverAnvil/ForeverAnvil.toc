@@ -23,6 +23,7 @@ Profession.lua
 Lists.lua
 Prices.lua
 Bags.lua
+BagMarks.lua
 Upgrades.lua
 Freshness.lua
 Scan.lua

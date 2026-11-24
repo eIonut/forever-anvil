@@ -52,7 +52,7 @@ For the auction house you're on (your ruleset and faction, or the neutral Blackw
 
 - **Prices** (`/fa prices`): every item on your auction house. Search, pick a category, sort by any column, switch to the other faction's or the neutral house, and click an item for its details.
 - **Upgrades for you** (`/fa upgrades`): gear on sale that's better for your talent spec than what you wear, slot by slot, within your budget. Gear made for other specs is left out.
-- **Bag value** (`/fa bags`): what everything in your bags is worth, and the best way to sell each item: the auction house, disenchanting or a vendor. *New in 2.5:* right-click an item you're keeping to leave it out of the total.
+- **Bag value** (`/fa bags`): what everything in your bags is worth, and the best way to sell each item: the auction house, disenchanting or a vendor. Untick what you're keeping to leave it out of the total. The reagent bag counts too. *New in 2.6:* **sell marks**, the auction house symbol on the items in your bags that sell best on the auction house ("Mark in bags" in the bag value window, or the settings). Works with the game's bags and Bagnon.
 - **Watchlist and shopping list** (`/fa watch`, `/fa list`): Alt-click any item to watch it and set a target price. In a profession window, the bag button beside Create All adds a recipe's reagents. Or bring both lists from the site with "Copy for the addon" and `/fa import`.
 
 ## Getting started

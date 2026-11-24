@@ -425,6 +425,7 @@ end
 -- a setting changed (menu or settings panel)
 function ns.OnSetting(key)
   if key == "minimap" then ns.UpdateMinimapButton() end
+  if ns.RefreshBagMarks then ns.RefreshBagMarks() end -- the marks follow their switch and the disenchant one
   ns.RefreshMenu()
 end
 

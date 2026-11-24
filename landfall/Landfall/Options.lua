@@ -58,6 +58,39 @@ local function button(text, w, x, y, fn)
   return b
 end
 
+-- The Discord invite, top right. The game can't open web links, so it's a box the text can be copied from:
+-- a click selects it all, Ctrl+C copies it, and typing can't change it.
+local DISCORD = "discord.gg/GJvNf8Zvzt"
+
+local function discordBox(x, y)
+  local label = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalSmall")
+  label:SetPoint("TOPLEFT", x, y)
+  label:SetText("Join us on Discord")
+  local box = CreateFrame("EditBox", nil, panel, "InputBoxTemplate")
+  box:SetSize(170, 20)
+  box:SetPoint("TOPLEFT", x + 6, y - 14) -- the template's border sits left of the box
+  box:SetAutoFocus(false)
+  box:SetFontObject("GameFontHighlightSmall")
+  box:SetText(DISCORD)
+  box:SetCursorPosition(0)
+  box:SetScript("OnEditFocusGained", function(self) self:HighlightText() end)
+  box:SetScript("OnEditFocusLost", function(self) self:HighlightText(0, 0); self:SetCursorPosition(0) end)
+  box:SetScript("OnMouseUp", function(self) self:SetFocus(); self:HighlightText() end)
+  box:SetScript("OnTextChanged", function(self, typed)
+    if typed and self:GetText() ~= DISCORD then self:SetText(DISCORD); self:HighlightText() end
+  end)
+  box:SetScript("OnEscapePressed", function(self) self:ClearFocus() end)
+  box:SetScript("OnEnterPressed", function(self) self:ClearFocus() end)
+  box:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_BOTTOMLEFT")
+    GameTooltip:AddLine("Join us on Discord")
+    GameTooltip:AddLine("Questions, a bug or a zone card idea? Click the link, copy it with Ctrl+C (Cmd+C on a Mac) and paste it into your browser.", 1, 1, 1, true)
+    GameTooltip:Show()
+  end)
+  box:SetScript("OnLeave", function() GameTooltip:Hide() end)
+  return box
+end
+
 local function build()
   panel = CreateFrame("Frame")
   panel.name = "Landfall"
@@ -72,9 +105,10 @@ local function build()
   title:SetText("Landfall")
   local sub = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
   sub:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
-  sub:SetWidth(580)
+  sub:SetWidth(350) -- leaves the top right to the Discord box
   sub:SetJustifyH("LEFT")
   sub:SetText("A title card when you arrive somewhere. Changes show a card for where you are.")
+  discordBox(420, -14)
 
   local x, y = 16, -62
   header("Cards", x, y)
@@ -189,6 +223,7 @@ local function build()
   end
   panel:SetScript("OnShow", panel.refresh)
   panel:SetScript("OnHide", function() if ns.moving then ns.SetMoving(false) end end)
+  panel:Hide() -- a new frame starts out shown: hidden, so opening the settings runs OnShow and fills the page in
 
   if Settings and Settings.RegisterCanvasLayoutCategory then
     category = Settings.RegisterCanvasLayoutCategory(panel, panel.name)
