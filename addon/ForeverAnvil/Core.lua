@@ -16,7 +16,9 @@ ns.DEFAULTS = {
     -- 2.6
     bagMarks = false,
     -- 2.7
-    earnings = true },
+    earnings = true,
+    -- 2.8
+    craftCost = true, stack = true },
   earnings = {}, -- ["Name-Realm"] = { day, earned, spent, last }: gold earned today (2.7, Earnings.lua)
   minimap = { angle = 210 }, -- where the minimap button sits (degrees around the minimap)
   watch = {},    -- [itemID] = target price in copper (0: no target), from /fa import or /fa watch
@@ -122,6 +124,7 @@ function ns.LoadData()
   ns.noDisenchant = nil
   ns.skill = nil
   ns.crates = nil
+  ns.crafts = nil
   ns.itemNames = nil
   ns.gearData = nil
 end
@@ -310,6 +313,15 @@ function ns.SkillInfo(spellID)
 end
 
 -- A Waylaid crate's Favor and bundles, and the cheapest bundle to fill it on your house or the neutral one
+-- What one item costs to craft from this house's prices, by its cheapest recipe: cost per item, complete
+-- (every reagent priced), made per craft; nil when it isn't crafted or nothing it takes has a price
+function ns.CraftCost(itemID)
+  if not ns.data then return nil end
+  ns.crafts = ns.crafts or M.DecodeCrafts(ns.data.crafts)
+  local recipes = ns.crafts[itemID]
+  if recipes then return M.CraftCost(recipes, ns.ReagentCost) end
+end
+
 function ns.Crate(itemID)
   if not (ns.data and itemID) then return nil end
   ns.crates = ns.crates or M.DecodeCrates(ns.data.crates)
@@ -498,6 +510,7 @@ SlashCmdList.FOREVERANVIL = function(msg)
       select(2, GetBuildInfo()) or "?", select(4, GetBuildInfo()) or "?"))
     ns.Print(("house %s with %d items; tooltip routes: %s; fired: %s"):format(tostring(id), n,
       table.concat(tip.routes, ", "), #fired > 0 and table.concat(fired, ", ") or "none yet"))
+    if tip.stackFrom then ns.Print("stack counts from: " .. tip.stackFrom) end
     if tip.lastError then ns.Print("last tooltip error: " .. tostring(tip.lastError)) end
     if ns.lastError then ns.Print("last error: " .. ns.lastError) end
     local isLoaded = C_AddOns and C_AddOns.IsAddOnLoaded or IsAddOnLoaded

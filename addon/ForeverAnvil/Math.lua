@@ -195,6 +195,36 @@ function M.CraftProfit(reagents, costOf, sellPrice, made)
   return floor(cost + 0.5), complete, profit
 end
 
+-- "item,made|reagent:count,…;" (pipeline/addon-data.js encodeCrafts) → { [item] = { { made, { {reagent, count}, … } }, … } }
+function M.DecodeCrafts(s)
+  local t = {}
+  for item, made, list in (s or ""):gmatch("(%d+),([%d%.]+)|([^;]*);") do
+    local mats = {}
+    for id, n in list:gmatch("(%d+):(%d+)") do mats[#mats + 1] = { tonumber(id), tonumber(n) } end
+    item = tonumber(item)
+    t[item] = t[item] or {}
+    t[item][#t[item] + 1] = { tonumber(made), mats }
+  end
+  return t
+end
+
+-- What one item costs to craft, by its cheapest recipe: cost per item, complete, made per craft, or nil when
+-- no reagent has a price. A recipe priced in full beats one with an unpriced reagent, however cheap.
+function M.CraftCost(recipes, costOf)
+  local best, bestComplete, bestMade
+  for _, r in ipairs(recipes or {}) do
+    local made = (r[1] and r[1] > 0) and r[1] or 1
+    local cost, complete = M.CraftProfit(r[2], costOf)
+    if complete or cost > 0 then
+      local per = cost / made
+      if best == nil or (complete and not bestComplete) or (complete == bestComplete and per < best) then
+        best, bestComplete, bestMade = per, complete, made
+      end
+    end
+  end
+  if best then return floor(best + 0.5), bestComplete, bestMade end
+end
+
 ---------------------------------------------------------------------------------------------------
 -- Profession leveling (src/lib/levelmath.js skillUpChance): 100% while the recipe is orange, then
 -- (grey − skill) / (grey − yellow) through yellow and green, 0 once grey. req: the skill a pattern needs

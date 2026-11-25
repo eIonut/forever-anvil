@@ -27,10 +27,11 @@ Auction house prices on every tooltip, AH scanning, flips, crafting profit, upgr
 
 For the auction house you're on (your ruleset and faction, or the neutral Blackwater house when you're at one):
 
-- **Market price** and **lowest listed price**, with how many are listed
+- **Market price** and **lowest listed price**, with how many are listed, and *(new in 2.8)* what a whole stack in your bags is worth
 - **Sold per day**, estimated from how listings change hour to hour
 - **Region median**: the typical price across the region's auction houses
 - **Disenchant value** after the auction cut, and the Enchanting skill it needs
+- **Crafting cost** *(new in 2.8)*: what any crafted item's reagents cost by its cheapest recipe, and the profit selling it after the cut. No need to know the recipe
 - **Upgrades**: gear with a higher item level than what you wear in that slot, that your class can use at your level
 - **Waylaid crates**: the Merchant's Favor a crate pays and the cheapest bundle to fill it
 

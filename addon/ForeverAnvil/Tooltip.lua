@@ -1,5 +1,6 @@
 -- Item tooltips: market and lowest price on your auction house, sold per day, region median,
--- disenchant value and vendor price; since version 2 also a crate's Favor and cheapest fill, your watchlist
+-- disenchant value and vendor price; since 2.8 what it costs to craft and what a stack in your bags is worth;
+-- since version 2 also a crate's Favor and cheapest fill, your watchlist
 -- target, what your shopping list still needs, and upgrades over your gear. Works with both tooltip systems.
 local _, ns = ...
 local M = ns.Math
@@ -11,7 +12,42 @@ local STALE = 6 * 3600 -- older data is shown grey
 local coins = GetCoinTextureString or (C_CurrencyInfo and C_CurrencyInfo.GetCoinTextureString)
 local function money(c) return coins and coins(c) or M.ShortMoney(c) end
 
-local function addLines(tt, itemID)
+-- How many are in the bag slot a tooltip shows, or nil. In the newer tooltip system the slot comes from the
+-- tooltip's own info (or the item's GUID, or the bag button it's on); the older hooks pass bag and slot.
+local function slotCount(bag, slot)
+  if not (bag and slot) then return nil end
+  local C = C_Container
+  if C and C.GetContainerItemInfo then
+    local info = C.GetContainerItemInfo(bag, slot)
+    return info and info.stackCount
+  end
+  if GetContainerItemInfo then return (select(2, GetContainerItemInfo(bag, slot))) end
+end
+
+local function stackOf(tt, data)
+  local info = tt.GetPrimaryTooltipInfo and tt:GetPrimaryTooltipInfo()
+  local args = info and info.getterName == "GetBagItem" and info.getterArgs
+  if args then
+    local n = slotCount(args[1], args[2])
+    if n then ns.tip.stackFrom = "info"; return n end
+  end
+  if data and data.guid and C_Item and C_Item.GetItemLocation and C_Item.GetStackCount then
+    local ok, n = pcall(function()
+      local loc = C_Item.GetItemLocation(data.guid)
+      return loc and loc.IsBagAndSlot and loc:IsBagAndSlot() and C_Item.GetStackCount(loc)
+    end)
+    if ok and n then ns.tip.stackFrom = "guid"; return n end
+  end
+  -- the bag button under the mouse: the game's (GetBagID) and most bag addons' (bag frame's ID)
+  local owner = tt.GetOwner and tt:GetOwner()
+  if owner and owner.GetID then
+    local bag = owner.GetBagID and owner:GetBagID() or (owner.GetParent and owner:GetParent() and owner:GetParent().GetID and owner:GetParent():GetID())
+    local n = slotCount(bag, owner:GetID())
+    if n then ns.tip.stackFrom = "button"; return n end
+  end
+end
+
+local function addLines(tt, itemID, count)
   if not itemID or not ns.db then return end
   -- several hooks can fire for one tooltip: skip if our lines for this item are already on it
   if tt.foreverAnvilItem == itemID and tt:NumLines() >= (tt.foreverAnvilLines or 0) then return end
@@ -26,6 +62,8 @@ local function addLines(tt, itemID)
     if p and show.min and p[1] then add(L["Lowest listed"], money(p[1]) .. "  |cff999999x" .. p[3] .. "|r") end
     if p and show.sold then add(L["Sold per day"], p[5] and tostring(p[5]) or ("|cff999999" .. L["none seen"] .. "|r")) end
     if not p and (show.market or show.min) then add(L["Market"], "|cff999999" .. L["not listed"] .. "|r") end
+    -- a stack in your bags: what all of it is worth at the market price (2.8)
+    if show.stack and count and count > 1 and p and p[2] then add(L["Stack of %d"]:format(count), money(p[2] * count)) end
   end
   if show.region then
     local m, n = ns.RegionMedian(itemID)
@@ -41,6 +79,21 @@ local function addLines(tt, itemID)
   if show.vendor then
     local sell = ns.VendorSell(itemID)
     if sell then add(L["Vendor"], money(sell)) end
+  end
+  if show.craftCost and id then
+    -- reagents by the cheapest recipe (vendor price for what a vendor sells), per item when it makes a stack,
+    -- and the profit selling it here after the cut; ~ when a reagent has no price
+    local cost, complete, made = ns.CraftCost(itemID)
+    if cost then
+      local text = (complete and "" or "~") .. money(cost)
+      local market = ns.Market(itemID)
+      if complete and market then
+        local profit = math.floor(market * (1 - M.AH_CUT) - cost + 0.5)
+        text = text .. "  " .. (profit >= 0 and "|cff33dd55+" or "|cffff5555") .. M.ShortMoney(profit, true) .. "|r"
+      end
+      if made ~= 1 then text = text .. "  |cff999999" .. L["each, makes %s"]:format(made) .. "|r" end
+      add(L["Crafting cost"], text)
+    end
   end
   if show.crates then
     local crate, fill = ns.Crate(itemID)
@@ -90,9 +143,9 @@ end
 
 -- Which hooks fired, and the last error (for /fa debug). Errors are caught so one bad tooltip can't break the rest.
 ns.tip = { fired = {}, routes = {} }
-local function run(route, tt, itemID)
+local function run(route, tt, itemID, count)
   ns.tip.fired[route] = (ns.tip.fired[route] or 0) + 1
-  local ok, err = pcall(addLines, tt, itemID)
+  local ok, err = pcall(addLines, tt, itemID, count)
   if not ok and ns.tip.lastError ~= err then
     ns.tip.lastError = err
     ns.Print(L["tooltip error (please report it): "] .. tostring(err))
@@ -109,7 +162,10 @@ end
 -- 1. newer tooltip system: data post-calls
 if TooltipDataProcessor and TooltipDataProcessor.AddTooltipPostCall and Enum and Enum.TooltipDataType and Enum.TooltipDataType.Item then
   TooltipDataProcessor.AddTooltipPostCall(Enum.TooltipDataType.Item, function(tt, data)
-    if tt and tt.AddDoubleLine then run("data", tt, (data and data.id) or itemOf(tt)) end
+    if tt and tt.AddDoubleLine then
+      local ok, n = pcall(stackOf, tt, data)
+      run("data", tt, (data and data.id) or itemOf(tt), ok and n or nil)
+    end
   end)
   ns.tip.routes[#ns.tip.routes + 1] = "data"
 end
@@ -118,7 +174,10 @@ local TOOLTIPS = { GameTooltip, ItemRefTooltip, ShoppingTooltip1, ShoppingToolti
 -- 2. classic: the OnTooltipSetItem script
 for _, tt in ipairs(TOOLTIPS) do
   if tt and tt.HasScript and tt:HasScript("OnTooltipSetItem") then
-    tt:HookScript("OnTooltipSetItem", function(self) run("script", self, itemOf(self)) end)
+    tt:HookScript("OnTooltipSetItem", function(self)
+      local ok, n = pcall(stackOf, self)
+      run("script", self, itemOf(self), ok and n or nil)
+    end)
     if tt == GameTooltip then ns.tip.routes[#ns.tip.routes + 1] = "script" end
   end
 end
@@ -130,7 +189,9 @@ for _, tt in ipairs(TOOLTIPS) do
   if tt then
     for _, name in ipairs(SETTERS) do
       if type(tt[name]) == "function" then
-        hooksecurefunc(tt, name, function(self) run("set", self, itemOf(self)) end)
+        hooksecurefunc(tt, name, function(self, a, b)
+          run("set", self, itemOf(self), name == "SetBagItem" and slotCount(a, b) or nil)
+        end)
       end
     end
   end
