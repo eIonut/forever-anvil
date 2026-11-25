@@ -28,5 +28,6 @@ Upgrades.lua
 Freshness.lua
 Scan.lua
 Ruleset.lua
+Earnings.lua
 Minimap.lua
 Options.lua

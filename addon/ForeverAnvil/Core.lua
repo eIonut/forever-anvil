@@ -14,7 +14,10 @@ ns.DEFAULTS = {
     -- 2.3
     updates = true,
     -- 2.6
-    bagMarks = false },
+    bagMarks = false,
+    -- 2.7
+    earnings = true },
+  earnings = {}, -- ["Name-Realm"] = { day, earned, spent, last }: gold earned today (2.7, Earnings.lua)
   minimap = { angle = 210 }, -- where the minimap button sits (degrees around the minimap)
   watch = {},    -- [itemID] = target price in copper (0: no target), from /fa import or /fa watch
   shopping = {}, -- { {itemID, units}, … }: materials for the crafting plan, from /fa import
@@ -530,6 +533,8 @@ SlashCmdList.FOREVERANVIL = function(msg)
     ns.Print(ns.db.show.minimap and L["minimap button shown."] or L["minimap button hidden (|cffffffff/fa minimap|r brings it back)."])
   elseif cmd == "list" and ns.ListCommand then
     ns.ListCommand(rest)
+  elseif (cmd == "gold" or cmd == "today" or cmd == "earned") and ns.PrintEarnings then
+    ns.PrintEarnings()
   elseif cmd == "scan" and ns.StartScan then
     ns.StartScan()
   elseif (cmd == "bags" or cmd == "bag") and ns.ShowBags then
@@ -551,5 +556,6 @@ SlashCmdList.FOREVERANVIL = function(msg)
     ns.Print(L["|cffffffff/fa ruleset <name>|r sets this realm's ruleset, |cffffffff/fa options|r opens the settings. More tools at %s."]:format(ns.SITE))
     ns.Print(L["|cffffffff/fa prices|r browses every price, |cffffffff/fa bags|r values your bags, |cffffffff/fa upgrades|r finds gear for you, |cffffffff/fa watch|r and |cffffffff/fa list|r show your lists, |cffffffff/fa import|r pastes one from the site, |cffffffff/fa menu|r opens the menu."])
     ns.Print(L["|cffffffff/fa scan|r at the auction house reads its current prices (or press Scan under it)."])
+    ns.Print(L["|cffffffff/fa gold|r shows the gold this character earned and spent today."])
   end
 end

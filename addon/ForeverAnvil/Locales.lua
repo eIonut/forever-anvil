@@ -385,6 +385,15 @@ ns.AddLocale({ "deDE" }, {
   ["Untick items you keep to leave them out."] = "Haken weg bei dem, was du behältst: zählt nicht mehr mit.",
   ["Tick it to count it in your bag value again."] = "Setze den Haken, damit er wieder zum Taschenwert zählt.",
   ["Untick it to leave it out of your bag value, like things you keep. It loses its sell mark too."] = "Entferne den Haken, um ihn aus dem Taschenwert zu lassen, etwa Dinge, die du behältst. Er verliert auch seine Verkaufsmarke.",
+  ["Gold earned today"] = "Heute verdientes Gold",
+  ["The gold this character got today (loot, quests, sales, the mailbox) in the minimap menu and on the minimap button. Hover it for what you spent. Starts again at midnight. /fa gold prints it."] = "Das Gold, das dieser Charakter heute bekommen hat (Beute, Quests, Verkäufe, Briefkasten), im Minikarten-Menü und am Minikarten-Knopf. Fahr mit der Maus darüber für deine Ausgaben. Beginnt um Mitternacht neu. /fa gold zeigt es im Chat.",
+  ["Earned today: %s"] = "Heute verdient: %s",
+  ["Earned"] = "Verdient",
+  ["Spent"] = "Ausgegeben",
+  ["Net"] = "Netto",
+  ["This character, since midnight. Gold mailed between your characters counts too."] = "Dieser Charakter, seit Mitternacht. Gold, das du zwischen deinen Charakteren verschickst, zählt auch.",
+  ["today on this character: earned %s, spent %s, net %s."] = "heute auf diesem Charakter: verdient %s, ausgegeben %s, netto %s.",
+  ["|cffffffff/fa gold|r shows the gold this character earned and spent today."] = "|cffffffff/fa gold|r zeigt das Gold, das dieser Charakter heute verdient und ausgegeben hat.",
 })
 
 ns.AddLocale({ "frFR" }, {
@@ -768,6 +777,15 @@ ns.AddLocale({ "frFR" }, {
   ["Untick items you keep to leave them out."] = "Décochez ce que vous gardez : il sort du total.",
   ["Tick it to count it in your bag value again."] = "Cochez-le pour le compter de nouveau dans la valeur des sacs.",
   ["Untick it to leave it out of your bag value, like things you keep. It loses its sell mark too."] = "Décochez-le pour l'exclure de la valeur des sacs, comme ce que vous gardez. Il perd aussi sa marque de vente.",
+  ["Gold earned today"] = "Or gagné aujourd'hui",
+  ["The gold this character got today (loot, quests, sales, the mailbox) in the minimap menu and on the minimap button. Hover it for what you spent. Starts again at midnight. /fa gold prints it."] = "L'or reçu aujourd'hui par ce personnage (butin, quêtes, ventes, boîte aux lettres), dans le menu et sur le bouton de la minicarte. Survolez-le pour voir vos dépenses. Repart de zéro à minuit. /fa gold l'affiche dans le chat.",
+  ["Earned today: %s"] = "Gagné aujourd'hui : %s",
+  ["Earned"] = "Gagné",
+  ["Spent"] = "Dépensé",
+  ["Net"] = "Net",
+  ["This character, since midnight. Gold mailed between your characters counts too."] = "Ce personnage, depuis minuit. L'or envoyé par courrier entre vos personnages compte aussi.",
+  ["today on this character: earned %s, spent %s, net %s."] = "aujourd'hui sur ce personnage : gagné %s, dépensé %s, net %s.",
+  ["|cffffffff/fa gold|r shows the gold this character earned and spent today."] = "|cffffffff/fa gold|r affiche l'or gagné et dépensé aujourd'hui par ce personnage.",
 })
 
 ns.AddLocale({ "esES", "esMX" }, {
@@ -1151,6 +1169,15 @@ ns.AddLocale({ "esES", "esMX" }, {
   ["Untick items you keep to leave them out."] = "Desmarca lo que guardas: deja de contar.",
   ["Tick it to count it in your bag value again."] = "Márcalo para que vuelva a contar en el valor de las bolsas.",
   ["Untick it to leave it out of your bag value, like things you keep. It loses its sell mark too."] = "Desmárcalo para dejarlo fuera del valor de las bolsas, como lo que guardas. También pierde su marca de venta.",
+  ["Gold earned today"] = "Oro ganado hoy",
+  ["The gold this character got today (loot, quests, sales, the mailbox) in the minimap menu and on the minimap button. Hover it for what you spent. Starts again at midnight. /fa gold prints it."] = "El oro que este personaje ha recibido hoy (botín, misiones, ventas, el buzón), en el menú y en el botón del minimapa. Pasa el ratón por encima para ver lo gastado. Vuelve a empezar a medianoche. /fa gold lo muestra en el chat.",
+  ["Earned today: %s"] = "Ganado hoy: %s",
+  ["Earned"] = "Ganado",
+  ["Spent"] = "Gastado",
+  ["Net"] = "Neto",
+  ["This character, since midnight. Gold mailed between your characters counts too."] = "Este personaje, desde medianoche. El oro enviado por correo entre tus personajes también cuenta.",
+  ["today on this character: earned %s, spent %s, net %s."] = "hoy en este personaje: ganado %s, gastado %s, neto %s.",
+  ["|cffffffff/fa gold|r shows the gold this character earned and spent today."] = "|cffffffff/fa gold|r muestra el oro que este personaje ha ganado y gastado hoy.",
 })
 
 ns.ApplyLocale()

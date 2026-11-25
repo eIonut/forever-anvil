@@ -873,4 +873,19 @@ function M.CoinMoney(copper)
   end))
 end
 
+-- Gold earned today (Earnings.lua): one character's record { day, earned, spent, last }, updated with its money
+-- now. A new day starts again from 0; the first change of a day still counts for that day. fresh: don't count
+-- the change since last (logging in: the money may differ from what was saved, but nothing was earned offline).
+function M.MoneyDay(rec, day, money, fresh)
+  if type(rec) ~= "table" or rec.day ~= day then
+    rec = { day = day, earned = 0, spent = 0, last = type(rec) == "table" and rec.last or nil }
+  end
+  if money then
+    local d = (not fresh and rec.last) and money - rec.last or 0
+    if d > 0 then rec.earned = rec.earned + d elseif d < 0 then rec.spent = rec.spent - d end
+    rec.last = money
+  end
+  return rec
+end
+
 return M

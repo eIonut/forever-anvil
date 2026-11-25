@@ -32,6 +32,10 @@ Version 2.5:
 - **Bag value ticks** (`Bags.lua`): each row has a tick box; unticking it (or right-clicking the row) leaves the item out of the worth and its sell mark (`ForeverAnvilDB.bagIgnore`, by item ID, for every character). Unticked items keep their place in the list, greyed out. The reagent bag counts too.
 - **Sell marks** (`BagMarks.lua`, setting `bagMarks`, off by default): the `auctioneer` atlas (minimap auction house icon) on the bag slots of unbound, ticked items whose best use is the auction house. Finds the item buttons of the game's bag windows (hooked `UpdateItems`), Bagnon (hooked `Bagnon.Item.Update`), and ElvUI and Baganator windows (looked at every second while open); only adds a texture.
 
+Version 2.7:
+
+- **Gold earned today** (`Earnings.lua`, setting `earnings`, `/fa gold`): every `PLAYER_MONEY` change adds to that character's earned or spent (`ForeverAnvilDB.earnings["Name-Realm"]`, `M.MoneyDay`), starting again at local midnight; logging in doesn't count. Shown under the status in the minimap menu and on the minimap button. The settings page now scrolls (it was taller than the settings window).
+
 ## Folders
 
 | Folder | What it is |

@@ -58,7 +58,7 @@ For the auction house you're on (your ruleset and faction, or the neutral Blackw
 ## Getting started
 
 1. Install it and log in. The first time, a small window asks which ruleset you play on (PvP, Normal, Roleplay or RP-PvP): one click. Change it later from the minimap menu or with `/fa ruleset`.
-2. Click the crest on your minimap for the menu: prices, your lists, bag value, upgrades, scanning, quick on/off switches and the settings (also `/fa options`).
+2. Click the crest on your minimap for the menu: prices, your lists, bag value, upgrades, scanning, quick on/off switches and the settings (also `/fa options`). *New in 2.7:* it also shows the **gold you earned today** on that character (hover it for what you spent, or type `/fa gold`).
 
 ## Fresh prices
 
