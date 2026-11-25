@@ -36,6 +36,7 @@ local RIGHT = {
   },
   { "Minimap and chat",
     { "minimap", "Minimap button", "Click: menu. Right-click: these settings. Drag: move it. /fa minimap brings it back." },
+    { "earnings", "Gold earned today", "The gold this character got today (loot, quests, sales, the mailbox) in the minimap menu and on the minimap button. Hover it for what you spent. Starts again at midnight. /fa gold prints it." },
     { "updates", "Old price notes", "A note in chat when your prices are over two days old, or when someone in your guild or group has newer ones. For current prices, press Scan at the auction house, or turn on auto-update in your CurseForge or Wago app." },
   },
 }
@@ -90,20 +91,28 @@ end
 local function build()
   panel = CreateFrame("Frame")
   panel.name = "Forever Anvil"
+  -- everything sits in a scroll frame: the page is taller than the settings window on some screens and UI scales
+  local scroll = CreateFrame("ScrollFrame", nil, panel, "UIPanelScrollFrameTemplate")
+  scroll:SetPoint("TOPLEFT", 0, -2)
+  scroll:SetPoint("BOTTOMRIGHT", -26, 2) -- the scroll bar sits right of it
+  local content = CreateFrame("Frame", nil, scroll)
+  content:SetSize(640, 700) -- the height follows the About text once it's drawn (refresh)
+  scroll:SetScrollChild(content)
+  panel.scroll, panel.content = scroll, content
 
-  local logo = panel:CreateTexture(nil, "ARTWORK")
+  local logo = content:CreateTexture(nil, "ARTWORK")
   logo:SetSize(32, 32)
   logo:SetPoint("TOPLEFT", 16, -14)
   logo:SetTexture(ns.ICON)
-  local title = panel:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
+  local title = content:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
   title:SetPoint("TOPLEFT", logo, "TOPRIGHT", 8, -1)
   title:SetText("Forever Anvil")
-  local status = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+  local status = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
   status:SetPoint("TOPLEFT", title, "BOTTOMLEFT", 0, -4)
   status:SetJustifyH("LEFT")
   status:SetWidth(360) -- leaves the top right to the Discord box
   panel.status = status
-  panel.discord = discordBox(panel, 430, -16)
+  panel.discord = discordBox(content, 430, -16)
 
   local boxes = {}
   panel.boxes = boxes
@@ -111,14 +120,14 @@ local function build()
   for col, sections in ipairs({ LEFT, RIGHT }) do
     local x, y = COL_X[col], -62
     for _, section in ipairs(sections) do
-      header(panel, section[1], x, y)
+      header(content, section[1], x, y)
       y = y - 22
       for i = 2, #section do
         local c = section[i]
-        local cb = CreateFrame("CheckButton", nil, panel, "UICheckButtonTemplate")
+        local cb = CreateFrame("CheckButton", nil, content, "UICheckButtonTemplate")
         cb:SetSize(24, 24)
         cb:SetPoint("TOPLEFT", x, y)
-        local label = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+        local label = content:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
         label:SetPoint("LEFT", cb, "RIGHT", 2, 0)
         label:SetText(L[c[2]])
         cb.label = label
@@ -144,7 +153,7 @@ local function build()
 
   -- shortcuts to the windows
   local y = bottom - 4
-  header(panel, "Open", COL_X[1], y)
+  header(content, "Open", COL_X[1], y)
   local x = COL_X[1]
   panel.open = {}
   -- the settings window would cover the one you open: close it first
@@ -161,7 +170,7 @@ local function build()
     { "Upgrades", function() ns.ShowUpgrades(true) end },
     { "Import", function() ns.ShowImport() end },
   }) do
-    local b = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    local b = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
     b:SetSize(96, 22)
     b:SetPoint("TOPLEFT", x, y - 24)
     b:SetText(L[s[1]])
@@ -172,25 +181,25 @@ local function build()
 
   -- the auction house scan (Scan.lua): when you last scanned, and how
   y = y - 60
-  header(panel, "Auction house scan", COL_X[1], y)
-  local scanNow = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+  header(content, "Auction house scan", COL_X[1], y)
+  local scanNow = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
   scanNow:SetSize(96, 22)
   scanNow:SetPoint("TOPLEFT", COL_X[1], y - 24)
   scanNow:SetText(L["Scan now"])
   scanNow:SetScript("OnClick", function() ns.Safe("options", ns.StartScan) end)
   panel.scanNow = scanNow
-  local scanText = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+  local scanText = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
   scanText:SetPoint("TOPLEFT", COL_X[1] + 104, y - 22)
   scanText:SetWidth(500)
   scanText:SetJustifyH("LEFT")
   panel.scanText = scanText
 
   y = y - 64
-  header(panel, "Ruleset for this realm", COL_X[1], y)
+  header(content, "Ruleset for this realm", COL_X[1], y)
   local buttons = {}
   x = COL_X[1]
   for i, r in ipairs((ns.data and ns.data.rulesets) or {}) do
-    local b = CreateFrame("Button", nil, panel, "UIPanelButtonTemplate")
+    local b = CreateFrame("Button", nil, content, "UIPanelButtonTemplate")
     b:SetSize(110, 22)
     b:SetPoint("TOPLEFT", x, y - 24)
     b:SetText(r.name .. (r.likely and "?" or ""))
@@ -199,8 +208,9 @@ local function build()
     x = x + 116
   end
 
-  local about = panel:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-  about:SetPoint("TOPLEFT", COL_X[1], y - 62)
+  local aboutTop = 62 - y
+  local about = content:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+  about:SetPoint("TOPLEFT", COL_X[1], -aboutTop)
   about:SetWidth(600)
   about:SetJustifyH("LEFT")
   about:SetText(L["Prices are the same hourly snapshots as %s, from the version of this addon you have installed, or from your own scan of the auction house when that's newer. Flips and profits are estimates; check before you buy. Every buy, post and craft is still your own click."]:format(ns.SITE)
@@ -222,6 +232,10 @@ local function build()
     else
       status:SetText(L["Pick this realm's ruleset below to see prices. Data from %s."]:format(M.Age(ns.DataAge())))
     end
+    -- scroll exactly to the end of the About text
+    local h = about:GetStringHeight()
+    if h and h > 0 then content:SetHeight(aboutTop + h + 16) end
+    if scroll.UpdateScrollChildRect then scroll:UpdateScrollChildRect() end
   end
   panel:SetScript("OnShow", panel.refresh)
   panel:Hide() -- a new frame starts out shown: hidden, so opening the settings runs OnShow

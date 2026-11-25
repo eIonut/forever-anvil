@@ -1625,10 +1625,10 @@ test("translations cover every text, with matching placeholders", () => {
   }
   const opt = fs.readFileSync(path.join(ADDON, "Options.lua"), "utf8");
   const optTables = opt.slice(opt.indexOf("local LEFT = {"), opt.indexOf("local panel, category"));
-  const keys = new Set(["market", "min", "sold", "region", "de", "vendor", "crates", "craft", "skillup", "flips", "deAll", "upgrades", "watch", "shopping", "minimap", "updates", "bagMarks"]);
+  const keys = new Set(["market", "min", "sold", "region", "de", "vendor", "crates", "craft", "skillup", "flips", "deAll", "upgrades", "watch", "shopping", "minimap", "updates", "bagMarks", "earnings"]);
   for (const m of optTables.matchAll(/"((?:[^"\\]|\\.)*)"/g)) if (!keys.has(unq(m[1]))) used.add(unq(m[1]));
   const mm = fs.readFileSync(path.join(ADDON, "Minimap.lua"), "utf8");
-  for (const m of mm.matchAll(/sectionLabel\(fr, "([^"]+)"|actionRow\(fr, y, "[^"]+", "([^"]+)"|\{ "([^"]+)", \{ "/g)) used.add(m[1] || m[2] || m[3]);
+  for (const m of mm.matchAll(/sectionLabel\((?:fr|body), "([^"]+)"|actionRow\((?:fr|body), y,"[^"]+", "([^"]+)"|\{ "([^"]+)", \{ "/g)) used.add(m[1] || m[2] || m[3]);
   for (const k of ["Shopping list", "Watchlist", "How many", "Have", "To buy", "Target price", "Lowest", "Edit", "Remove", "Add", "Cancel",
     "Clear all", "Watch", "Search AH", "Add to list", "Neutral", "Horde", "Alliance", "horde", "alliance", "neutral", "Auction house",
     ...JSON.parse(runLua(`local t = {}; for _, c in ipairs(M.CATEGORIES) do t[#t + 1] = '"' .. c[2] .. '"' end; return "[" .. table.concat(t, ",") .. "]"`)),
@@ -2388,4 +2388,24 @@ test("smoke: old prices get a note at login, and copies in a guild tell each oth
     "newer, twice: chat [Fresh has newer prices than you (updated 24h ago). Update the addon in your CurseForge or Wago app to get them.] sent []",
     "notes off: chat [] sent [GUILD 1:T]",
   ]);
+});
+
+test("gold earned today: gains and spending add up per day, logging in and a new day start clean", () => {
+  const out = runLua(`
+    local r = M.MoneyDay(nil, "2026-11-25", 1000, true)   -- login: nothing counted
+    local s = {}
+    local function snap() s[#s + 1] = r.day .. ":" .. r.earned .. ":" .. r.spent .. ":" .. r.last end
+    snap()
+    r = M.MoneyDay(r, "2026-11-25", 1500)                -- looted 5s
+    r = M.MoneyDay(r, "2026-11-25", 1200)                -- spent 3s
+    r = M.MoneyDay(r, "2026-11-25", 1200)                -- no change
+    snap()
+    r = M.MoneyDay(r, "2026-11-25", 9000, true)          -- logged in again with other money: not counted
+    snap()
+    r = M.MoneyDay(r, "2026-11-26", 9100)                -- past midnight: a new day, its first gain counts
+    snap()
+    r = M.MoneyDay(r, "2026-11-27", nil)                 -- a day with no money read yet
+    snap()
+    return table.concat(s, " ")`);
+  assert.equal(out, "2026-11-25:0:0:1000 2026-11-25:500:300:1200 2026-11-25:500:300:9000 2026-11-26:100:0:9100 2026-11-27:0:0:9100");
 });

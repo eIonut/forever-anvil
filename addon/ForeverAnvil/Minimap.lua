@@ -149,19 +149,43 @@ local function buildMenu()
   close:SetSize(24, 24)
   close:SetPoint("TOPRIGHT", -4, -4)
 
+  -- gold earned today (Earnings.lua), a line under the status when its setting is on; hover for spent and net
+  local today = CreateFrame("Button", nil, fr)
+  today:SetSize(WIDTH - 70, 14)
+  today:SetPoint("TOPLEFT", fr.status, "BOTTOMLEFT", -2, -3)
+  today.text = today:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+  today.text:SetPoint("LEFT", 2, 0)
+  local todayGlow = today:CreateTexture(nil, "HIGHLIGHT")
+  todayGlow:SetAllPoints()
+  todayGlow:SetColorTexture(1, 0.82, 0.3, 0.12)
+  today:SetScript("OnEnter", function(self)
+    GameTooltip:SetOwner(self, "ANCHOR_BOTTOM")
+    ns.AddEarningsTooltip(GameTooltip)
+    GameTooltip:Show()
+  end)
+  today:SetScript("OnLeave", function() GameTooltip:Hide() end)
+  today:SetScript("OnClick", function() ns.PrintEarnings() end)
+  fr.today = today
+
+  -- everything below the header: moves down to make room for the gold line
+  local TODAY_ROOM = 14
+  local body = CreateFrame("Frame", nil, fr)
+  body:SetPoint("TOPLEFT")
+  body:SetSize(WIDTH, 1)
+
   local y = -54
-  divider(fr, y)
+  divider(body, y)
   y = y - 10
-  sectionLabel(fr, "Prices and lists", y)
+  sectionLabel(body, "Prices and lists", y)
   y = y - 16
-  fr.prices = actionRow(fr, y, "Interface\\Icons\\INV_Misc_Coin_02", "Auction prices", function()
+  fr.prices = actionRow(body, y, "Interface\\Icons\\INV_Misc_Coin_02", "Auction prices", function()
     fr:Hide()
     ns.ShowPrices()
   end)
   fr.prices.value:SetText("|cff999999" .. L["search every item"] .. "|r")
   y = y - 22
   -- the auction house scan (Scan.lua): its age here, so players know it exists before they're at the auction house
-  fr.scan = actionRow(fr, y, "Interface\\Icons\\INV_Scroll_03", "Scan prices", function()
+  fr.scan = actionRow(body, y, "Interface\\Icons\\INV_Scroll_03", "Scan prices", function()
     fr:Hide()
     ns.StartScan()
   end)
@@ -173,50 +197,50 @@ local function buildMenu()
   end)
   fr.scan:SetScript("OnLeave", function() GameTooltip:Hide() end)
   y = y - 22
-  fr.bags = actionRow(fr, y, "Interface\\Icons\\INV_Misc_Bag_07", "Bag value", function()
+  fr.bags = actionRow(body, y, "Interface\\Icons\\INV_Misc_Bag_07", "Bag value", function()
     fr:Hide()
     ns.ShowBags(true)
   end)
   y = y - 22
-  fr.upgrades = actionRow(fr, y, "Interface\\Icons\\INV_Helmet_03", "Upgrades for you", function()
+  fr.upgrades = actionRow(body, y, "Interface\\Icons\\INV_Helmet_03", "Upgrades for you", function()
     fr:Hide()
     ns.ShowUpgrades(true)
   end)
   y = y - 22
-  fr.shopping = actionRow(fr, y, "Interface\\Icons\\INV_Misc_Bag_10", "Shopping list", function()
+  fr.shopping = actionRow(body, y, "Interface\\Icons\\INV_Misc_Bag_10", "Shopping list", function()
     ns.ShowShopping(not ns.ShoppingShown())
     fr.refresh()
   end)
   y = y - 22
-  fr.watch = actionRow(fr, y, "Interface\\Icons\\INV_Misc_Spyglass_03", "Watchlist", function()
+  fr.watch = actionRow(body, y, "Interface\\Icons\\INV_Misc_Spyglass_03", "Watchlist", function()
     ns.WatchCommand("watch", "")
     fr.refresh()
   end)
   y = y - 22
-  fr.import = actionRow(fr, y, "Interface\\Icons\\INV_Letter_15", "Import from the site", function()
+  fr.import = actionRow(body, y, "Interface\\Icons\\INV_Letter_15", "Import from the site", function()
     fr:Hide()
     ns.ShowImport()
   end)
   fr.import.value:SetText("|cff999999" .. L["watchlist, plan"] .. "|r")
   y = y - 28
-  divider(fr, y)
+  divider(body, y)
   y = y - 10
-  sectionLabel(fr, "Show", y)
+  sectionLabel(body, "Show", y)
   y = y - 16
   fr.toggles = {}
   for _, t in ipairs(TOGGLES) do
-    fr.toggles[#fr.toggles + 1] = toggleRow(fr, y, t[1], t[2])
+    fr.toggles[#fr.toggles + 1] = toggleRow(body, y, t[1], t[2])
     y = y - 20
   end
   y = y - 8
-  divider(fr, y)
+  divider(body, y)
   y = y - 6
-  actionRow(fr, y, "Interface\\Icons\\INV_Misc_Gear_01", "All settings", function()
+  actionRow(body, y, "Interface\\Icons\\INV_Misc_Gear_01", "All settings", function()
     fr:Hide()
     if ns.OpenOptions then ns.OpenOptions() end
   end).value:SetText("|cff999999/fa options|r")
   y = y - 22
-  local hide = actionRow(fr, y, "Interface\\Icons\\INV_Misc_Map_01", "Hide the minimap button", function()
+  local hide = actionRow(body, y, "Interface\\Icons\\INV_Misc_Map_01", "Hide the minimap button", function()
     fr:Hide()
     ns.db.show.minimap = false
     ns.UpdateMinimapButton()
@@ -225,22 +249,28 @@ local function buildMenu()
   hide.label:SetFontObject("GameFontHighlightSmall")
   fr.hide = hide
   y = y - 26
-  local foot = fr:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+  local foot = body:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
   foot:SetPoint("TOPLEFT", 14, y)
   foot:SetText(L["More tools at %s"]:format(ns.SITE))
   y = y - 18
 
-  fr:SetSize(WIDTH, -y + 6)
+  local height = -y + 6
+  fr:SetSize(WIDTH, height)
 
   function fr.refresh()
     fr.status:SetText(ns.StatusLine())
+    local showToday = ns.db.show.earnings and ns.EarnedToday ~= nil
+    today:SetShown(showToday)
+    if showToday then today.text:SetText(L["Earned today: %s"]:format(ns.EarnedText((ns.EarnedToday())))) end
+    body:SetPoint("TOPLEFT", 0, showToday and -TODAY_ROOM or 0)
+    fr:SetHeight(height + (showToday and TODAY_ROOM or 0))
     local n, open, total, complete = ns.ShoppingSummary()
     if n == 0 then
       fr.shopping.value:SetText("|cff999999" .. L["empty"] .. "|r")
     elseif open == 0 then
       fr.shopping.value:SetText("|cff33dd55" .. L["all in bags"] .. "|r")
     else
-      fr.shopping.value:SetText(L["%d to buy"]:format(open) .. "  |cff999999" .. (complete and "" or "~") .. M.ShortMoney(total, true) .. "|r")
+      fr.shopping.value:SetText(L["%d to buy"]:format(open) .. "  |cff999999" .. (complete and "" or "~") .. M.CoinMoney(total) .. "|r")
     end
     local w, hits = ns.WatchSummary()
     if w == 0 then
@@ -260,7 +290,7 @@ local function buildMenu()
     local worth, bagsLoading
     if ns.BagWorth then worth, bagsLoading = ns.BagWorth() end
     if worth and worth > 0 then
-      fr.bags.value:SetText(M.ShortMoney(worth, true))
+      fr.bags.value:SetText(M.CoinMoney(worth))
     else
       fr.bags.value:SetText("|cff999999" .. ((bagsLoading or 0) > 0 and L["loading…"] or L["nothing priced"]) .. "|r")
     end
@@ -400,6 +430,9 @@ local function buildButton()
     GameTooltip:AddLine(ns.StatusLine(), 1, 1, 1)
     local w, hits = ns.WatchSummary()
     if hits > 0 then GameTooltip:AddLine(L["%d of your %d watched items at target"]:format(hits, w), 0.2, 0.87, 0.33) end
+    if ns.db.show.earnings and ns.EarnedToday then
+      GameTooltip:AddLine(L["Earned today: %s"]:format(ns.EarnedText((ns.EarnedToday()))), 1, 1, 1)
+    end
     GameTooltip:AddLine(" ")
     GameTooltip:AddLine("|cffffffff" .. L["Click"] .. "|r  " .. ((ns.data and not ns.Ruleset()) and L["pick this realm's ruleset"] or L["menu"]), 0.6, 0.6, 0.6)
     GameTooltip:AddLine("|cffffffff" .. L["Right-click"] .. "|r  " .. L["settings"], 0.6, 0.6, 0.6)

@@ -1,3 +1,9 @@
+## 2.7
+
+- **Gold earned today**: the minimap menu and the minimap button show how much gold this character got today (loot, quests, sales, the mailbox). Hover it for what you spent and the net, or type `/fa gold`. It starts again at midnight. Turn it off under Minimap and chat in the settings.
+- The minimap menu shows money with the game's gold, silver and copper coins, like the other windows.
+- The settings page scrolls, so its last lines are no longer cut off at the bottom of the settings window.
+
 ## 2.6
 
 - **Sell marks in your bags**: turn on "Mark in bags" in the bag value window (or Sell marks in your bags in the settings, under Bags) and the items worth selling on the auction house get the auction house symbol (the one from the minimap) on their bag slot: unbound items worth more there after its cut than to a vendor or disenchanted. Works with the game's bags and bag addons like Bagnon. Off unless you turn it on.
