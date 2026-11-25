@@ -9,11 +9,13 @@ local L = ns.L
 local LEFT = {
   { "Tooltips",
     { "market", "Market price", "The typical price on your auction house right now." },
+    { "stack", "Stack price", "Hover a stack in your bags to also see what the whole stack is worth at the market price." },
     { "min", "Lowest listed price", "The cheapest listing, and how many are up." },
     { "sold", "Sold per day", "Estimated from how listings change hour to hour." },
     { "region", "Region median", "The typical price across all the region's auction houses." },
     { "de", "Disenchant value", "What disenchanting the item is worth after the auction cut, and the Enchanting skill it needs." },
     { "vendor", "Vendor price per item", "Off by default: the game's own tooltip already shows the stack's sell price." },
+    { "craftCost", "Crafting cost", "What the reagents to craft the item cost on your auction house (at the vendor's price when a vendor sells them), by its cheapest recipe, and the profit selling it there after the 5% cut. ~ means a reagent has no price." },
     { "crates", "Waylaid crates", "The Merchant's Favor a crate pays and the cheapest bundle to fill it." },
   },
   { "Bags",

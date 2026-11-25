@@ -12,7 +12,7 @@ local TIMEOUT = 60   -- seconds to wait for the auctions before giving up
 local SLICE = 1000   -- auctions read per frame
 
 local state = { running = false } -- { running, house, key, started, done, total, byItem, auctions }
-local button, status
+local button, status, statusBox
 
 local function api()
   local A = C_AuctionHouse
@@ -60,12 +60,14 @@ local function refreshButton()
   end
   if waiting then
     status:SetText(L["the auction house is sending its auctions, up to a minute"])
+    if statusBox then statusBox:Show() end
     return
   end
   local wait = ns.ScanWait()
   local bits = { ns.ScanAgeText() }
   if wait > 0 and not state.running then bits[#bits + 1] = L["again in %d min"]:format(math.ceil(wait / 60)) end
-  status:SetText("|cff999999" .. table.concat(bits, " · ") .. "|r")
+  status:SetText("|cffc8c8c8" .. table.concat(bits, " · ") .. "|r")
+  if statusBox then statusBox:Show() end
 end
 ns.RefreshScanButton = refreshButton
 
@@ -175,10 +177,20 @@ local function build()
     GameTooltip:Show()
   end)
   button:SetScript("OnLeave", function() GameTooltip:Hide() end)
-  status = button:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
+  -- the scan's age (or what it's waiting for) on a dark box, so it reads over the game world below the window
+  statusBox = CreateFrame("Frame", nil, button, BackdropTemplateMixin and "BackdropTemplate" or nil)
+  if statusBox.SetBackdrop then
+    statusBox:SetBackdrop({ bgFile = "Interface\\Tooltips\\UI-Tooltip-Background", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+      tile = true, tileSize = 16, edgeSize = 12, insets = { left = 3, right = 3, top = 3, bottom = 3 } })
+    statusBox:SetBackdropColor(0.07, 0.05, 0.03, 0.92)
+    statusBox:SetBackdropBorderColor(0.76, 0.6, 0.29, 1)
+  end
+  status = statusBox:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
   button.status = status
-  status:SetPoint("RIGHT", button, "LEFT", -6, 0)
+  status:SetPoint("RIGHT", button, "LEFT", -14, 0)
   status:SetJustifyH("RIGHT")
+  statusBox:SetPoint("TOPLEFT", status, "TOPLEFT", -8, 6)
+  statusBox:SetPoint("BOTTOMRIGHT", status, "BOTTOMRIGHT", 8, -6)
 end
 
 local events = CreateFrame("Frame")

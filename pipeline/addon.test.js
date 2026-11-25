@@ -8,7 +8,7 @@ import { fileURLToPath } from "node:url";
 import fengari from "fengari";
 import { disenchantTable, disenchantValue } from "../src/lib/demath.js";
 import { craftProfit, aggregate } from "../src/lib/pricemath.js";
-import { encodeHouse, regionMedians, encodeSkill, encodeCrates, encodeItems, encodeGear } from "./addon-data.js";
+import { encodeHouse, regionMedians, encodeSkill, encodeCrates, encodeItems, encodeGear, encodeCrafts } from "./addon-data.js";
 import { findUpgrades } from "../src/lib/upgrades.js";
 import { skillUpChance, planLeveling } from "../src/lib/levelmath.js";
 import { rankCrates } from "../src/lib/cratemath.js";
@@ -143,7 +143,7 @@ test("region median uses houses with at least 3 listings", () => {
 
 // Core + Tooltip with the game's functions stubbed: a Horde character on a PvP realm hovers an item.
 // MODE "script": the classic OnTooltipSetItem script exists; "set": it doesn't, only the tooltip's Set…Item calls are hooked.
-for (const mode of ["script", "set"]) test(`smoke (${mode} hook): tooltip shows this house's prices and disenchant value`, () => {
+for (const mode of ["script", "set", "data"]) test(`smoke (${mode} hook): tooltip shows this house's prices and disenchant value`, () => {
   const house113 = encodeHouse({ 2589: [12, 15, 400, 30, 85], 10940: [100, 110, 500, 40], 10938: [800, 900, 50, 12], 10978: [2400, 2500, 20, 6], 9001: [5000, 5200, 3, 2] });
   const src = (f) => fs.readFileSync(path.join(ADDON, f), "utf8");
   const out = runLua(`
@@ -157,8 +157,18 @@ for (const mode of ["script", "set"]) test(`smoke (${mode} hook): tooltip shows 
       function fr:Show() end
       function fr:NumLines() return #lines end
       function fr:HasScript(k) return MODE == "script" and k == "OnTooltipSetItem" end
-      function fr:SetBagItem() end
+      -- the newer tooltip system: the data post-call runs inside SetBagItem, and the tooltip knows its getter
+      function fr:SetBagItem(bag, slot)
+        if not DATA_CB then return end
+        self.info = { getterName = "GetBagItem", getterArgs = { bag, slot } }
+        DATA_CB(self, {})
+      end
+      function fr:GetPrimaryTooltipInfo() return self.info end
       return fr
+    end
+    if MODE == "data" then
+      Enum = { TooltipDataType = { Item = 0 } }
+      TooltipDataProcessor = { AddTooltipPostCall = function(_, fn) DATA_CB = fn end }
     end
     CreateFrame = frame
     DEFAULT_CHAT_FRAME = { AddMessage = function(_, m) lines[#lines + 1] = "chat: " .. m end }
@@ -171,6 +181,8 @@ for (const mode of ["script", "set"]) test(`smoke (${mode} hook): tooltip shows 
     LoadAddOn = function() end
     time = os.time
     GetCoinTextureString = function(c) return c .. "c" end
+    -- bag 0 slot 1 holds 20 (the "set" hook reads the slot it was given; the script hook can't tell)
+    C_Container = { GetContainerItemInfo = function(bag, slot) if bag == 0 and slot == 1 then return { itemID = 9001, stackCount = 20 } end end }
     -- itemID → name, link, quality, itemLevel, …, sellPrice (11), classID (12)
     local items = { [9001] = { 2, 18, 4, 350 }, [2589] = { 1, 5, 7, 25 }, [9003] = { 2, 18, 4, 350 } }
     local function info(id)
@@ -183,7 +195,9 @@ for (const mode of ["script", "set"]) test(`smoke (${mode} hook): tooltip shows 
     ForeverAnvilData = { EU = { region = "eu", updated = os.time() - 7200,
       rulesets = { { name = "PvP", group = "A", likely = false, alliance = 110, horde = 113, neutral = 116 } },
       houses = { [113] = { group = "A", faction = "horde", data = HOUSE } },
-      regionMedian = "9001,6000,4;", vendorBuy = "", noDisenchant = "11288;9003;" } }
+      regionMedian = "9001,6000,4;", vendorBuy = "", noDisenchant = "11288;9003;",
+      -- 9001: 3 × 2589 + 2 × 10940 (265c), or 100 × 2589 for two (750c each): the first is cheaper
+      crafts = "9001,1|2589:3,10940:2;9001,2|2589:100;" } }
     for _, f in ipairs({ "Core.lua", "Tooltip.lua" }) do assert(load(_G[f], "=" .. f))("ForeverAnvil", ns) end
     -- fire the load events through the Core frame
     ns.frame.OnEvent(ns.frame, "ADDON_LOADED", "ForeverAnvil")
@@ -209,9 +223,12 @@ for (const mode of ["script", "set"]) test(`smoke (${mode} hook): tooltip shows 
     "  Market = 5200c",
     "  Lowest listed = 5000c  |cff999999x3|r",
     "  Sold per day = |cff999999none seen|r",
+    ...(mode !== "script" ? ["  Stack of 20 = 104000c"] : []),
     "  Region median = 6000c  |cff999999" + "4 houses|r",
     // green armor, item level 18: 75% Strange Dust 2–3 (110), 20% Greater Magic (unpriced), 5% Small Glimmering (2500, 6 listings)
     "  Disenchant = ~" + Math.round(Math.round(0.75 * 2.5 * 110 + 0.05 * 2500) * 0.95) + "c  |cff999999skill 1|r",
+    // sells for 5200 here: 5200 × 0.95 − 265 = 4675 profit
+    "  Crafting cost = 265c  |cff33dd55+46s 75c|r",
   ]);
 });
 
@@ -512,6 +529,34 @@ test("recipe skill levels are shipped by spell and decoded by the addon", () => 
   ] }] });
   assert.equal(s, "3275,,30,50;12081,200,215,245;");
   assert.equal(runLua(`local t = M.DecodeSkill(S); return tostring(t[3275][1]) .. "," .. t[3275][2] .. "," .. t[12081][1] .. "," .. t[12081][3]`, { S: s }), "nil,30,200,245");
+});
+
+test("crafting cost: what each item takes ships with the data, and the cheapest recipe prices it", () => {
+  const s = encodeCrafts({ professions: [{ recipes: [
+    [1, "Bolt", "", 500, "", 1, [[10, 4, "Cloth"]], null],
+    [2, "Bolt (bulk)", "", 500, "", 2.5, [[10, 9, "Cloth"], [11, 1, "Dye"]], null],
+    [3, "Enchant", "", null, "", 1, [[10, 1, "Cloth"]], null],     // makes no item
+    [4, "Nothing", "", 600, "", 1, [], null],                       // takes nothing
+    [5, "Arrows", "", 40, "", 200, [[10, 1, "Cloth"], [12, 1, "Unpriced"]], null],
+    [5, "Bolt", "", 500, "", 1, [[10, 4, "Cloth"]], null],          // the same recipe twice ships once
+  ] }] });
+  assert.equal(s, "40,200|10:1,12:1;500,1|10:4;500,2.5|10:9,11:1;");
+  const out = runLua(`
+    local t = M.DecodeCrafts(S)
+    local price = { [10] = 100, [11] = 30 }
+    local costOf = function(id) return price[id] end
+    local function show(id)
+      local c, complete, made = M.CraftCost(t[id], costOf)
+      return tostring(c) .. ":" .. tostring(complete) .. ":" .. tostring(made)
+    end
+    local cheapBulk = show(500)
+    price[11] = nil -- the bulk recipe's dye has no price: the one priced in full wins, though dearer
+    local out = { cheapBulk, show(500), show(40), show(600) }
+    price[10] = nil -- nothing priced: no cost
+    out[#out + 1] = tostring((M.CraftCost(t[40], costOf)))
+    return table.concat(out, ",")`, { S: s });
+  // 9 × 100 + 30 = 930 for 2.5 = 372 each, under 400; then 400 complete; arrows: 100 for 200, partial
+  assert.equal(out, "372:true:2.5,400:true:1,1:false:200,nil:nil:nil,nil");
 });
 
 test("crate fill matches cratemath.js", () => {
@@ -1625,7 +1670,7 @@ test("translations cover every text, with matching placeholders", () => {
   }
   const opt = fs.readFileSync(path.join(ADDON, "Options.lua"), "utf8");
   const optTables = opt.slice(opt.indexOf("local LEFT = {"), opt.indexOf("local panel, category"));
-  const keys = new Set(["market", "min", "sold", "region", "de", "vendor", "crates", "craft", "skillup", "flips", "deAll", "upgrades", "watch", "shopping", "minimap", "updates", "bagMarks", "earnings"]);
+  const keys = new Set(["market", "min", "sold", "region", "de", "vendor", "crates", "craft", "skillup", "flips", "deAll", "upgrades", "watch", "shopping", "minimap", "updates", "bagMarks", "earnings", "craftCost", "stack"]);
   for (const m of optTables.matchAll(/"((?:[^"\\]|\\.)*)"/g)) if (!keys.has(unq(m[1]))) used.add(unq(m[1]));
   const mm = fs.readFileSync(path.join(ADDON, "Minimap.lua"), "utf8");
   for (const m of mm.matchAll(/sectionLabel\((?:fr|body), "([^"]+)"|actionRow\((?:fr|body), y,"[^"]+", "([^"]+)"|\{ "([^"]+)", \{ "/g)) used.add(m[1] || m[2] || m[3]);
@@ -1974,14 +2019,14 @@ test("smoke: scanning the auction house replaces its prices until newer ones shi
     return table.concat(out, "\\n")`, { HOUSE: house, "Core.lua": src("Core.lua"), "Scan.lua": src("Scan.lua") });
   assert.deepEqual(coinLetters(out).split("\n"), [
     "closed: open the auction house to scan it.",
-    "button Scan / |cff999999not scanned yet|r",
+    "button Scan / |cffc8c8c8not scanned yet|r",
     "before 12/15/400/30/120 none, age 7200",
     "requests 1, button Waiting… 0s / the auction house is sending its auctions, up to a minute",
     "scanning: the auction house is sending every auction, which can take up to a minute. Keep it open.",
     "button Waiting… 5s",
     "scanned 4 auctions of 2 items. Your prices for this auction house are from now.",
     "after 10/10/30/2/120 40/45/200/2/60 500/500/1/1/- none none, age 0",
-    "button Scan / |cff999999scanned 0m ago · again in 15 min|r",
+    "button Scan / |cffc8c8c8scanned 0m ago · again in 15 min|r",
     "again: the game allows one scan every 15 minutes: try again in 14 min. (requests 1)",
     "update 12/15/400/30/120 none, age 0",
   ]);

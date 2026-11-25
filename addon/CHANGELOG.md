@@ -1,3 +1,9 @@
+## 2.8
+
+- **Crafting cost on tooltips**: every item a profession makes shows what its reagents cost on your auction house (at the vendor's price for reagents a vendor sells), by its cheapest recipe, and the profit if you sell it there after the 5% cut. You don't need to know the recipe or open the profession window. Items made in stacks show the cost of one. A ~ in front means a reagent has no price, so the real cost is higher. Turn it off under Tooltips in the settings.
+- **Stack price on tooltips**: hover a stack in your bags (say 20 cloth) and the tooltip also shows what the whole stack is worth at the market price. Turn it off under Tooltips in the settings (Stack price).
+- The auction house Scan button's status (how old your scan is, or that it is waiting for the auctions) sits on a dark box, so it is easy to read over the game world.
+
 ## 2.7
 
 - **Gold earned today**: the minimap menu and the minimap button show how much gold this character got today (loot, quests, sales, the mailbox). Hover it for what you spent and the net, or type `/fa gold`. It starts again at midnight. Turn it off under Minimap and chat in the settings.

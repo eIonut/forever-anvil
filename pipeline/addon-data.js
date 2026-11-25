@@ -8,7 +8,8 @@
 // What ships (see docs/addon-plan.md, section 2): per auction house the current
 // [min, market, units listed, listings, sold per day] of each item, one median market per item across the
 // region's houses, and the vendor buy price of crafting reagents (used when a reagent isn't on the AH).
-// Since version 2 also: each recipe's skill levels (leveling helper), the Waylaid crates (crate tooltips), and
+// Since version 2 also: each recipe's skill levels (leveling helper), the Waylaid crates (crate tooltips), what
+// each crafted item takes (crafting cost on tooltips, 2.8), and
 // the names, quality, category and icon of the items on sale (the in-game prices window searches by name,
 // and the game only knows the names of items it has loaded).
 //
@@ -69,6 +70,21 @@ export function encodeSkill(recipes) {
     by.set(info[5], `${info[5]},${info[0] ?? ""},${info[1]},${info[2]};`);
   }
   return [...by.keys()].sort((a, b) => a - b).map((k) => by.get(k)).join("");
+}
+
+/**
+ * What every crafted item takes, for the crafting cost on tooltips (2.8): "item,made|reagent:count,…;" one
+ * entry per recipe (an item several recipes make has several), sorted by item. made can be a fraction (an
+ * average). From recipes_<region>.json rows [id, name, category, itemId, itemName, made, [[reagent, count, name], …], info].
+ */
+export function encodeCrafts(recipes) {
+  const rows = new Set();
+  for (const p of (recipes && recipes.professions) || []) for (const r of p.recipes || []) {
+    const mats = (r[6] || []).filter(([id, n]) => id && n > 0);
+    if (!r[3] || !mats.length) continue;
+    rows.add(`${r[3]},${r[5] > 0 ? r[5] : 1}|${mats.map(([id, n]) => `${id}:${n}`).join(",")};`);
+  }
+  return [...rows].sort((a, b) => parseInt(a, 10) - parseInt(b, 10) || (a < b ? -1 : 1)).join("");
 }
 
 /**
@@ -193,6 +209,8 @@ export function buildRegion(region, inDir) {
     // skill levels of every recipe, by its spell (the game's recipe id), for the leveling helper
     `  skill = ${luaStr(encodeSkill(recipes))},`,
     `  crates = ${luaStr(encodeCrates(crates))},`,
+    // what each crafted item takes, for the crafting cost on tooltips (version 2.8)
+    `  crafts = ${luaStr(encodeCrafts(recipes))},`,
     // names, quality, category, level and icon of every item on sale, for the prices window (version 2)
     `  items = ${luaStr(encodeItems(cache, onSale))},`,
     // subclass, slot and item level of the gear on sale, for the upgrade finder (version 2.2)
