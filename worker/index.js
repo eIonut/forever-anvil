@@ -3,7 +3,7 @@
 //   /api/<kind>/<region>[/<part>]   price-job files from Workers KV (see routes.js)
 //   /api/character?region=&name=    character lookup, asked from Blizzard with the key kept here
 //
-// Only /api requests run this code (wrangler.jsonc: run_worker_first). Pages, images and scripts
+// Only /api requests and addresses with no file run this code (wrangler.jsonc). Pages, images and scripts
 // are served by Cloudflare directly, for free, and don't count toward the Worker's daily limit.
 //
 // Protection, outermost first:
@@ -13,6 +13,7 @@
 //   3. Answers are kept in Cloudflare's cache here, so most requests never read KV or call Blizzard.
 //   4. Character lookups have their own per-visitor limit and a 15-minute cache per character.
 import { dataRoute } from "./routes.js";
+import { oldPageRedirect } from "./oldpages.js";
 import { ensureHourlyRun } from "./hourly.js";
 import { createClient } from "../pipeline/blizzard.js";
 import { lookupCharacter, normalizeName } from "../pipeline/character.js";
@@ -27,7 +28,12 @@ const LOOKUP_REGIONS = ["us", "eu", "kr", "tw"];
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    if (!url.pathname.startsWith("/api/")) return env.ASSETS.fetch(request);
+    if (!url.pathname.startsWith("/api/")) {
+      // only addresses with no file get here; an old item/recipe name goes on to the current page
+      const page = await env.ASSETS.fetch(request);
+      if (page.status !== 404) return page;
+      return (await oldPageRedirect(request, url, env)) || notFoundPage(request, env);
+    }
     return noindex(await api(request, url, env, ctx));
   },
 
@@ -37,6 +43,12 @@ export default {
     console.log("Hourly backup trigger:", result);
   }
 };
+
+// The site's 404 page, with a 404 status (wrangler.jsonc has not_found_handling "none")
+async function notFoundPage(request, env) {
+  const res = await env.ASSETS.fetch(new Request(new URL("/404", request.url), { method: request.method }));
+  return new Response(res.body, { status: 404, headers: res.headers });
+}
 
 async function api(request, url, env, ctx) {
   if (request.method !== "GET" && request.method !== "HEAD") return json(405, { error: "method" }, "no-store");

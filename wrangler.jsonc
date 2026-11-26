@@ -12,8 +12,10 @@
     "binding": "ASSETS",
     // /prices serves prices.html, and /prices.html redirects to /prices
     "html_handling": "auto-trailing-slash",
-    "not_found_handling": "404-page",
-    // only /api requests run the Worker; everything else is served directly (free, unlimited)
+    // an address with no file runs the Worker, which forwards old item/recipe names and otherwise
+    // serves 404.html itself (worker/index.js)
+    "not_found_handling": "none",
+    // only /api requests and missing files run the Worker; pages are served directly (free, unlimited)
     "run_worker_first": ["/api/*"]
   },
 
