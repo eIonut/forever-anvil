@@ -75,7 +75,7 @@ const deWorth = de ? disenchantValue(de, (m: number) => deHouse(m).ah) : null;
 const deNet = deWorth && deWorth.complete ? Math.round(deWorth.value * 0.95) : null;
 const dePct = (x: number) => Math.round(x * 1000) / 10 + "%";
 ---
-<BaseLayout title={`${titleName} Price, WoW: Forever | Forever Anvil`} description={description} page="items" image="items" jsonld={jsonld}>
+<BaseLayout title={`${titleName} Price, WoW: Forever | Forever Anvil`} description={description} page="items" image="items" jsonld={jsonld} noindex={c.thinIds.has(String(id))}>
   <section class="page-hero page-hero-item"><div class="wrap"><div class="hero-frame">
     <nav class="crumbs" aria-label="Breadcrumb"><a href="/">Home</a> › <a href="/item">Item prices</a> › {itemClass && <Fragment><a href={categoryUrl(itemClass)}>{itemClass}</a> › </Fragment>}{name}</nav>
     <div class="item-title"><ItemTitleIcon id={id} /><h1 class={quality ? `q-${quality}` : ""}>{name}</h1><CopyName name={name} large /><WatchStar id={id} name={name} large /></div>

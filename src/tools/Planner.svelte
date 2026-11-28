@@ -7,7 +7,7 @@
   import { onMount, tick } from "svelte";
   import { planShoppingList } from "../lib/pricemath.js";
   import { shoppingString } from "../lib/addonstring.js";
-  import { copyText, getCachedJSON, getJSON, groupLabel, priceUrl } from "../lib/api";
+  import { copyText, getCachedJSON, getJSON, groupLabel, priceUrl, noDataMessage } from "../lib/api";
   import { notify } from "../lib/notify";
   import { askConfirm } from "../lib/dialog";
   import { getMarketPrefs, saveMarketPrefs } from "../lib/marketPrefs";
@@ -135,7 +135,7 @@
   $effect(() => { rows; mats; if (ready) tick().then(setupWowhead); });
 </script>
 
-<div class="wrap section" hidden={!empty}><div class="panel"><h2>No data yet</h2><p>Run <code>npm run prices</code>, then reload this page.</p></div></div>
+<div class="wrap section" hidden={!empty}><div class="panel"><h2>No data yet</h2><p>{noDataMessage("The crafting planner is temporarily unavailable. Please try again in a few minutes.", "No data on this computer yet. Run `npm run prices`, then reload this page.")}</p></div></div>
 
 <div class="wrap section" hidden={empty}>
   <div class="panel controls">

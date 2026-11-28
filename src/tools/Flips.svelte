@@ -5,7 +5,7 @@
   import Loading from "./Loading.svelte";
   import SkeletonRows from "./SkeletonRows.svelte";
   import { onMount } from "svelte";
-  import { getCachedJSON, getJSON, groupLabel, priceUrl } from "../lib/api";
+  import { getCachedJSON, getJSON, groupLabel, priceUrl, noDataMessage } from "../lib/api";
   import { announce } from "../lib/announce";
   import { getMarketPrefs, saveMarketPrefs } from "../lib/marketPrefs";
   import { setupWowhead } from "../lib/wowhead";
@@ -55,7 +55,7 @@
   });
 </script>
 
-<div class="wrap section" hidden={!empty}><div class="panel"><h2>No data yet</h2><p>Run <code>npm run prices</code>, then reload this page.</p></div></div>
+<div class="wrap section" hidden={!empty}><div class="panel"><h2>No data yet</h2><p>{noDataMessage("Vendor flips are temporarily unavailable. Please try again in a few minutes.", "No data on this computer yet. Run `npm run prices`, then reload this page.")}</p></div></div>
 
 <div class="wrap section" hidden={empty}>
   <div class="panel controls">

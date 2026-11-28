@@ -10,6 +10,7 @@ import { GROUPS } from "../../pipeline/houses.js";
 import { REGION_NAMES } from "../lib/labels";
 import { dateText } from "../lib/format";
 import { itemUrl } from "../lib/urls";
+import { isThinItem } from "../lib/indexable.js";
 import type { RecipeInfo } from "../lib/recipeinfo";
 
 /** items_<region>.json entry: [name, vendorSells, dayFetched, vendorBuys, quality, itemClass, iconFileId] */
@@ -71,6 +72,8 @@ export interface Catalog {
   recipes: Recipe[];
   /** items that get a page: named, and either on an auction house or part of a recipe */
   pageIds: string[];
+  /** item pages too thin for search engines: noindex, not in the sitemap */
+  thinIds: Set<string>;
   hasPage: Set<string>;
   /** the "main" market for summaries and material costs: first confirmed ruleset, Alliance */
   primaryHouse: { region: string; houseId: string; label: string } | null;
@@ -141,6 +144,10 @@ export function loadCatalog(): Catalog {
   }
 
   const pageIds = Object.keys(names).filter((id) => names[id]?.[0] && (prices[id] || made[id] || used[id]));
+  // Pages built and linked, but marked noindex and left out of the sitemap (src/lib/indexable.js)
+  const thinIds = new Set(pageIds.filter((id) => isThinItem({
+    quality: names[id][4], houses: prices[id]?.length || 0, made: !!made[id], used: !!used[id],
+  })));
 
   let primaryHouse: Catalog["primaryHouse"] = null;
   const houses: House[] = [];
@@ -158,7 +165,7 @@ export function loadCatalog(): Catalog {
   houses.sort((a, b) => Number(b.confirmed) - Number(a.confirmed));
 
   cached = {
-    regions, names, prices, history, made, used, recipes, pageIds,
+    regions, names, prices, history, made, used, recipes, pageIds, thinIds,
     hasPage: new Set(pageIds), primaryHouse, houses,
     asOf: updated ? dateText(updated) : "",
   };

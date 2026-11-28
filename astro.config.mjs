@@ -3,6 +3,16 @@ import { defineConfig } from "astro/config";
 import svelte from "@astrojs/svelte";
 import sitemap from "@astrojs/sitemap";
 import devApi from "./integrations/dev-api.ts";
+import { loadCatalog } from "./src/data/catalog.ts";
+import { itemIdFromUrl } from "./src/lib/indexable.js";
+
+// The sitemap leaves out the 404 page (it's noindex) and thin item pages (also noindex, see
+// src/lib/indexable.js). The catalog is only read when the sitemap is written, at the end of a build.
+const inSitemap = (page) => {
+  if (/\/404\/?$/.test(page)) return false;
+  const id = itemIdFromUrl(page);
+  return !id || !loadCatalog().thinIds.has(id);
+};
 
 export default defineConfig({
   // Used for canonical links and the sitemap. Override with SITE_URL when testing another domain.
@@ -19,6 +29,5 @@ export default defineConfig({
   prefetch: { prefetchAll: true, defaultStrategy: "hover" },
   // lastmod = build day: generated pages are rebuilt daily with fresh prices
   // devApi: /out/* and /api/character during `npm run dev` only
-  // The sitemap leaves out the 404 page (it's noindex).
-  integrations: [svelte(), sitemap({ lastmod: new Date(), filter: (page) => !/\/404\/?$/.test(page) }), devApi()],
+  integrations: [svelte(), sitemap({ lastmod: new Date(), filter: inSitemap }), devApi()],
 });

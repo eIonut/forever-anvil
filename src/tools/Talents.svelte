@@ -4,7 +4,7 @@
   import type { Snippet } from "svelte";
   import { onMount, tick } from "svelte";
   import * as TM from "../lib/talentmath.js";
-  import { copyText, getJSON, priceUrl } from "../lib/api";
+  import { copyText, getJSON, priceUrl, noDataMessage } from "../lib/api";
   import { announce } from "../lib/announce";
   import { notify } from "../lib/notify";
   import { load, save } from "../lib/store";
@@ -162,7 +162,7 @@
   <b class="tc-tip-name">{n[3]}</b><span class="tc-tip-rank">Rank {r}/{max}</span>{#if req}<p class="tc-req">{req}</p>{/if}<p>{r > 0 ? n[5][r - 1] : n[5][0]}</p>{#if next}<p class="tc-next"><b>Next rank:</b> {next}</p>{/if}
 {/snippet}
 
-<div class="wrap section" hidden={!empty}><div class="panel"><h2>No talent data yet</h2><p>Run <code>npm run prices</code>, then reload this page.</p></div></div>
+<div class="wrap section" hidden={!empty}><div class="panel"><h2>No talent data yet</h2><p>{noDataMessage("The talent calculator is temporarily unavailable. Please try again in a few minutes.", "No data on this computer yet. Run `npm run prices`, then reload this page.")}</p></div></div>
 
 <div class="wrap section tc-app" hidden={empty} bind:this={app} style={cls ? `--cc: var(--c-${cls.name.toLowerCase()})` : undefined}>
   <nav class="tc-classes" role="group" aria-label="Choose a class">

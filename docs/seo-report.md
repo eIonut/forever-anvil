@@ -100,7 +100,7 @@ Ranked by expected value:
 
 1. **IndexNow.** A small step in the daily job that tells Bing and Yandex which pages changed, so they're picked up within hours. Cloudflare can do this automatically with *Crawler Hints* (one switch in the dashboard).
 2. **A lighter `/item` page.** It's 2.9 MB because it lists 9,800 items with icons. Now that the category pages exist, it could become a hub (categories, letters, search) with A–Z pages per letter. This would help mobile speed. It also changes how the search box works, so it's your call.
-3. **noindex for the lowest-value item pages.** For example, grey-quality items that aren't on the Auction House and aren't used in any recipe. This concentrates Google's attention on pages people search for. Wait for Search Console data before doing this.
+3. **noindex for the lowest-value item pages. Done (November 2026),** after AdSense rejected the site for "low value content". Item pages with no recipe link that are grey quality, or listed on 2 or fewer of the 16 auction houses, are built and linked but marked noindex and left out of the sitemap: about 800 of 8,450. The rule is in `src/lib/indexable.js`; adjust it once Search Console shows which pages Google won't index.
 4. **Profession leveling paths.** Pages that work out the cheapest way to level a profession from today's prices (e.g. `/profession/tailoring/leveling`). Those searches get a lot of traffic, and the page would be built from data you already have.
 5. **An app icon (`apple-touch-icon.png` plus a web manifest)** for phones that save the site to the home screen. This has a small SEO effect.
 
